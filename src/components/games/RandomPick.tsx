@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function RandomBox() {
+export default function RandomPick() {
   const [items, setItems] = useState<string[]>([
     "노래 한 소절 부르기",
     "옆 사람 칭찬하기",
@@ -31,7 +31,7 @@ export default function RandomBox() {
 
   const handleRandomPick = () => {
     if (items.length === 0) {
-      alert("랜덤박스에 항목을 먼저 추가해 주세요.");
+      alert("랜덤 픽에 항목을 먼저 추가해 주세요.");
       return;
     }
 
@@ -47,7 +47,7 @@ export default function RandomBox() {
 
   return (
     <section>
-      <h2>랜덤박스</h2>
+      <h2>랜덤 픽</h2>
 
       <div>
         <input
