@@ -1,5 +1,5 @@
-import RandomBox from "@/components/games/RandomPick";
+import RandomPick from "@/components/games/RandomPick";
 
-export default function RandomBoxPage() {
-  return <RandomBox />;
+export default function RandomPickPage() {
+  return <RandomPick />;
 }
