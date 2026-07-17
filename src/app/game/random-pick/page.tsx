@@ -1,4 +1,4 @@
-import RandomBox from "@/components/games/RandomBox";
+import RandomBox from "@/components/games/RandomPick";
 
 export default function RandomBoxPage() {
   return <RandomBox />;
