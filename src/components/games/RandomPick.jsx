@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 export default function RandomPick() {
-  const [items, setItems] = useState<string[]>([
+  const [items, setItems] = useState([
     "노래 한 소절 부르기",
     "옆 사람 칭찬하기",
     "재미있는 표정 짓기",
@@ -24,7 +24,7 @@ export default function RandomPick() {
     setResult("");
   };
 
-  const handleDeleteItem = (deleteIndex: number) => {
+  const handleDeleteItem = deleteIndex => {
     setItems(prev => prev.filter((_, index) => index !== deleteIndex));
     setResult("");
   };

@@ -2,14 +2,8 @@
 
 import { useState } from "react";
 
-type Quiz = {
-  initial: string;
-  answer: string;
-  hint: string;
-};
-
 export default function InitialQuiz() {
-  const quizzes: Quiz[] = [
+  const quizzes = [
     {
       initial: "ㅂㄹㅅ ㄱㅇ",
       answer: "밸런스 게임",
