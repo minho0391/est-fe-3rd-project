@@ -1,0 +1,23 @@
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 220px;
+  height: 300px;
+  padding: 0;
+  background: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  transition: transform 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.logo {
+  color: #fff;
+  font-size: 120px;
+  font-weight: 700;
+  line-height: 1;
+}
