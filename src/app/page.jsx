@@ -80,6 +80,7 @@ export default function MainPage() {
               {games.map(game => (
                 <GameCard
                   key={game.id}
+                  href={game.href}
                   title={game.title}
                   description={game.description}
                   icon={game.icon}

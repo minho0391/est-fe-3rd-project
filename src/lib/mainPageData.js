@@ -30,18 +30,21 @@ export const types = [
 export const games = [
   {
     id: "cardflip",
+    href: "/game/card-game",
     title: "카드 뒤집기",
     description: "어떤 대화가 나올지 모르는 스릴 넘치는 카드 선택",
     icon: "/game-cardflip.svg",
   },
   {
     id: "randompick",
+    href: "/game/random-pick",
     title: "랜덤 픽",
     description: "AI가 무작위로 선정하는 오늘의 가장 뜨거운 주제",
     icon: "/game-randompick.svg",
   },
   {
     id: "chosung",
+    href: "/game/initial-quiz",
     title: "초성 퀴즈",
     description: "두뇌 풀가동! 상황별 키워드를 초성으로 맞혀보세요",
     icon: "/game-chosung.svg",

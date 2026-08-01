@@ -9,8 +9,16 @@
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
+.card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-card);
+}
 .icon {
   width: 64px;
   height: 64px;
