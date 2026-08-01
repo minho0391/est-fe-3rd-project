@@ -1,66 +1,97 @@
-import Image from "next/image";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import Button from "@/components/ui/Button";
+import PresetCard from "@/components/main/PresetCard";
+import TypeCard from "@/components/main/TypeCard";
+import GameCard from "@/components/main/GameCard";
+import { presets, types, games } from "@/lib/mainPageData";
 import styles from "./page.module.css";
 
-export default function Home() {
+export default function MainPage() {
   return (
     <div className={styles.page}>
+      <Header />
+
       <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
+        <section className={styles.hero}>
+          <div className={styles.heroContent}>
+            <h1 className={styles.heroTitle}>
+              할 말 없어서
+              <br />또 폰만 봤죠?
+            </h1>
+            <p className={styles.heroDescription}>
+              어떤 모임에 어떤 분위기든,
+              <br />
+              고르기만 하면 AI가 대화 소재를 뽑아 드려요.
+            </p>
+            <Button
+              size="cta"
+              trailingIcon={<img src="/arrow.svg" alt="" width={16} height={16} />}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+              대화 소재 받기
+            </Button>
+          </div>
+        </section>
+
+        <div className={styles.sections}>
+          <section className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.heading}>
+                <span className={styles.headingTitle}>프리셋 </span>
+                <span className={styles.headingSubtitle}>(상황별)</span>
+              </h2>
+              <button type="button" className={styles.more}>
+                더보기
+              </button>
+            </div>
+            <div className={styles.cards}>
+              {presets.map(preset => (
+                <PresetCard key={preset.id} label={preset.label} image={preset.image} />
+              ))}
+            </div>
+          </section>
+
+          <section className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.heading}>
+                <span className={styles.headingTitle}>형식 </span>
+                <span className={styles.headingSubtitle}>(종류별)</span>
+              </h2>
+            </div>
+            <div className={styles.cards}>
+              {types.map(type => (
+                <TypeCard
+                  key={type.id}
+                  title={type.title}
+                  description={type.description}
+                  icon={type.icon}
+                />
+              ))}
+            </div>
+          </section>
+
+          <section className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.heading}>
+                <span className={styles.headingTitle}>게임</span>
+              </h2>
+            </div>
+            <div className={styles.cards}>
+              {games.map(game => (
+                <GameCard
+                  key={game.id}
+                  href={game.href}
+                  title={game.title}
+                  description={game.description}
+                  icon={game.icon}
+                />
+              ))}
+            </div>
+          </section>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }
