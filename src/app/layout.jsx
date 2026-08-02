@@ -1,6 +1,5 @@
-import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import { ThemeProvider } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
 import theme from "@/lib/theme";
 import "./globals.css";
 
@@ -14,10 +13,7 @@ export default function RootLayout({ children }) {
     <html lang="ko">
       <body>
         <AppRouterCacheProvider options={{ key: "mui" }}>
-          <ThemeProvider theme={theme}>
-            <CssBaseline />
-            {children}
-          </ThemeProvider>
+          <ThemeProvider theme={theme}>{children}</ThemeProvider>
         </AppRouterCacheProvider>
       </body>
     </html>

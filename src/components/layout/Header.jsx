@@ -1,4 +1,10 @@
-import styles from "./Header.module.css";
+"use client";
+
+import NextLink from "next/link";
+import Box from "@mui/material/Box";
+import MuiLink from "@mui/material/Link";
+import MuiButton from "@mui/material/Button";
+import { layout } from "@/lib/layout";
 
 const navItems = [
   { label: "Discover", href: "#", active: false },
@@ -8,36 +14,103 @@ const navItems = [
 ];
 
 export default function Header() {
-  const getNavClass = active => (active ? `${styles.navLink} ${styles.active}` : styles.navLink);
-
   return (
-    <header className={styles.header}>
-      <div className={styles.inner}>
-        <div className={styles.left}>
-          <a href="/" className={styles.logo}>
+    <Box
+      component="header"
+      sx={{
+        width: "100%",
+        bgcolor: "background.paper",
+        borderBottom: 1,
+        borderColor: "divider",
+        px: `${layout.gutter}px`,
+        pt: 2,
+        pb: "17px",
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          width: "100%",
+          maxWidth: `${layout.maxWidth}px`,
+          height: 64,
+          mx: "auto",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <MuiLink
+            component={NextLink}
+            href="/"
+            underline="none"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              height: 40,
+              color: "primary.main",
+              fontSize: 24,
+              lineHeight: "32px",
+              fontWeight: 700,
+            }}
+          >
             Momentalk
-          </a>
-          <nav>
-            <ul className={styles.nav}>
-              {navItems.map(item => (
-                <li key={item.label}>
-                  <a href={item.href} className={getNavClass(item.active)}>
-                    {item.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
-        <div className={styles.auth}>
-          <button type="button" className={styles.login}>
+          </MuiLink>
+
+          <Box component="nav" sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+            {navItems.map(item => (
+              <MuiLink
+                key={item.label}
+                component={NextLink}
+                href={item.href}
+                underline="none"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  height: 40,
+                  fontSize: 14,
+                  lineHeight: "24px",
+                  color: item.active ? "primary.main" : "text.secondary",
+                  fontWeight: item.active ? 700 : 400,
+                }}
+              >
+                {item.label}
+              </MuiLink>
+            ))}
+          </Box>
+        </Box>
+
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <MuiButton
+            sx={{
+              height: 40,
+              px: 3,
+              py: 1,
+              borderRadius: "8px",
+              color: "primary.main",
+              fontSize: 14,
+              lineHeight: "24px",
+              fontWeight: 400,
+            }}
+          >
             로그인
-          </button>
-          <button type="button" className={styles.signup}>
+          </MuiButton>
+          <MuiButton
+            variant="contained"
+            disableElevation
+            sx={{
+              height: 40,
+              px: 3,
+              py: 1,
+              borderRadius: "12px",
+              fontSize: 14,
+              lineHeight: "24px",
+              fontWeight: 400,
+            }}
+          >
             회원가입
-          </button>
-        </div>
-      </div>
-    </header>
+          </MuiButton>
+        </Box>
+      </Box>
+    </Box>
   );
 }
