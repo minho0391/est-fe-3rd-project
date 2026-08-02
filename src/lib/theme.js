@@ -52,32 +52,10 @@ const theme = createTheme({
   },
   shape: { borderRadius: 8 },
   components: {
-    MuiCssBaseline: {
-      styleOverrides: {
-        html: { height: "100%" },
-        body: {
-          minHeight: "100%",
-          display: "flex",
-          flexDirection: "column",
-          maxWidth: "100vw",
-          overflowX: "hidden",
-          WebkitFontSmoothing: "antialiased",
-          MozOsxFontSmoothing: "grayscale",
-        },
-        a: { color: "inherit", textDecoration: "none" },
-        img: { display: "block" },
-      },
-    },
     MuiButton: {
       defaultProps: { disableElevation: true },
     },
   },
 });
-
-// 레이아웃 상수 (시안 기준 PC 1440, 좌우 여백 120)
-export const layout = {
-  maxWidth: 1200,
-  gutter: 120,
-};
 
 export default theme;
