@@ -1,102 +1,133 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import GameHeader from "@/components/layout/GameHeader";
+import Footer from "@/components/layout/Footer";
+import RandomPickResult from "./RandomPickResult";
+import { supabase } from "@/lib/supabase";
+import { balls, RANDOM_PICK_FORMATS } from "@/lib/randomPickData";
+import styles from "./RandomPick.module.css";
+
+const BALL_GAP = 255.5;
+const SHUFFLE_STEPS = 4;
+const STEP_DURATION = 380;
+
+function shuffle(list) {
+  const next = [...list];
+  for (let i = next.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [next[i], next[j]] = [next[j], next[i]];
+  }
+  return next;
+}
 
 export default function RandomPick() {
-  const [items, setItems] = useState([
-    "노래 한 소절 부르기",
-    "옆 사람 칭찬하기",
-    "재미있는 표정 짓기",
-  ]);
-  const [input, setInput] = useState("");
-  const [result, setResult] = useState("");
+  const [order, setOrder] = useState(() => balls.map((_, i) => i));
+  const [isShuffling, setIsShuffling] = useState(true);
+  const [pool, setPool] = useState([]);
+  const [loadError, setLoadError] = useState(false);
+  const [result, setResult] = useState(null);
+  const timers = useRef([]);
 
-  const handleAddItem = () => {
-    const newItem = input.trim();
+  const clearTimers = () => {
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
+  };
 
-    if (!newItem) {
-      alert("내용을 입력해 주세요.");
-      return;
+  // 셔플 애니메이션
+  useEffect(() => {
+    for (let step = 1; step <= SHUFFLE_STEPS; step += 1) {
+      timers.current.push(setTimeout(() => setOrder(prev => shuffle(prev)), step * STEP_DURATION));
     }
+    timers.current.push(setTimeout(() => setIsShuffling(false), SHUFFLE_STEPS * STEP_DURATION));
+    return clearTimers;
+  }, []);
 
-    setItems(prev => [...prev, newItem]);
-    setInput("");
-    setResult("");
+  // 콘텐츠 풀 미리 받아두기 (extras는 note가 섞여 있어 select에서 제외)
+  useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      const { data, error } = await supabase
+        .from("default_contents")
+        .select("id, title, scripts, tips, format_code")
+        .in("format_code", RANDOM_PICK_FORMATS)
+        .limit(300);
+
+      if (!alive) return;
+      if (error || !data || data.length === 0) {
+        setLoadError(true);
+        return;
+      }
+      setPool(data);
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const pickRandom = previousId => {
+    const candidates = pool.filter(item => item.id !== previousId);
+    const list = candidates.length > 0 ? candidates : pool;
+    return list[Math.floor(Math.random() * list.length)];
   };
 
-  const handleDeleteItem = deleteIndex => {
-    setItems(prev => prev.filter((_, index) => index !== deleteIndex));
-    setResult("");
+  const skipShuffle = () => {
+    if (!isShuffling) return;
+    clearTimers();
+    setOrder(prev => shuffle(prev));
+    setIsShuffling(false);
   };
 
-  const handleRandomPick = () => {
-    if (items.length === 0) {
-      alert("랜덤 픽에 항목을 먼저 추가해 주세요.");
-      return;
-    }
+  const handlePick = () => setResult(pickRandom(null));
+  const handleRepick = () => setResult(prev => pickRandom(prev?.id));
+  const handleClose = () => setResult(null);
 
-    const randomIndex = Math.floor(Math.random() * items.length);
-    setResult(items[randomIndex]);
-  };
+  const isReady = !isShuffling && pool.length > 0;
 
-  const handleReset = () => {
-    setItems([]);
-    setInput("");
-    setResult("");
-  };
+  let titleText = "마음에 드는 공을 하나 고르세요";
+  if (isShuffling) titleText = "공을 섞는 중이에요";
+  else if (loadError) titleText = "콘텐츠를 불러오지 못했어요";
+  else if (pool.length === 0) titleText = "콘텐츠를 불러오는 중이에요";
 
   return (
-    <section>
-      <h2>랜덤 픽</h2>
+    <div className={styles.page}>
+      <GameHeader title="랜덤 픽" />
 
-      <div>
-        <input
-          type="text"
-          value={input}
-          placeholder="질문, 미션, 벌칙 등을 입력하세요."
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => {
-            if (e.key === "Enter") {
-              handleAddItem();
-            }
-          }}
-        />
+      <main className={styles.main} onClick={skipShuffle}>
+        <div className={styles.content}>
+          <h2 className={styles.title}>{titleText}</h2>
 
-        <button type="button" onClick={handleAddItem}>
-          추가
-        </button>
-      </div>
+          <div className={styles.card}>
+            <span className={styles.accentBar} aria-hidden="true" />
+            <div className={styles.balls}>
+              {balls.map((ball, index) => (
+                <button
+                  key={ball.id}
+                  type="button"
+                  className={styles.ball}
+                  style={{ transform: `translateX(${(order[index] - index) * BALL_GAP}px)` }}
+                  onClick={handlePick}
+                  disabled={!isReady}
+                  aria-label={`${index + 1}번 공 선택`}
+                >
+                  <span className={styles.highlight} aria-hidden="true" />
+                </button>
+              ))}
+            </div>
+          </div>
 
-      <ul>
-        {items.map((item, index) => (
-          <li key={`${item}-${index}`}>
-            <span>{item}</span>
+          {isShuffling && <p className={styles.hint}>화면을 누르면 건너뛸 수 있어요</p>}
+          {loadError && <p className={styles.hint}>잠시 후 새로고침해 주세요.</p>}
+        </div>
+      </main>
 
-            <button type="button" onClick={() => handleDeleteItem(index)}>
-              삭제
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      {items.length === 0 && <p>등록된 항목이 없습니다.</p>}
-
-      <div>
-        <button type="button" onClick={handleRandomPick}>
-          랜덤 뽑기
-        </button>
-
-        <button type="button" onClick={handleReset}>
-          전체 삭제
-        </button>
-      </div>
+      <Footer />
 
       {result && (
-        <div>
-          <h3>선택 결과</h3>
-          <p>{result}</p>
-        </div>
+        <RandomPickResult content={result} onClose={handleClose} onRepick={handleRepick} />
       )}
-    </section>
+    </div>
   );
 }
