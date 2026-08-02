@@ -1,165 +1,63 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Box from "@mui/material/Box";
+import GameHeader from "@/components/layout/GameHeader";
+import Footer from "@/components/layout/Footer";
+import QuizSetup from "./QuizSetup";
+import QuizPlay from "./QuizPlay";
+import QuizAnswer from "./QuizAnswer";
+import { layout } from "@/lib/layout";
 
 export default function InitialQuiz() {
-  const quizzes = [
-    {
-      initial: "ㅂㄹㅅ ㄱㅇ",
-      answer: "밸런스 게임",
-      hint: "두 가지 선택지 중 하나를 고르는 게임",
-    },
-    {
-      initial: "ㄹㄷㅂㅅ",
-      answer: "랜덤박스",
-      hint: "여러 항목 중 하나를 무작위로 뽑는 게임",
-    },
-    {
-      initial: "ㅋㄷㄱㅇ",
-      answer: "카드게임",
-      hint: "카드를 뒤집어 질문을 확인하는 게임",
-    },
-    {
-      initial: "ㅊㅅㅋㅈ",
-      answer: "초성퀴즈",
-      hint: "자음만 보고 정답을 맞히는 게임",
-    },
-    {
-      initial: "ㅁㅁㅌ",
-      answer: "모멘톡",
-      hint: "우리 팀프로젝트 서비스 이름",
-    },
-  ];
+  const router = useRouter();
+  const [step, setStep] = useState("setup"); // setup | play | answer
+  const [quiz, setQuiz] = useState(null);
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [input, setInput] = useState("");
-  const [message, setMessage] = useState("");
-  const [showHint, setShowHint] = useState(false);
-  const [showAnswer, setShowAnswer] = useState(false);
-
-  const currentQuiz = quizzes[currentIndex];
-
-  const handleSubmit = () => {
-    const userAnswer = input.trim().replaceAll(" ", "");
-    const correctAnswer = currentQuiz.answer.replaceAll(" ", "");
-
-    if (!userAnswer) {
-      alert("정답을 입력해 주세요.");
-      return;
-    }
-
-    if (userAnswer === correctAnswer) {
-      setMessage("정답입니다!");
-      setShowAnswer(true);
-      return;
-    }
-
-    setMessage("틀렸습니다. 다시 생각해 보세요.");
+  const handleSubmit = data => {
+    setQuiz(data);
+    setStep("play");
   };
 
-  const handleNextQuiz = () => {
-    setCurrentIndex(prev => {
-      if (prev === quizzes.length - 1) {
-        return 0;
-      }
+  const handleReveal = () => setStep("answer");
 
-      return prev + 1;
-    });
-
-    setInput("");
-    setMessage("");
-    setShowHint(false);
-    setShowAnswer(false);
+  const handleNext = () => {
+    setQuiz(null);
+    setStep("setup");
   };
 
-  const handlePreviousQuiz = () => {
-    setCurrentIndex(prev => {
-      if (prev === 0) {
-        return quizzes.length - 1;
-      }
-
-      return prev - 1;
-    });
-
-    setInput("");
-    setMessage("");
-    setShowHint(false);
-    setShowAnswer(false);
-  };
-
-  const handleRandomQuiz = () => {
-    if (quizzes.length <= 1) return;
-
-    let randomIndex = currentIndex;
-
-    while (randomIndex === currentIndex) {
-      randomIndex = Math.floor(Math.random() * quizzes.length);
-    }
-
-    setCurrentIndex(randomIndex);
-    setInput("");
-    setMessage("");
-    setShowHint(false);
-    setShowAnswer(false);
+  // 출제 화면에서는 이전 페이지로, 그 뒤 단계에서는 한 단계씩 되돌아감
+  const handleBack = () => {
+    if (step === "play") setStep("setup");
+    else if (step === "answer") setStep("play");
+    else router.back();
   };
 
   return (
-    <section>
-      <h2>초성퀴즈</h2>
+    <Box sx={{ display: "flex", flexDirection: "column", width: "100%", flex: 1 }}>
+      <GameHeader title="초성 퀴즈" onBack={handleBack} />
 
-      <p>
-        {currentIndex + 1} / {quizzes.length}
-      </p>
+      <Box
+        component="main"
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          flex: 1,
+          width: "100%",
+          px: `${layout.gutter}px`,
+          py: 6,
+        }}
+      >
+        <Box sx={{ width: "100%", maxWidth: `${layout.maxWidth}px` }}>
+          {step === "setup" && <QuizSetup onSubmit={handleSubmit} />}
+          {step === "play" && <QuizPlay quiz={quiz} onReveal={handleReveal} />}
+          {step === "answer" && <QuizAnswer quiz={quiz} onNext={handleNext} />}
+        </Box>
+      </Box>
 
-      <h3>{currentQuiz.initial}</h3>
-
-      <div>
-        <input
-          type="text"
-          value={input}
-          placeholder="정답을 입력하세요."
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => {
-            if (e.key === "Enter") {
-              handleSubmit();
-            }
-          }}
-        />
-
-        <button type="button" onClick={handleSubmit}>
-          정답 확인
-        </button>
-      </div>
-
-      <div>
-        <button type="button" onClick={() => setShowHint(prev => !prev)}>
-          {showHint ? "힌트 숨기기" : "힌트 보기"}
-        </button>
-
-        <button type="button" onClick={() => setShowAnswer(prev => !prev)}>
-          {showAnswer ? "정답 숨기기" : "정답 보기"}
-        </button>
-      </div>
-
-      {showHint && <p>힌트: {currentQuiz.hint}</p>}
-
-      {showAnswer && <p>정답: {currentQuiz.answer}</p>}
-
-      {message && <p>{message}</p>}
-
-      <div>
-        <button type="button" onClick={handlePreviousQuiz}>
-          이전 문제
-        </button>
-
-        <button type="button" onClick={handleNextQuiz}>
-          다음 문제
-        </button>
-
-        <button type="button" onClick={handleRandomQuiz}>
-          랜덤 문제
-        </button>
-      </div>
-    </section>
+      <Footer />
+    </Box>
   );
 }
