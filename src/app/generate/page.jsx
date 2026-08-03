@@ -48,7 +48,7 @@ const TEMPLATES = [
     desc: "설레는 첫 만남, 어색함을 깨줄 센스 있는 질문 리스트",
     icon: FavoriteIcon,
     iconColor: "primary.main",
-    defaultAtmosphere: "설렘",
+    defaultAtmosphere: "어색함",
   },
   {
     id: "mt",
@@ -56,7 +56,7 @@ const TEMPLATES = [
     desc: "다함께 즐기는 단체 분위기를 위한 고텐션 대화 주제",
     icon: GroupsIcon,
     iconColor: "secondary.main",
-    defaultAtmosphere: "유쾌함",
+    defaultAtmosphere: "활기참",
   },
   {
     id: "dinner",
@@ -64,7 +64,7 @@ const TEMPLATES = [
     desc: "상사, 동료와 자연스럽게 어울릴 수 있는 사회생활 팁",
     icon: RestaurantIcon,
     iconColor: "warning.main",
-    defaultAtmosphere: "격식있음",
+    defaultAtmosphere: "활기참",
   },
   {
     id: "ot",
@@ -72,7 +72,7 @@ const TEMPLATES = [
     desc: "새로운 친구들과 빠르게 친해지는 마법 같은 첫 마디",
     icon: SchoolIcon,
     iconColor: "success.main",
-    defaultAtmosphere: "친근함",
+    defaultAtmosphere: "어색함",
   },
 ];
 
@@ -89,7 +89,7 @@ const FORMAT_OPTIONS = [
 // 직접 입력 옵션 데이터
 const OPTIONS = {
   atmosphere: ["유쾌함", "진지함", "부드러움", "논리적임", "따뜻함"],
-  relation: ["초면/어색한 사이", "친한 사이", "직장 동료", "선후배"],
+  relation: ["처음 만난 사이", "친한 사이", "업무 관계", "선후배"],
   age: ["10대", "20대", "30대", "40대 이상"],
 };
 
