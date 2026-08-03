@@ -258,10 +258,7 @@ export default function GeneratePage() {
             {/* 1. 상황 입력 */}
             <Box sx={{ mb: 4 }}>
               <Typography variant="body2" fontWeight={600} color="text.primary" mb={1} component="div">
-                어떤 상황인가요?{" "}
-                <Box component="span" color="primary.main">
-                  •
-                </Box>
+                어떤 상황인가요?
               </Typography>
               <TextField
                 fullWidth
