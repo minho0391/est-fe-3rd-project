@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import ButtonBase from "@mui/material/ButtonBase";
 import GameHeader from "@/components/layout/GameHeader";
 import Footer from "@/components/layout/Footer";
 import RandomPickResult from "./RandomPickResult";
 import { supabase } from "@/lib/supabase";
 import { balls, RANDOM_PICK_FORMATS } from "@/lib/randomPickData";
-import styles from "./RandomPick.module.css";
+import { layout } from "@/lib/layout";
 
 const BALL_GAP = 255.5;
 const SHUFFLE_STEPS = 4;
@@ -34,7 +37,6 @@ export default function RandomPick() {
     timers.current = [];
   };
 
-  // 셔플 애니메이션
   useEffect(() => {
     for (let step = 1; step <= SHUFFLE_STEPS; step += 1) {
       timers.current.push(setTimeout(() => setOrder(prev => shuffle(prev)), step * STEP_DURATION));
@@ -43,7 +45,6 @@ export default function RandomPick() {
     return clearTimers;
   }, []);
 
-  // 콘텐츠 풀 미리 받아두기 (extras는 note가 섞여 있어 select에서 제외)
   useEffect(() => {
     let alive = true;
 
@@ -92,42 +93,151 @@ export default function RandomPick() {
   else if (pool.length === 0) titleText = "콘텐츠를 불러오는 중이에요";
 
   return (
-    <div className={styles.page}>
+    <Box sx={{ display: "flex", flexDirection: "column", width: "100%", flex: 1 }}>
       <GameHeader title="랜덤 픽" />
 
-      <main className={styles.main} onClick={skipShuffle}>
-        <div className={styles.content}>
-          <h2 className={styles.title}>{titleText}</h2>
+      <Box
+        component="main"
+        onClick={skipShuffle}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          flex: 1,
+          minHeight: 779,
+          px: `${layout.gutter}px`,
+          pt: 8,
+          pb: 10,
+          overflow: "hidden",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+            width: "100%",
+            maxWidth: `${layout.maxWidth}px`,
+          }}
+        >
+          <Typography
+            component="h2"
+            sx={{
+              fontSize: 32,
+              lineHeight: "39px",
+              fontWeight: 700,
+              letterSpacing: "-0.64px",
+              textAlign: "center",
+            }}
+          >
+            {titleText}
+          </Typography>
 
-          <div className={styles.card}>
-            <span className={styles.accentBar} aria-hidden="true" />
-            <div className={styles.balls}>
+          <Box
+            sx={{
+              position: "relative",
+              width: "100%",
+              height: 178,
+              p: "49px",
+              bgcolor: "background.paper",
+              border: 1,
+              borderColor: "divider",
+              borderRadius: "20px",
+              boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+              overflow: "hidden",
+            }}
+          >
+            <Box
+              aria-hidden="true"
+              sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 4,
+                background: "linear-gradient(to right, #4d41df 0%, #ffb547 50%, #32c48d 100%)",
+              }}
+            />
+
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                width: "100%",
+              }}
+            >
               {balls.map((ball, index) => (
-                <button
+                <ButtonBase
                   key={ball.id}
-                  type="button"
-                  className={styles.ball}
-                  style={{ transform: `translateX(${(order[index] - index) * BALL_GAP}px)` }}
                   onClick={handlePick}
                   disabled={!isReady}
                   aria-label={`${index + 1}번 공 선택`}
+                  sx={{
+                    position: "relative",
+                    width: 80,
+                    height: 80,
+                    bgcolor: "primary.main",
+                    borderBottom: "4px solid",
+                    borderBottomColor: "momentalk.ballEdge",
+                    borderRadius: "9999px",
+                    boxShadow: "0 10px 15px -3px rgba(91, 82, 232, 0.3)",
+                    overflow: "hidden",
+                    transform: `translateX(${(order[index] - index) * BALL_GAP}px)`,
+                    transition: "transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
+                  }}
                 >
-                  <span className={styles.highlight} aria-hidden="true" />
-                </button>
+                  <Box
+                    aria-hidden="true"
+                    sx={{
+                      position: "absolute",
+                      top: "10%",
+                      left: "15%",
+                      right: "50%",
+                      bottom: "66.25%",
+                      bgcolor: "rgba(255, 255, 255, 0.4)",
+                      borderRadius: "12px",
+                      filter: "blur(1px)",
+                    }}
+                  />
+                </ButtonBase>
               ))}
-            </div>
-          </div>
+            </Box>
+          </Box>
 
-          {isShuffling && <p className={styles.hint}>화면을 누르면 건너뛸 수 있어요</p>}
-          {loadError && <p className={styles.hint}>잠시 후 새로고침해 주세요.</p>}
-        </div>
-      </main>
+          {isShuffling && (
+            <Typography
+              sx={{
+                fontSize: 14,
+                lineHeight: "21px",
+                color: "text.secondary",
+                textAlign: "center",
+              }}
+            >
+              화면을 누르면 건너뛸 수 있어요
+            </Typography>
+          )}
+          {loadError && (
+            <Typography
+              sx={{
+                fontSize: 14,
+                lineHeight: "21px",
+                color: "text.secondary",
+                textAlign: "center",
+              }}
+            >
+              잠시 후 새로고침해 주세요.
+            </Typography>
+          )}
+        </Box>
+      </Box>
 
       <Footer />
 
       {result && (
         <RandomPickResult content={result} onClose={handleClose} onRepick={handleRepick} />
       )}
-    </div>
+    </Box>
   );
 }

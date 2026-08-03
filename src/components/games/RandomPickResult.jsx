@@ -1,67 +1,155 @@
 "use client";
 
-import { useEffect } from "react";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Dialog from "@mui/material/Dialog";
 import Button from "@/components/ui/Button";
 import { FORMAT_LABELS } from "@/lib/randomPickData";
-import styles from "./RandomPickResult.module.css";
 
 export default function RandomPickResult({ content, onClose, onRepick }) {
-  useEffect(() => {
-    const handleKeyDown = e => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
-
   const label = FORMAT_LABELS[content.format_code] ?? "뽑힌 콘텐츠";
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div
-        className={styles.content}
-        role="dialog"
-        aria-modal="true"
-        aria-label="뽑기 결과"
-        onClick={e => e.stopPropagation()}
-      >
-        <div className={styles.ball}>
-          <img src="/randompick-ball.svg" alt="" className={styles.ballImage} />
-        </div>
+    <Dialog
+      open
+      onClose={onClose}
+      aria-label="뽑기 결과"
+      slotProps={{
+        backdrop: { sx: { bgcolor: "rgba(0, 0, 0, 0.7)" } },
+        paper: {
+          sx: {
+            width: 448,
+            maxWidth: "100%",
+            m: 3,
+            bgcolor: "transparent",
+            boxShadow: "none",
+            overflow: "visible",
+          },
+        },
+      }}
+    >
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+        <Box sx={{ position: "relative", width: 160, height: 160, flexShrink: 0 }}>
+          <Box
+            component="img"
+            src="/randompick-ball.svg"
+            alt=""
+            sx={{
+              position: "absolute",
+              top: "-12.5%",
+              left: "-25%",
+              width: "150%",
+              height: "150%",
+              maxWidth: "none",
+            }}
+          />
+        </Box>
 
-        <div className={styles.card}>
-          <span className={styles.chip}>{label}</span>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 4,
+            width: "100%",
+            p: "49px",
+            bgcolor: "background.paper",
+            border: 1,
+            borderColor: "momentalk.modalBorder",
+            borderRadius: "20px",
+            boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+          }}
+        >
+          <Typography
+            component="span"
+            sx={{
+              px: 2,
+              py: 1,
+              bgcolor: "momentalk.presetCard",
+              borderRadius: "9999px",
+              color: "primary.main",
+              fontSize: 14,
+              lineHeight: "21px",
+              fontWeight: 500,
+              letterSpacing: "0.6px",
+            }}
+          >
+            {label}
+          </Typography>
 
-          <div className={styles.scripts}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, width: "100%" }}>
             {content.scripts?.map((script, index) => (
-              <p key={index} className={styles.script}>
+              <Typography
+                key={index}
+                sx={{
+                  fontSize: 28,
+                  lineHeight: "34px",
+                  fontWeight: 700,
+                  textAlign: "center",
+                  wordBreak: "keep-all",
+                }}
+              >
                 {script}
-              </p>
+              </Typography>
             ))}
-          </div>
+          </Box>
 
           {content.tips?.length > 0 && (
-            <ul className={styles.tips}>
+            <Box
+              component="ul"
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 0.75,
+                width: "100%",
+                p: 2,
+                bgcolor: "momentalk.typeCard",
+                borderRadius: "12px",
+                listStyle: "none",
+              }}
+            >
               {content.tips.map((tip, index) => (
-                <li key={index} className={styles.tip}>
+                <Typography
+                  key={index}
+                  component="li"
+                  sx={{
+                    fontSize: 14,
+                    lineHeight: "21px",
+                    color: "text.secondary",
+                    textAlign: "center",
+                    wordBreak: "keep-all",
+                  }}
+                >
                   {tip}
-                </li>
+                </Typography>
               ))}
-            </ul>
+            </Box>
           )}
 
-          <div className={styles.buttons}>
+          <Box
+            sx={{
+              display: "flex",
+              gap: 2,
+              justifyContent: "center",
+              width: "100%",
+              "& > *": { flex: "1 0 0", minWidth: 0 },
+            }}
+          >
             <Button variant="secondary" onClick={onClose}>
               닫기
             </Button>
             <Button variant="primary" onClick={onRepick}>
               다시 뽑기
             </Button>
-          </div>
-        </div>
+          </Box>
+        </Box>
 
-        <p className={styles.notice}>새로운 주제를 원하시면 다시 뽑기 버튼을 눌러주세요.</p>
-      </div>
-    </div>
+        <Typography
+          sx={{ fontSize: 14, lineHeight: "21px", color: "text.disabled", textAlign: "center" }}
+        >
+          새로운 주제를 원하시면 다시 뽑기 버튼을 눌러주세요.
+        </Typography>
+      </Box>
+    </Dialog>
   );
 }
