@@ -1,7 +1,7 @@
 // [게시판 목록] 페이지 (localhost:3000/post)
-import PostFilter from "@/components/list/PostFilter";
-import PostItem from "@/components/list/PostItem";
-import TopThree from "@/components/list/TopThree";
+import PostFilter from "@/components/post/list/PostFilter";
+import PostItem from "@/components/post/list/PostItem";
+import TopThree from "@/components/post/list/TopThree";
 
 export default function PostListPage() {
   return (

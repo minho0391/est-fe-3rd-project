@@ -3,8 +3,8 @@
 
 import React from "react";
 import Link from "next/link";
-import PostDetailContent from "@/components/detail/PostBody";
-import CommentSection from "@/components/detail/Comments";
+import PostDetailContent from "@/components/post/detail/PostBody.jsx";
+import CommentSection from "@/components/post/detail/Comments.jsx";
 
 export default function PostDetailPage({ params }) {
   // 동적 파라미터 [id] 수신
