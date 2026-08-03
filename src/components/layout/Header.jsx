@@ -10,7 +10,7 @@ const navItems = [
   { label: "Discover", href: "#", active: false },
   { label: "Topics", href: "#", active: false },
   { label: "Games", href: "#", active: false },
-  { label: "Community", href: "#", active: true },
+  { label: "Community", href: "/post", active: true },
 ];
 
 export default function Header() {
@@ -56,7 +56,10 @@ export default function Header() {
             Momentalk
           </MuiLink>
 
-          <Box component="nav" sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+          <Box
+            component="nav"
+            sx={{ display: "flex", alignItems: "center", gap: 3 }}
+          >
             {navItems.map(item => (
               <MuiLink
                 key={item.label}

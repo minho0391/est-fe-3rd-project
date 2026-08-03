@@ -1,10 +1,10 @@
 // [게시판 작성] 페이지 (localhost:3000/post/write)
-import "./style.css";
+import WriteForm from "@/components/post/write/WriteForm.jsx";
 
-export default function RootLayout({ children }) {
+export default function PostWritePage() {
   return (
-    <html lang="ko">
-      <body>{children}</body>
-    </html>
+    <main>
+      <WriteForm />
+    </main>
   );
 }
