@@ -46,6 +46,7 @@ const theme = createTheme({
     h3: { fontSize: 28, lineHeight: "34px", fontWeight: 700 },
     h4: { fontSize: 24, lineHeight: "32px", fontWeight: 600 },
     h5: { fontSize: 20, lineHeight: "28px", fontWeight: 600 },
+    subtitle1: { fontSize: 18, lineHeight: "27px", fontWeight: 500 },
     body1: { fontSize: 16, lineHeight: "21px", fontWeight: 400 },
     body2: { fontSize: 14, lineHeight: "21px", fontWeight: 400 },
     button: { textTransform: "none", fontWeight: 500 },
@@ -54,6 +55,53 @@ const theme = createTheme({
   components: {
     MuiButton: {
       defaultProps: { disableElevation: true },
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          whiteSpace: "nowrap",
+          transition: "filter 0.15s ease",
+          gap: 8,
+          "& .MuiButton-startIcon, & .MuiButton-endIcon": {
+            marginLeft: 0,
+            marginRight: 0,
+          },
+        },
+      },
+      variants: [
+        {
+          props: { size: "md" },
+          style: {
+            height: 56,
+            paddingLeft: 24,
+            paddingRight: 24,
+            fontSize: 18,
+            lineHeight: "26px",
+          },
+        },
+        {
+          props: { size: "cta" },
+          style: {
+            width: 255,
+            height: 75,
+            padding: "16px 24px",
+            fontSize: 18,
+            lineHeight: "27px",
+          },
+        },
+        {
+          props: { variant: "text" },
+          style: {
+            padding: 0,
+            minWidth: 0,
+            width: "auto",
+            height: "auto",
+            fontSize: 14,
+            lineHeight: "21px",
+            fontWeight: 400,
+            borderRadius: 0,
+          },
+        },
+      ],
     },
   },
 });
