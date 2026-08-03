@@ -1,85 +1,49 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Box from "@mui/material/Box";
+import GameHeader from "@/components/layout/GameHeader";
+import Footer from "@/components/layout/Footer";
+import CardModeSelect from "./CardModeSelect";
+import CardContentPlay from "./CardContentPlay";
+import CardJokerPlay from "./CardJokerPlay";
+import { layout } from "@/lib/layout";
 
 export default function CardGame() {
-  const cards = [
-    "요즘 가장 즐겨 듣는 노래는?",
-    "최근에 가장 웃겼던 일은?",
-    "지금 당장 여행을 간다면 어디로 가고 싶어?",
-    "어릴 때 장래희망은 무엇이었어?",
-    "요즘 새롭게 배우고 싶은 것은?",
-  ];
+  const router = useRouter();
+  const [mode, setMode] = useState(null); // null | content | joker
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isFlipped, setIsFlipped] = useState(false);
-
-  const handleFlipCard = () => {
-    setIsFlipped(prev => !prev);
-  };
-
-  const handleNextCard = () => {
-    setCurrentIndex(prev => {
-      if (prev === cards.length - 1) {
-        return 0;
-      }
-
-      return prev + 1;
-    });
-
-    setIsFlipped(false);
-  };
-
-  const handlePreviousCard = () => {
-    setCurrentIndex(prev => {
-      if (prev === 0) {
-        return cards.length - 1;
-      }
-
-      return prev - 1;
-    });
-
-    setIsFlipped(false);
-  };
-
-  const handleRandomCard = () => {
-    if (cards.length <= 1) return;
-
-    let randomIndex = currentIndex;
-
-    while (randomIndex === currentIndex) {
-      randomIndex = Math.floor(Math.random() * cards.length);
-    }
-
-    setCurrentIndex(randomIndex);
-    setIsFlipped(false);
+  const handleBack = () => {
+    if (mode) setMode(null);
+    else router.back();
   };
 
   return (
-    <section>
-      <h2>카드게임</h2>
+    <Box sx={{ display: "flex", flexDirection: "column", width: "100%", flex: 1 }}>
+      <GameHeader title="카드 뒤집기" onBack={handleBack} />
 
-      <p>
-        {currentIndex + 1} / {cards.length}
-      </p>
+      <Box
+        component="main"
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          flex: 1,
+          width: "100%",
+          px: `${layout.gutter}px`,
+          py: 8,
+        }}
+      >
+        <Box sx={{ width: "100%", maxWidth: `${layout.maxWidth}px` }}>
+          {mode === null && <CardModeSelect onSelect={setMode} />}
+          {mode === "content" && <CardContentPlay />}
+          {mode === "joker" && <CardJokerPlay />}
+        </Box>
+      </Box>
 
-      <button type="button" onClick={handleFlipCard}>
-        {isFlipped ? cards[currentIndex] : "카드를 눌러 질문을 확인하세요."}
-      </button>
-
-      <div>
-        <button type="button" onClick={handlePreviousCard}>
-          이전 카드
-        </button>
-
-        <button type="button" onClick={handleNextCard}>
-          다음 카드
-        </button>
-
-        <button type="button" onClick={handleRandomCard}>
-          랜덤 카드
-        </button>
-      </div>
-    </section>
+      <Footer />
+    </Box>
   );
 }
