@@ -1,102 +1,243 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import ButtonBase from "@mui/material/ButtonBase";
+import GameHeader from "@/components/layout/GameHeader";
+import Footer from "@/components/layout/Footer";
+import RandomPickResult from "./RandomPickResult";
+import { supabase } from "@/lib/supabase";
+import { balls, RANDOM_PICK_FORMATS } from "@/lib/randomPickData";
+import { layout } from "@/lib/layout";
+
+const BALL_GAP = 255.5;
+const SHUFFLE_STEPS = 4;
+const STEP_DURATION = 380;
+
+function shuffle(list) {
+  const next = [...list];
+  for (let i = next.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [next[i], next[j]] = [next[j], next[i]];
+  }
+  return next;
+}
 
 export default function RandomPick() {
-  const [items, setItems] = useState([
-    "노래 한 소절 부르기",
-    "옆 사람 칭찬하기",
-    "재미있는 표정 짓기",
-  ]);
-  const [input, setInput] = useState("");
-  const [result, setResult] = useState("");
+  const [order, setOrder] = useState(() => balls.map((_, i) => i));
+  const [isShuffling, setIsShuffling] = useState(true);
+  const [pool, setPool] = useState([]);
+  const [loadError, setLoadError] = useState(false);
+  const [result, setResult] = useState(null);
+  const timers = useRef([]);
 
-  const handleAddItem = () => {
-    const newItem = input.trim();
+  const clearTimers = () => {
+    timers.current.forEach(clearTimeout);
+    timers.current = [];
+  };
 
-    if (!newItem) {
-      alert("내용을 입력해 주세요.");
-      return;
+  useEffect(() => {
+    for (let step = 1; step <= SHUFFLE_STEPS; step += 1) {
+      timers.current.push(setTimeout(() => setOrder(prev => shuffle(prev)), step * STEP_DURATION));
     }
+    timers.current.push(setTimeout(() => setIsShuffling(false), SHUFFLE_STEPS * STEP_DURATION));
+    return clearTimers;
+  }, []);
 
-    setItems(prev => [...prev, newItem]);
-    setInput("");
-    setResult("");
+  useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      const { data, error } = await supabase
+        .from("default_contents")
+        .select("id, title, scripts, tips, format_code")
+        .in("format_code", RANDOM_PICK_FORMATS)
+        .limit(300);
+
+      if (!alive) return;
+      if (error || !data || data.length === 0) {
+        setLoadError(true);
+        return;
+      }
+      setPool(data);
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const pickRandom = previousId => {
+    const candidates = pool.filter(item => item.id !== previousId);
+    const list = candidates.length > 0 ? candidates : pool;
+    return list[Math.floor(Math.random() * list.length)];
   };
 
-  const handleDeleteItem = deleteIndex => {
-    setItems(prev => prev.filter((_, index) => index !== deleteIndex));
-    setResult("");
+  const skipShuffle = () => {
+    if (!isShuffling) return;
+    clearTimers();
+    setOrder(prev => shuffle(prev));
+    setIsShuffling(false);
   };
 
-  const handleRandomPick = () => {
-    if (items.length === 0) {
-      alert("랜덤 픽에 항목을 먼저 추가해 주세요.");
-      return;
-    }
+  const handlePick = () => setResult(pickRandom(null));
+  const handleRepick = () => setResult(prev => pickRandom(prev?.id));
+  const handleClose = () => setResult(null);
 
-    const randomIndex = Math.floor(Math.random() * items.length);
-    setResult(items[randomIndex]);
-  };
+  const isReady = !isShuffling && pool.length > 0;
 
-  const handleReset = () => {
-    setItems([]);
-    setInput("");
-    setResult("");
-  };
+  let titleText = "마음에 드는 공을 하나 고르세요";
+  if (isShuffling) titleText = "공을 섞는 중이에요";
+  else if (loadError) titleText = "콘텐츠를 불러오지 못했어요";
+  else if (pool.length === 0) titleText = "콘텐츠를 불러오는 중이에요";
 
   return (
-    <section>
-      <h2>랜덤 픽</h2>
+    <Box sx={{ display: "flex", flexDirection: "column", width: "100%", flex: 1 }}>
+      <GameHeader title="랜덤 픽" />
 
-      <div>
-        <input
-          type="text"
-          value={input}
-          placeholder="질문, 미션, 벌칙 등을 입력하세요."
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => {
-            if (e.key === "Enter") {
-              handleAddItem();
-            }
+      <Box
+        component="main"
+        onClick={skipShuffle}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          flex: 1,
+          minHeight: 779,
+          px: `${layout.gutter}px`,
+          pt: 8,
+          pb: 10,
+          overflow: "hidden",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+            width: "100%",
+            maxWidth: `${layout.maxWidth}px`,
           }}
-        />
+        >
+          <Typography
+            component="h2"
+            sx={{
+              fontSize: 32,
+              lineHeight: "39px",
+              fontWeight: 700,
+              letterSpacing: "-0.64px",
+              textAlign: "center",
+            }}
+          >
+            {titleText}
+          </Typography>
 
-        <button type="button" onClick={handleAddItem}>
-          추가
-        </button>
-      </div>
+          <Box
+            sx={{
+              position: "relative",
+              width: "100%",
+              height: 178,
+              p: "49px",
+              bgcolor: "background.paper",
+              border: 1,
+              borderColor: "divider",
+              borderRadius: "20px",
+              boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+              overflow: "hidden",
+            }}
+          >
+            <Box
+              aria-hidden="true"
+              sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 4,
+                background: "linear-gradient(to right, #4d41df 0%, #ffb547 50%, #32c48d 100%)",
+              }}
+            />
 
-      <ul>
-        {items.map((item, index) => (
-          <li key={`${item}-${index}`}>
-            <span>{item}</span>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                width: "100%",
+              }}
+            >
+              {balls.map((ball, index) => (
+                <ButtonBase
+                  key={ball.id}
+                  onClick={handlePick}
+                  disabled={!isReady}
+                  aria-label={`${index + 1}번 공 선택`}
+                  sx={{
+                    position: "relative",
+                    width: 80,
+                    height: 80,
+                    bgcolor: "primary.main",
+                    borderBottom: "4px solid",
+                    borderBottomColor: "momentalk.ballEdge",
+                    borderRadius: "9999px",
+                    boxShadow: "0 10px 15px -3px rgba(91, 82, 232, 0.3)",
+                    overflow: "hidden",
+                    transform: `translateX(${(order[index] - index) * BALL_GAP}px)`,
+                    transition: "transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
+                  }}
+                >
+                  <Box
+                    aria-hidden="true"
+                    sx={{
+                      position: "absolute",
+                      top: "10%",
+                      left: "15%",
+                      right: "50%",
+                      bottom: "66.25%",
+                      bgcolor: "rgba(255, 255, 255, 0.4)",
+                      borderRadius: "12px",
+                      filter: "blur(1px)",
+                    }}
+                  />
+                </ButtonBase>
+              ))}
+            </Box>
+          </Box>
 
-            <button type="button" onClick={() => handleDeleteItem(index)}>
-              삭제
-            </button>
-          </li>
-        ))}
-      </ul>
+          {isShuffling && (
+            <Typography
+              sx={{
+                fontSize: 14,
+                lineHeight: "21px",
+                color: "text.secondary",
+                textAlign: "center",
+              }}
+            >
+              화면을 누르면 건너뛸 수 있어요
+            </Typography>
+          )}
+          {loadError && (
+            <Typography
+              sx={{
+                fontSize: 14,
+                lineHeight: "21px",
+                color: "text.secondary",
+                textAlign: "center",
+              }}
+            >
+              잠시 후 새로고침해 주세요.
+            </Typography>
+          )}
+        </Box>
+      </Box>
 
-      {items.length === 0 && <p>등록된 항목이 없습니다.</p>}
-
-      <div>
-        <button type="button" onClick={handleRandomPick}>
-          랜덤 뽑기
-        </button>
-
-        <button type="button" onClick={handleReset}>
-          전체 삭제
-        </button>
-      </div>
+      <Footer />
 
       {result && (
-        <div>
-          <h3>선택 결과</h3>
-          <p>{result}</p>
-        </div>
+        <RandomPickResult content={result} onClose={handleClose} onRepick={handleRepick} />
       )}
-    </section>
+    </Box>
   );
 }
