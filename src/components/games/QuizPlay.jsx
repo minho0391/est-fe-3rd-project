@@ -6,6 +6,23 @@ import Typography from "@mui/material/Typography";
 import Button from "@/components/ui/Button";
 import { toChosung } from "@/lib/hangul";
 
+const cardSx = {
+  bgcolor: "background.paper",
+  border: 1,
+  borderColor: "divider",
+  borderRadius: "20px",
+};
+
+const hintChipSx = {
+  display: "flex",
+  alignItems: "center",
+  gap: 1,
+  px: 4,
+  py: 1,
+  bgcolor: "momentalk.hintChip",
+  borderRadius: "9999px",
+};
+
 export default function QuizPlay({ quiz, onReveal }) {
   const [shownCount, setShownCount] = useState(0);
 
@@ -29,20 +46,9 @@ export default function QuizPlay({ quiz, onReveal }) {
         {shownHints.length > 0 && (
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", justifyContent: "center" }}>
             {shownHints.map((hint, index) => (
-              <Box
-                key={index}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  px: 4,
-                  py: 1,
-                  bgcolor: "#eef0ff",
-                  borderRadius: "9999px",
-                }}
-              >
+              <Box key={index} sx={hintChipSx}>
                 <Box component="img" src="/quiz-chip.svg" alt="" sx={{ width: 17, height: 15 }} />
-                <Typography sx={{ fontSize: 16, lineHeight: "24px", color: "primary.main" }}>
+                <Typography variant="body1" color="primary.main" sx={{ lineHeight: "24px" }}>
                   {hint}
                 </Typography>
               </Box>
@@ -52,6 +58,7 @@ export default function QuizPlay({ quiz, onReveal }) {
 
         <Box
           sx={{
+            ...cardSx,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -59,22 +66,18 @@ export default function QuizPlay({ quiz, onReveal }) {
             maxWidth: 896,
             px: "1px",
             py: "49px",
-            bgcolor: "background.paper",
-            border: 1,
-            borderColor: "divider",
-            borderRadius: "20px",
             boxShadow: "0 4px 10px rgba(0, 0, 0, 0.05)",
           }}
         >
           <Typography
+            align="center"
+            color="primary.main"
             sx={{
               fontSize: 120,
               lineHeight: "180px",
               fontWeight: 800,
-              color: "primary.main",
               letterSpacing: "48px",
               textShadow: "0 10px 25px rgba(108, 99, 255, 0.15)",
-              textAlign: "center",
               wordBreak: "keep-all",
             }}
           >
@@ -94,22 +97,22 @@ export default function QuizPlay({ quiz, onReveal }) {
         >
           <Button
             variant="secondary"
+            size="game"
             onClick={() => setShownCount(prev => prev + 1)}
             disabled={!hasMoreHints}
             leadingIcon={
               <Box component="img" src="/quiz-hint.svg" alt="" sx={{ width: 15, height: 20 }} />
             }
-            sx={{ fontSize: 16, lineHeight: "24px", fontWeight: 400 }}
           >
             힌트 보기
           </Button>
 
           <Button
+            size="game"
             onClick={onReveal}
             leadingIcon={
               <Box component="img" src="/quiz-reveal.svg" alt="" sx={{ width: 22, height: 15 }} />
             }
-            sx={{ fontSize: 16, lineHeight: "24px", fontWeight: 400 }}
           >
             정답 공개
           </Button>
