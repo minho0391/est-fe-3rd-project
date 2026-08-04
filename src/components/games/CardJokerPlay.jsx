@@ -8,6 +8,21 @@ import CardJokerResult from "./CardJokerResult";
 
 const CARD_COUNT = 4;
 
+const cardSx = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "space-between",
+  width: 220,
+  height: 300,
+  flexShrink: 0,
+  p: "18px",
+  bgcolor: "background.paper",
+  border: 2,
+  borderRadius: "20px",
+  filter: "drop-shadow(0px 1px 1px rgba(0, 0, 0, 0.05))",
+};
+
 function createDeck() {
   const jokerIndex = Math.floor(Math.random() * CARD_COUNT);
   return Array.from({ length: CARD_COUNT }, (_, i) => i === jokerIndex);
@@ -35,10 +50,7 @@ export default function CardJokerPlay() {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-      <Typography
-        component="h2"
-        sx={{ fontSize: 24, lineHeight: "32px", fontWeight: 600, textAlign: "center" }}
-      >
+      <Typography component="h2" variant="h4" align="center">
         번갈아 뒤집어서 조커를 피하세요
       </Typography>
 
@@ -58,25 +70,10 @@ export default function CardJokerPlay() {
             );
           }
 
+          const stateColor = isJoker ? "error.main" : "success.main";
+
           return (
-            <Box
-              key={index}
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "space-between",
-                width: 220,
-                height: 300,
-                flexShrink: 0,
-                p: "18px",
-                bgcolor: "background.paper",
-                border: 2,
-                borderColor: isJoker ? "error.main" : "success.main",
-                borderRadius: "20px",
-                filter: "drop-shadow(0px 1px 1px rgba(0, 0, 0, 0.05))",
-              }}
-            >
+            <Box key={index} sx={{ ...cardSx, borderColor: stateColor }}>
               <Box
                 sx={{ display: "flex", alignItems: "center", justifyContent: "center", flex: 1 }}
               >
@@ -88,15 +85,7 @@ export default function CardJokerPlay() {
                 />
               </Box>
 
-              <Typography
-                sx={{
-                  pb: 2,
-                  fontSize: 20,
-                  lineHeight: "28px",
-                  fontWeight: 600,
-                  color: isJoker ? "error.main" : "success.main",
-                }}
-              >
+              <Typography variant="h5" color={stateColor} sx={{ pb: 2 }}>
                 {isJoker ? "조커! 벌칙" : "세이프"}
               </Typography>
             </Box>
