@@ -29,25 +29,13 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import { useTheme, alpha } from "@mui/material/styles";
 
-// MUI Icons // svg 파일 대체 예정
-// 임시 : npm install @mui/icons-material @mui/material @emotion/react @emotion/styled
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import GroupsIcon from "@mui/icons-material/Groups";
-import RestaurantIcon from "@mui/icons-material/Restaurant";
-import SchoolIcon from "@mui/icons-material/School";
-import EditNoteIcon from "@mui/icons-material/EditNote";
-import BoltIcon from "@mui/icons-material/Bolt";
-import SmartToyIcon from "@mui/icons-material/SmartToy";
-import CloseIcon from "@mui/icons-material/Close";
-import CheckIcon from "@mui/icons-material/Check";
-
 // 템플릿 카드
 const TEMPLATES = [
   {
     id: "dating",
     title: "소개팅",
     desc: "설레는 첫 만남, 어색함을 깨줄 센스 있는 질문 리스트",
-    icon: FavoriteIcon,
+    icon: "/assets/icons/favorite_icon.svg",
     iconColor: "primary.main",
     defaultAtmosphere: "어색함",
   },
@@ -55,7 +43,7 @@ const TEMPLATES = [
     id: "mt",
     title: "MT (엠티)",
     desc: "다함께 즐기는 단체 분위기를 위한 고텐션 대화 주제",
-    icon: GroupsIcon,
+    icon: "/assets/icons/group_icon.svg",
     iconColor: "secondary.main",
     defaultAtmosphere: "활기참",
   },
@@ -63,7 +51,7 @@ const TEMPLATES = [
     id: "dinner",
     title: "회식",
     desc: "상사, 동료와 자연스럽게 어울릴 수 있는 사회생활 팁",
-    icon: RestaurantIcon,
+    icon: "/assets/icons/restaurant_icon.svg",
     iconColor: "warning.main",
     defaultAtmosphere: "활기참",
   },
@@ -71,7 +59,7 @@ const TEMPLATES = [
     id: "ot",
     title: "대학교 신입 OT",
     desc: "새로운 친구들과 빠르게 친해지는 마법 같은 첫 마디",
-    icon: SchoolIcon,
+    icon: "/assets/icons/school_icon.svg",
     iconColor: "success.main",
     defaultAtmosphere: "어색함",
   },
@@ -173,7 +161,6 @@ export default function GeneratePage() {
           {/* 템플릿 카드 그리드 */}
           <Grid container spacing={3} sx={{ mb: 6, justifyContent: "center", alignItems: "stretch" }}>
             {TEMPLATES.map(tpl => {
-              const IconComp = tpl.icon;
               return (
                 <Box
                   key={tpl.id}
@@ -218,7 +205,7 @@ export default function GeneratePage() {
                           height: 48,
                         }}
                       >
-                        <IconComp />
+                        <Box component="img" src={tpl.icon} alt="" sx={{ width: 24, height: 24 }} />
                       </Avatar>
                       <Typography variant="h5" mb={1}>
                         {tpl.title}
@@ -247,7 +234,7 @@ export default function GeneratePage() {
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, color: "primary.main", mb: 3 }}>
-              <EditNoteIcon />
+              <Box component="img" src="/assets/icons/editnote_icon.svg" alt="" sx={{ width: 24, height: 24 }} />
               <Typography variant="h4" color="primary.main">
                 직접 입력하여 생성하기
               </Typography>
@@ -369,7 +356,7 @@ export default function GeneratePage() {
               }}
             >
               <Avatar sx={{ bgcolor: "background.paper", color: "primary.main", width: 40, height: 40 }}>
-                <SmartToyIcon fontSize="small" />
+                <Box component="img" src="/assets/icons/smarttoy_icon.svg" alt="" sx={{ width: 24, height: 24 }} />
               </Avatar>
               <Typography variant="body2" color="text.primary">
                 AI가 당신의 상황을 분석하여 최적의 대화 가이드를 구성할 준비를 마쳤습니다.
@@ -382,7 +369,9 @@ export default function GeneratePage() {
               size="md"
               fullWidth
               onClick={handleGenerate}
-              trailingIcon={<BoltIcon />}
+              trailingIcon={
+                <Box component="img" src="/assets/icons/bolt_icon.svg" alt="" sx={{ width: 24, height: 24 }} />
+              }
               sx={{ fontSize: "1rem" }}
             >
               AI 대화 생성하기
@@ -409,7 +398,7 @@ export default function GeneratePage() {
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
                 <Typography variant="h5">[{activeTemplate?.title}] 형식 선택</Typography>
                 <IconButton size="small" onClick={() => setIsModalOpen(false)}>
-                  <CloseIcon />
+                  <Box component="img" src="/assets/icons/close_icon.svg" alt="" sx={{ width: 24, height: 24 }} />
                 </IconButton>
               </Box>
 
@@ -446,7 +435,14 @@ export default function GeneratePage() {
                             },
                           }}
                         />
-                        {isSelected && <CheckIcon fontSize="small" color="primary" />}
+                        {isSelected && (
+                          <Box
+                            component="img"
+                            src="/assets/icons/check_icon.svg"
+                            alt=""
+                            sx={{ width: 24, height: 24 }}
+                          />
+                        )}
                       </ListItemButton>
                     </ListItem>
                   );
