@@ -3,6 +3,7 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import MuiLink from "@mui/material/Link";
+import Link from "next/link";
 import { layout } from "@/lib/layout";
 
 const links = ["About", "Privacy Policy", "Terms of Service", "Help Center"];
@@ -39,13 +40,21 @@ export default function Footer() {
         }}
       >
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-          <Typography
-            variant="h5"
-            color="primary.main"
-            sx={{ display: "flex", alignItems: "center", height: 40, fontWeight: 700 }}
+          <MuiLink
+            component={Link}
+            href="/"
+            underline="none"
+            aria-label="홈으로 이동"
+            sx={{ width: "fit-content" }}
           >
-            Momentalk
-          </Typography>
+            <Typography
+              variant="h5"
+              color="primary.main"
+              sx={{ display: "flex", alignItems: "center", height: 40, fontWeight: 700 }}
+            >
+              Momentalk
+            </Typography>
+          </MuiLink>
           <Typography variant="body2" color="text.secondary">
             © 2026 Momentalk AI. All rights reserved.
           </Typography>
