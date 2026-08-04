@@ -451,22 +451,15 @@ export default function GeneratePage() {
 
               {/* 하단 버튼 (이전 / 전송) — 스타일 가이드 Button 컴포넌트 */}
               <Box sx={{ display: "flex", gap: 1.5 }}>
-                <Button
-                  variant="tertiary"
-                  size="md"
-                  fullWidth
-                  onClick={() => setIsModalOpen(false)}
-                  sx={{ height: 48, fontSize: "0.95rem" }}
-                >
+                <Button variant="tertiary" size="modal" fullWidth onClick={() => setIsModalOpen(false)}>
                   이전
                 </Button>
                 <Button
                   variant="primary"
-                  size="md"
+                  size="modal"
                   fullWidth
                   onClick={handleSendTemplate}
                   disabled={!selectedFormat}
-                  sx={{ height: 48, fontSize: "0.95rem" }}
                 >
                   전송
                 </Button>
