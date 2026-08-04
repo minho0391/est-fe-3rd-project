@@ -41,12 +41,10 @@ export default function CardJokerResult({ onConfirm }) {
         </Box>
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1, textAlign: "center" }}>
-          <Typography
-            sx={{ fontSize: 28, lineHeight: "36.4px", fontWeight: 700, color: "error.main" }}
-          >
+          <Typography variant="h3" color="error.main" sx={{ lineHeight: "36.4px" }}>
             조커! 벌칙 당첨
           </Typography>
-          <Typography sx={{ fontSize: 16, lineHeight: "24px", color: "text.secondary" }}>
+          <Typography variant="body1" color="text.secondary" sx={{ lineHeight: "24px" }}>
             아쉽지만 벌칙을 수행해 주세요
           </Typography>
         </Box>

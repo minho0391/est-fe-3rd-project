@@ -5,6 +5,14 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@/components/ui/Button";
 
+const answerSx = {
+  fontSize: 80,
+  lineHeight: "120px",
+  fontWeight: 700,
+  letterSpacing: "16px",
+  wordBreak: "keep-all",
+};
+
 export default function QuizAnswer({ quiz, onNext }) {
   const router = useRouter();
 
@@ -15,25 +23,13 @@ export default function QuizAnswer({ quiz, onNext }) {
       </Box>
 
       <Box sx={{ pb: 2 }}>
-        <Typography
-          sx={{ fontSize: 18, lineHeight: "27px", fontWeight: 500, color: "text.disabled" }}
-        >
+        <Typography variant="subtitle1" color="text.disabled" sx={{ lineHeight: "27px" }}>
           정답은
         </Typography>
       </Box>
 
       <Box sx={{ pb: 8 }}>
-        <Typography
-          sx={{
-            fontSize: 80,
-            lineHeight: "120px",
-            fontWeight: 700,
-            color: "success.main",
-            letterSpacing: "16px",
-            textAlign: "center",
-            wordBreak: "keep-all",
-          }}
-        >
+        <Typography color="success.main" align="center" sx={answerSx}>
           {[...quiz.answer].join(" ")}
         </Typography>
       </Box>
