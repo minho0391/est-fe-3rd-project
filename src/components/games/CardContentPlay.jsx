@@ -9,6 +9,19 @@ import { supabase } from "@/lib/supabase";
 
 const CARD_COUNT = 4;
 
+const cardSx = {
+  display: "flex",
+  flexDirection: "column",
+  width: 220,
+  height: 300,
+  flexShrink: 0,
+  p: "25px",
+  bgcolor: "background.paper",
+  border: 1,
+  borderColor: "divider",
+  borderRadius: "20px",
+};
+
 export default function CardContentPlay() {
   const [items, setItems] = useState([]);
   const [error, setError] = useState("");
@@ -50,10 +63,7 @@ export default function CardContentPlay() {
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-      <Typography
-        component="h2"
-        sx={{ fontSize: 24, lineHeight: "32px", fontWeight: 600, textAlign: "center" }}
-      >
+      <Typography component="h2" variant="h4" align="center">
         {error || "카드를 뒤집으면 질문이 나와요"}
       </Typography>
 
@@ -76,27 +86,11 @@ export default function CardContentPlay() {
           }
 
           return (
-            <Box
-              key={index}
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                width: 220,
-                height: 300,
-                flexShrink: 0,
-                p: "25px",
-                bgcolor: "background.paper",
-                border: 1,
-                borderColor: "divider",
-                borderRadius: "20px",
-              }}
-            >
-              <Typography sx={{ fontSize: 14, lineHeight: "20px", color: "text.disabled", pb: 2 }}>
+            <Box key={index} sx={cardSx}>
+              <Typography variant="body2" color="text.disabled" sx={{ lineHeight: "20px", pb: 2 }}>
                 {content.title}
               </Typography>
-              <Typography
-                sx={{ fontSize: 18, lineHeight: "29px", fontWeight: 500, wordBreak: "keep-all" }}
-              >
+              <Typography variant="subtitle1" sx={{ lineHeight: "29px", wordBreak: "keep-all" }}>
                 {content.scripts?.[0]}
               </Typography>
             </Box>
