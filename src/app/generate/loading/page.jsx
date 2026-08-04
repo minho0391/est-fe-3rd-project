@@ -10,6 +10,7 @@ export default function GenerateLoadingPage() {
     <>
       <Header />
       <h1>로딩 안내 페이지</h1>
+      <p>로딩 실패 시 실패 화면 출력 / 성공 시 결과 페이지 출력</p>
       <Footer />
     </>
   );
