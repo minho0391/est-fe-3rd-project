@@ -6,11 +6,7 @@ const variantMap = {
   primary: "contained",
   secondary: "outlined",
   tertiary: "outlined",
-};
-
-const sizeStyles = {
-  md: { height: 56, px: 3, fontSize: 18, lineHeight: "26px" },
-  cta: { width: 255, height: 75, px: 3, py: 2, fontSize: 18, lineHeight: "27px" },
+  text: "text",
 };
 
 const variantStyles = {
@@ -24,7 +20,11 @@ const variantStyles = {
     color: "primary.main",
     borderWidth: 2,
     borderColor: "primary.main",
-    "&:hover": { borderWidth: 2, borderColor: "primary.main", bgcolor: "background.paper" },
+    "&:hover": {
+      borderWidth: 2,
+      borderColor: "primary.main",
+      bgcolor: "background.paper",
+    },
   },
   tertiary: {
     bgcolor: "background.paper",
@@ -32,6 +32,10 @@ const variantStyles = {
     borderWidth: 1,
     borderColor: "divider",
     "&:hover": { borderColor: "divider", bgcolor: "background.paper" },
+  },
+  text: {
+    color: "primary.main",
+    "&:hover": { bgcolor: "transparent" },
   },
 };
 
@@ -47,19 +51,10 @@ export default function Button({
   return (
     <MuiButton
       variant={variantMap[variant]}
+      size={size}
       startIcon={leadingIcon}
       endIcon={trailingIcon}
-      sx={{
-        borderRadius: "16px",
-        fontWeight: 500,
-        whiteSpace: "nowrap",
-        transition: "filter 0.15s ease",
-        gap: 1,
-        "& .MuiButton-startIcon, & .MuiButton-endIcon": { mx: 0 },
-        ...sizeStyles[size],
-        ...variantStyles[variant],
-        ...sx,
-      }}
+      sx={{ ...variantStyles[variant], ...sx }}
       {...rest}
     >
       {children}
