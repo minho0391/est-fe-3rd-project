@@ -1,0 +1,353 @@
+/* Community shared tokens and reusable class-based styles. No global tag selectors. */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+
+.community-scope {
+  --font:
+    "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --primary: #5b52e8;
+  --primary-hover: #4838ea;
+  --primary-soft: #f0eeff;
+  --secondary: #6f4e37;
+  --secondary-hover: #5d402f;
+  --ink: #17171c;
+  --ink-subtle: #555563;
+  --ink-muted: #858594;
+  --line: #e8e8ef;
+  --surface: #ffffff;
+  --surface-soft: #f8f8fc;
+  --surface-tint: #f4f2ff;
+  --danger: #df3f5f;
+  --success: #198754;
+  --shadow: 0 16px 48px rgba(35, 29, 75, 0.08);
+  --radius: 16px;
+  --container: 1200px;
+  --gutter: 24px;
+  --columns-desktop: 12;
+  --columns-tablet: 8;
+  --columns-mobile: 4;
+}
+
+.community-scope,
+.community-scope * {
+  box-sizing: border-box;
+}
+
+.community-scope {
+  font-family: var(--font);
+  background: var(--surface-soft);
+  color: var(--ink);
+}
+
+.community-scope {
+  margin: 0;
+  min-width: 320px;
+  background: var(--surface-soft);
+  font-family: var(--font);
+}
+
+.cabinet-drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cabinet-typeBadge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 32px;
+  padding: 0 16px;
+  border-radius: 16px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.cabinet-filterTabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cabinet-filterBtn {
+  min-height: 56px;
+  padding: 0 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink-subtle);
+  font-weight: 700;
+}
+
+.cabinet-activeFilter {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.cabinet-tagGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 32px;
+}
+
+.cabinet-tag {
+  min-height: 32px;
+  padding: 0 16px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-tint);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cabinet-fetcherWrapper {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.write-quillEditor .ql-toolbar {
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 16px;
+  background: var(--surface-soft);
+}
+
+.write-quillEditor .ql-container {
+  border: 0;
+  min-height: 280px;
+  font-family: var(--font);
+  font-size: 16px;
+}
+
+.cabinet-modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  padding: 24px;
+  background: rgba(23, 23, 28, 0.48);
+  display: grid;
+  place-items: center;
+}
+
+.cabinet-drawerCard {
+  width: min(100%, 800px);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  padding: 32px;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.cabinet-drawerTitle {
+  font-size: 24px;
+  line-height: 32px;
+}
+
+.cabinet-drawerSubtitle {
+  margin-top: 8px;
+  color: var(--ink-muted);
+}
+
+.cabinet-closeBtn {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.cabinet-filterTabs {
+  margin-top: 24px;
+}
+
+.cabinet-contentList {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cabinet-contentCard {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.cabinet-cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cabinet-adminBadge {
+  background: #fff4e8;
+  color: #9a5b18;
+}
+
+.cabinet-itemTitle {
+  margin-top: 24px;
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.cabinet-itemPreview {
+  margin-top: 16px;
+  color: var(--ink-subtle);
+  line-height: 24px;
+  white-space: pre-line;
+}
+
+.cabinet-tagGroup {
+  margin-top: 16px;
+}
+
+@media (max-width: 767px) {
+  .cabinet-fetcherWrapper {
+    width: 100%;
+  }
+  .cabinet-triggerButton {
+    flex: 1 1 100%;
+  }
+  .cabinet-filterBtn {
+    flex: 1 1 auto;
+    padding-inline: 16px;
+  }
+  .cabinet-modalOverlay {
+    padding: 16px;
+  }
+  .cabinet-drawerCard {
+    padding: 24px;
+    max-height: calc(100vh - 32px);
+  }
+  .cabinet-drawerHeader {
+    align-items: flex-start;
+  }
+}
+
+.cabinet-aiBadge {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.ql-container {
+  position: relative;
+  box-sizing: border-box;
+  height: 100%;
+  margin: 0;
+  font-family: var(--font);
+}
+
+.ql-container.ql-disabled .ql-tooltip {
+  visibility: hidden;
+}
+
+.ql-editor {
+  box-sizing: border-box;
+  min-height: 280px;
+  padding: 24px;
+  overflow-y: auto;
+  outline: none;
+  tab-size: 4;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.ql-editor > * {
+  cursor: text;
+}
+
+.ql-editor p,
+.ql-editor ol,
+.ql-editor ul,
+.ql-editor pre,
+.ql-editor blockquote,
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3 {
+  margin: 0 0 16px;
+}
+
+.ql-editor ol,
+.ql-editor ul {
+  padding-left: 24px;
+}
+
+.ql-editor.ql-blank::before {
+  position: absolute;
+  right: 24px;
+  left: 24px;
+  color: var(--ink-muted);
+  content: attr(data-placeholder);
+  font-style: normal;
+  pointer-events: none;
+}
+
+.ql-toolbar {
+  box-sizing: border-box;
+  font-family: var(--font);
+  padding: 16px;
+}
+
+.ql-toolbar::after,
+.ql-container::after {
+  display: table;
+  clear: both;
+  content: "";
+}
+
+.ql-toolbar button,
+.ql-toolbar .ql-picker-label {
+  width: 32px;
+  height: 32px;
+  padding: 8px;
+  border: 0;
+  background: transparent;
+}
+
+.ql-toolbar button:hover,
+.ql-toolbar button:focus,
+.ql-toolbar button.ql-active,
+.ql-toolbar .ql-picker-label:hover,
+.ql-toolbar .ql-picker-label.ql-active {
+  color: var(--primary);
+  outline: none;
+}
+
+.ql-snow .ql-tooltip {
+  position: absolute;
+  z-index: 10;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.ql-snow .ql-tooltip input[type="text"] {
+  min-height: 56px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.ql-clipboard {
+  position: absolute;
+  left: -100000px;
+  top: 50%;
+  height: 1px;
+  overflow-y: hidden;
+}
+
+.community-page {
+  width: 100%;
+}
