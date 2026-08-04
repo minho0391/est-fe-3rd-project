@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import ButtonBase from "@mui/material/ButtonBase";
@@ -11,7 +11,7 @@ import { supabase } from "@/lib/supabase";
 import { balls, RANDOM_PICK_FORMATS } from "@/lib/randomPickData";
 import { layout } from "@/lib/layout";
 
-const BALL_GAP = 255.5;
+const BALL_SIZE = 80;
 const SHUFFLE_STEPS = 4;
 const STEP_DURATION = 380;
 
@@ -24,8 +24,8 @@ const cardSx = {
 
 const ballSx = {
   position: "relative",
-  width: 80,
-  height: 80,
+  width: BALL_SIZE,
+  height: BALL_SIZE,
   bgcolor: "primary.main",
   borderBottom: "4px solid",
   borderBottomColor: "momentalk.ballEdge",
@@ -50,12 +50,31 @@ export default function RandomPick() {
   const [pool, setPool] = useState([]);
   const [loadError, setLoadError] = useState(false);
   const [result, setResult] = useState(null);
+  const [gap, setGap] = useState(0);
   const timers = useRef([]);
+  const rowRef = useRef(null);
 
   const clearTimers = () => {
     timers.current.forEach(clearTimeout);
     timers.current = [];
   };
+
+  // 공이 놓이는 줄의 실제 폭을 재서 칸 간격을 계산
+  useLayoutEffect(() => {
+    const row = rowRef.current;
+    if (!row) return;
+
+    const measure = () => {
+      const width = row.getBoundingClientRect().width;
+      const slots = balls.length - 1;
+      setGap(slots > 0 ? (width - BALL_SIZE) / slots : 0);
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(row);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     for (let step = 1; step <= SHUFFLE_STEPS; step += 1) {
@@ -169,6 +188,7 @@ export default function RandomPick() {
             />
 
             <Box
+              ref={rowRef}
               sx={{
                 display: "flex",
                 alignItems: "center",
@@ -184,7 +204,7 @@ export default function RandomPick() {
                   aria-label={`${index + 1}번 공 선택`}
                   sx={{
                     ...ballSx,
-                    transform: `translateX(${(order[index] - index) * BALL_GAP}px)`,
+                    transform: `translateX(${(order[index] - index) * gap}px)`,
                   }}
                 >
                   <Box
