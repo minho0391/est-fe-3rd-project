@@ -1,6 +1,9 @@
 // [마이페이지] 페이지 (localhost:3000/post/mypage)
 "use client";
 
+import "@/community/common.css";
+import "@/community/mypage.css";
+
 import React, { useState } from "react";
 
 export default function MyPage() {
@@ -38,7 +41,7 @@ export default function MyPage() {
   ];
 
   return (
-    <main className="mypage-container">
+    <main className="community-scope community-page mypage-container">
       {/* 1. 상단 프로필 헤더 카드 */}
       <section className="mypage-profileCard">
         <div className="mypage-profileInfo">
