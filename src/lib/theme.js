@@ -101,6 +101,17 @@ const theme = createTheme({
           },
         },
         {
+          props: { size: "modal" },
+          style: {
+            height: 48,
+            paddingLeft: 24,
+            paddingRight: 24,
+            fontSize: 15,
+            lineHeight: "22px",
+            fontWeight: 500,
+          },
+        },
+        {
           props: { size: "nav" },
           style: {
             height: 40,
