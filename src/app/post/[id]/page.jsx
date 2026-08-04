@@ -1,6 +1,9 @@
 // [게시판 상세] 페이지 (localhost:3000/post/1)
 "use client";
 
+import "@/community/common.css";
+import "@/community/post.css";
+
 import React from "react";
 import Link from "next/link";
 import PostDetailContent from "@/components/post/detail/PostBody.jsx";
@@ -31,7 +34,7 @@ export default function PostDetailPage({ params }) {
   };
 
   return (
-    <main className="detail-page-container">
+    <main className="community-scope community-page detail-page-container">
       {/* 1. 상단 목록 돌아가기 바 */}
       <div className="detail-page-navigationRow">
         <Link href="/post" className="detail-page-backBtn">
