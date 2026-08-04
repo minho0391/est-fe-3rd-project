@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import ButtonBase from "@mui/material/ButtonBase";
@@ -11,9 +11,29 @@ import { supabase } from "@/lib/supabase";
 import { balls, RANDOM_PICK_FORMATS } from "@/lib/randomPickData";
 import { layout } from "@/lib/layout";
 
-const BALL_GAP = 255.5;
+const BALL_SIZE = 80;
 const SHUFFLE_STEPS = 4;
 const STEP_DURATION = 380;
+
+const cardSx = {
+  bgcolor: "background.paper",
+  border: 1,
+  borderColor: "divider",
+  borderRadius: "20px",
+};
+
+const ballSx = {
+  position: "relative",
+  width: BALL_SIZE,
+  height: BALL_SIZE,
+  bgcolor: "primary.main",
+  borderBottom: "4px solid",
+  borderBottomColor: "momentalk.ballEdge",
+  borderRadius: "9999px",
+  boxShadow: "0 10px 15px -3px rgba(91, 82, 232, 0.3)",
+  overflow: "hidden",
+  transition: "transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
+};
 
 function shuffle(list) {
   const next = [...list];
@@ -30,12 +50,31 @@ export default function RandomPick() {
   const [pool, setPool] = useState([]);
   const [loadError, setLoadError] = useState(false);
   const [result, setResult] = useState(null);
+  const [gap, setGap] = useState(0);
   const timers = useRef([]);
+  const rowRef = useRef(null);
 
   const clearTimers = () => {
     timers.current.forEach(clearTimeout);
     timers.current = [];
   };
+
+  // 공이 놓이는 줄의 실제 폭을 재서 칸 간격을 계산
+  useLayoutEffect(() => {
+    const row = rowRef.current;
+    if (!row) return;
+
+    const measure = () => {
+      const width = row.getBoundingClientRect().width;
+      const slots = balls.length - 1;
+      setGap(slots > 0 ? (width - BALL_SIZE) / slots : 0);
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(row);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     for (let step = 1; step <= SHUFFLE_STEPS; step += 1) {
@@ -121,29 +160,17 @@ export default function RandomPick() {
             maxWidth: `${layout.maxWidth}px`,
           }}
         >
-          <Typography
-            component="h2"
-            sx={{
-              fontSize: 32,
-              lineHeight: "39px",
-              fontWeight: 700,
-              letterSpacing: "-0.64px",
-              textAlign: "center",
-            }}
-          >
+          <Typography component="h2" variant="h2" align="center" sx={{ letterSpacing: "-0.64px" }}>
             {titleText}
           </Typography>
 
           <Box
             sx={{
+              ...cardSx,
               position: "relative",
               width: "100%",
               height: 178,
               p: "49px",
-              bgcolor: "background.paper",
-              border: 1,
-              borderColor: "divider",
-              borderRadius: "20px",
               boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
               overflow: "hidden",
             }}
@@ -161,6 +188,7 @@ export default function RandomPick() {
             />
 
             <Box
+              ref={rowRef}
               sx={{
                 display: "flex",
                 alignItems: "center",
@@ -175,17 +203,8 @@ export default function RandomPick() {
                   disabled={!isReady}
                   aria-label={`${index + 1}번 공 선택`}
                   sx={{
-                    position: "relative",
-                    width: 80,
-                    height: 80,
-                    bgcolor: "primary.main",
-                    borderBottom: "4px solid",
-                    borderBottomColor: "momentalk.ballEdge",
-                    borderRadius: "9999px",
-                    boxShadow: "0 10px 15px -3px rgba(91, 82, 232, 0.3)",
-                    overflow: "hidden",
-                    transform: `translateX(${(order[index] - index) * BALL_GAP}px)`,
-                    transition: "transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
+                    ...ballSx,
+                    transform: `translateX(${(order[index] - index) * gap}px)`,
                   }}
                 >
                   <Box
@@ -207,26 +226,12 @@ export default function RandomPick() {
           </Box>
 
           {isShuffling && (
-            <Typography
-              sx={{
-                fontSize: 14,
-                lineHeight: "21px",
-                color: "text.secondary",
-                textAlign: "center",
-              }}
-            >
+            <Typography variant="body2" color="text.secondary" align="center">
               화면을 누르면 건너뛸 수 있어요
             </Typography>
           )}
           {loadError && (
-            <Typography
-              sx={{
-                fontSize: 14,
-                lineHeight: "21px",
-                color: "text.secondary",
-                textAlign: "center",
-              }}
-            >
+            <Typography variant="body2" color="text.secondary" align="center">
               잠시 후 새로고침해 주세요.
             </Typography>
           )}
