@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Button from "@/components/ui/Button";
 
 // 보관함에 저장된 콘텐츠 데이터 샘플 (AI 생성 & 운영진 기본 콘텐츠)
 const SAVED_CONTENTS = [
@@ -71,21 +72,27 @@ export default function ContentFetcher({ onSelectContent }) {
   return (
     <div className="cabinet-fetcherWrapper">
       {/* 트리거 버튼 그룹 */}
-      <button
+      <Button
         type="button"
-        className="cabinet-btnSecondary"
+        variant="secondary"
+        size="md"
+        className="cabinet-triggerButton"
+        leadingIcon={<span aria-hidden="true">✨</span>}
         onClick={toggleDrawer}
       >
-        <span>✨</span> AI 콘텐츠 생성하기
-      </button>
+        AI 콘텐츠 생성하기
+      </Button>
 
-      <button
+      <Button
         type="button"
-        className="cabinet-btnTertiary"
+        variant="tertiary"
+        size="md"
+        className="cabinet-triggerButton"
+        leadingIcon={<span aria-hidden="true">🔄</span>}
         onClick={toggleDrawer}
       >
-        <span>🔄</span> 콘텐츠 보관함 불러오기
-      </button>
+        콘텐츠 보관함 불러오기
+      </Button>
 
       {/* 콘텐츠 보관함 레이어/모달 */}
       {isOpen && (
@@ -155,13 +162,14 @@ export default function ContentFetcher({ onSelectContent }) {
                       {item.badge}
                     </span>
 
-                    <button
+                    <Button
                       type="button"
-                      className="cabinet-applyBtn"
+                      variant="primary"
+                      size="md"
                       onClick={() => handleSelect(item)}
                     >
                       적용하기
-                    </button>
+                    </Button>
                   </div>
 
                   <h4 className="cabinet-itemTitle">{item.title}</h4>
