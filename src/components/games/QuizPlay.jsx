@@ -19,7 +19,7 @@ const hintChipSx = {
   gap: 1,
   px: 4,
   py: 1,
-  bgcolor: "#eef0ff",
+  bgcolor: "momentalk.hintChip",
   borderRadius: "9999px",
 };
 
