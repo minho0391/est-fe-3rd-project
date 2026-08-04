@@ -84,6 +84,8 @@ export default function RandomPick() {
     return clearTimers;
   }, []);
 
+  // TODO: 추후 Edge Function으로 AI 생성 콘텐츠를 받아오도록 변경 예정.
+  // 현재는 default_contents 조회로 유지.
   useEffect(() => {
     let alive = true;
 
