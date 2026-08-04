@@ -28,6 +28,7 @@ const theme = createTheme({
       accentLine: "#d9e3f6",
       modalBorder: "#c7c4d8",
       ballEdge: "#3a31c0",
+      hintChip: "#eef0ff",
     },
   },
   typography: {
@@ -86,6 +87,31 @@ const theme = createTheme({
             padding: "16px 24px",
             fontSize: 18,
             lineHeight: "27px",
+          },
+        },
+        {
+          props: { size: "game" },
+          style: {
+            height: 56,
+            paddingLeft: 24,
+            paddingRight: 24,
+            fontSize: 16,
+            lineHeight: "24px",
+            fontWeight: 400,
+          },
+        },
+        {
+          props: { size: "nav" },
+          style: {
+            height: 40,
+            paddingLeft: 24,
+            paddingRight: 24,
+            paddingTop: 8,
+            paddingBottom: 8,
+            borderRadius: 8,
+            fontSize: 14,
+            lineHeight: "24px",
+            fontWeight: 400,
           },
         },
         {

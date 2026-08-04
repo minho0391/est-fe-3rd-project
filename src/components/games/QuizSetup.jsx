@@ -21,11 +21,14 @@ const fieldSx = {
   "& input::placeholder": { color: "text.disabled", opacity: 1 },
 };
 
+const fieldGroupSx = { display: "flex", flexDirection: "column", gap: 1, width: "100%" };
+const hintFieldSx = { ...fieldGroupSx, flex: "1 0 0", minWidth: 0 };
+
 function FieldLabel({ icon, iconWidth = 20, children }) {
   return (
     <Box sx={{ display: "flex", alignItems: "flex-end", gap: 1, height: 25 }}>
       <Box component="img" src={icon} alt="" sx={{ width: iconWidth, height: 20 }} />
-      <Typography component="span" sx={{ fontSize: 18, lineHeight: "26px", fontWeight: 500 }}>
+      <Typography component="span" variant="subtitle1" sx={{ lineHeight: "26px" }}>
         {children}
       </Typography>
     </Box>
@@ -58,20 +61,18 @@ export default function QuizSetup({ onSubmit }) {
 
         <Typography
           component="h2"
-          sx={{
-            pt: 2,
-            fontSize: 32,
-            lineHeight: "39px",
-            fontWeight: 700,
-            letterSpacing: "-0.8px",
-            textAlign: "center",
-          }}
+          variant="h2"
+          align="center"
+          sx={{ pt: 2, letterSpacing: "-0.8px" }}
         >
           초성 퀴즈 - 출제
         </Typography>
 
         <Typography
-          sx={{ fontSize: 16, lineHeight: "24px", color: "text.secondary", textAlign: "center" }}
+          variant="body1"
+          color="text.secondary"
+          align="center"
+          sx={{ lineHeight: "24px" }}
         >
           맞힐 단어와 힌트를 입력해 주세요.
         </Typography>
@@ -91,7 +92,7 @@ export default function QuizSetup({ onSubmit }) {
           boxShadow: "0 1px 1px rgba(0, 0, 0, 0.05)",
         }}
       >
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 1, width: "100%" }}>
+        <Box sx={fieldGroupSx}>
           <FieldLabel icon="/quiz-answer.svg">정답 단어</FieldLabel>
           <InputBase
             value={answer}
@@ -103,9 +104,7 @@ export default function QuizSetup({ onSubmit }) {
         </Box>
 
         <Box sx={{ display: "flex", gap: 3, width: "100%" }}>
-          <Box
-            sx={{ display: "flex", flexDirection: "column", gap: 1, flex: "1 0 0", minWidth: 0 }}
-          >
+          <Box sx={hintFieldSx}>
             <FieldLabel icon="/quiz-hint.svg" iconWidth={15}>
               힌트 1
             </FieldLabel>
@@ -118,9 +117,7 @@ export default function QuizSetup({ onSubmit }) {
             />
           </Box>
 
-          <Box
-            sx={{ display: "flex", flexDirection: "column", gap: 1, flex: "1 0 0", minWidth: 0 }}
-          >
+          <Box sx={hintFieldSx}>
             <FieldLabel icon="/quiz-hint.svg" iconWidth={15}>
               힌트 2
             </FieldLabel>
