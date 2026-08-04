@@ -3,10 +3,11 @@
 
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
+import "react-quill-new/dist/quill.snow.css";
 import ContentFetcher from "./ContentFetcher";
 
 // React Quill SSR 이슈 방지를 위한 Dynamic Import
-const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 const modules = {
   toolbar: [
