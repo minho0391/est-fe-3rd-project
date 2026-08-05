@@ -9,6 +9,11 @@ const RANK_BADGES = [
   { rank: 3, medal: "🥉", className: "top-three-bronze" },
 ];
 
+const METRIC_LABELS = {
+  views: "조회",
+  likes: "좋아요",
+};
+
 export default function TopThree({
   posts = [],
   title = "실시간 TOP 3 인기글",
@@ -16,7 +21,12 @@ export default function TopThree({
   metric = "views",
   compact = false,
 }) {
-  const topPosts = posts.slice(0, 3);
+  const metricLabel = METRIC_LABELS[metric] ?? metric;
+
+  const topPosts = [...posts]
+    .filter(post => post && !post.isNotice)
+    .sort((a, b) => (b?.[metric] ?? 0) - (a?.[metric] ?? 0))
+    .slice(0, 3);
 
   return (
     <section
@@ -52,9 +62,9 @@ export default function TopThree({
                 <span className="top-three-author">{post.author}</span>
 
                 <div className="top-three-stats">
-                  <span>조회 {post.views ?? 0}</span>
-
-                  <span>좋아요 {post.likes ?? 0}</span>
+                  <span>
+                    {metricLabel} {post?.[metric] ?? 0}
+                  </span>
                 </div>
               </div>
             </Link>
