@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import "react-quill-new/dist/quill.snow.css";
 import ContentFetcher from "./ContentFetcher";
+import { communityBoards } from "@/data/communityPosts";
 
 // React Quill SSR 이슈 방지를 위한 Dynamic Import
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -32,8 +33,6 @@ const formats = [
   "image",
   "video",
 ];
-
-const BOARDS = ["자유게시판", "Q&A", "정보공유"];
 
 export default function WriteForm() {
   const [board, setBoard] = useState("자유게시판");
@@ -102,7 +101,7 @@ export default function WriteForm() {
               onChange={e => setBoard(e.target.value)}
               className="write-select"
             >
-              {BOARDS.map(boardName => (
+              {communityBoards.map(boardName => (
                 <option key={boardName} value={boardName}>
                   {boardName}
                 </option>

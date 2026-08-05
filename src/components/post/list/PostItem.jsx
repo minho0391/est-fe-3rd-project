@@ -1,11 +1,15 @@
 // [게시글 리스트] 내 개별 게시글 정보 (공지/일반 구분)
 "use client";
 
-import React from "react";
+import Link from "next/link";
 
-export default function PostItem({ post }) {
-  // 샘플 데이터가 없을 경우를 대비한 기본값
+export default function PostItem({ post, compact = false }) {
+  if (!post || post.id === undefined || post.id === null) {
+    return null;
+  }
+
   const {
+    id,
     isNotice = false,
     board = "자유게시판",
     title = "게시글 제목이 들어갈 위치입니다.",
@@ -15,24 +19,25 @@ export default function PostItem({ post }) {
     views = 0,
     likes = 0,
     commentsCount = 0,
-  } = post || {};
+  } = post;
 
   return (
-    <div
-      className={`${"post-item-itemCard"} ${isNotice ? "post-item-noticeCard" : ""}`}
+    <Link
+      href={`/post/${id}`}
+      className={`post-item-itemCard ${isNotice ? "post-item-noticeCard" : ""} ${compact ? "post-item-compact" : ""}`}
     >
-      {/* 상단 뱃지 영역 (공지 / 일반 게시판 구분) */}
       <div className="post-item-headerRow">
-        {isNotice ? (
-          <span className="post-item-noticeBadge">📢 공지사항</span>
-        ) : (
-          <span className="post-item-boardBadge">{board}</span>
-        )}
+        <span
+          className={
+            isNotice ? "post-item-noticeBadge" : "post-item-boardBadge"
+          }
+        >
+          {isNotice ? "공지" : board}
+        </span>
 
         <span className="post-item-date">{createdAt}</span>
       </div>
 
-      {/* 게시글 제목 및 요약 설명 */}
       <div className="post-item-contentGroup">
         <h3 className="post-item-title">
           {isNotice && <span className="post-item-noticeText">[공지] </span>}
@@ -43,20 +48,17 @@ export default function PostItem({ post }) {
         {description && <p className="post-item-description">{description}</p>}
       </div>
 
-      {/* 하단 메타 정보 (작성자, 조회수, 좋아요, 댓글 수) */}
       <div className="post-item-footerRow">
-        <div className="post-item-authorGroup">
-          <span className="post-item-author">{author}</span>
-        </div>
+        <span className="post-item-author">{author}</span>
 
         <div className="post-item-statsGroup">
-          <span className="post-item-statItem">👁️ {views}</span>
+          <span className="post-item-statItem">조회 {views}</span>
 
-          <span className="post-item-statItem">❤️ {likes}</span>
+          <span className="post-item-statItem">좋아요 {likes}</span>
 
-          <span className="post-item-statItem">💬 {commentsCount}</span>
+          <span className="post-item-statItem">댓글 {commentsCount}</span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
