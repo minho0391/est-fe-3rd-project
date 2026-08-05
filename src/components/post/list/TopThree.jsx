@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { EmojiEventsIcon } from "@/images_icon";
+import { EmojiEventsIcon, FavoriteIcon, RemoveRedEyeIcon } from "@/images_icon";
 
 const RANK_BADGES = [
   { rank: 1, className: "top-three-gold" },
@@ -10,9 +10,9 @@ const RANK_BADGES = [
   { rank: 3, className: "top-three-bronze" },
 ];
 
-const METRIC_LABELS = {
-  views: "조회",
-  likes: "좋아요",
+const METRIC_CONFIG = {
+  views: { label: "조회수", Icon: RemoveRedEyeIcon },
+  likes: { label: "좋아요", Icon: FavoriteIcon },
 };
 
 export default function TopThree({
@@ -22,7 +22,9 @@ export default function TopThree({
   metric = "views",
   compact = false,
 }) {
-  const metricLabel = METRIC_LABELS[metric] ?? metric;
+  const metricConfig = METRIC_CONFIG[metric] ?? { label: metric, Icon: null };
+
+  const MetricIcon = metricConfig.Icon;
 
   const topPosts = [...posts]
     .filter(post => post && !post.isNotice)
@@ -66,8 +68,14 @@ export default function TopThree({
                 <span className="top-three-author">{post.author}</span>
 
                 <div className="top-three-stats">
-                  <span>
-                    {metricLabel} {post?.[metric] ?? 0}
+                  <span className="top-three-statItem">
+                    {MetricIcon && (
+                      <MetricIcon
+                        className="top-three-statIcon"
+                        aria-hidden="true"
+                      />
+                    )}
+                    {metricConfig.label} {post?.[metric] ?? 0}
                   </span>
                 </div>
               </div>
