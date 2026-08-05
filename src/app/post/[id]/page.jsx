@@ -19,8 +19,8 @@ export default function PostDetailPage() {
   const postId = params?.id;
   const staticPost = useMemo(() => getCommunityPostById(postId), [postId]);
   const [previewPost, setPreviewPost] = useState(null);
-  const basePost = postId === "preview" ? previewPost : staticPost;
-  const [views, setViews] = useState(staticPost?.views ?? 0);
+  const basePost = previewPost ?? staticPost;
+  const [views, setViews] = useState(basePost?.views ?? 0);
   const [likes, setLikes] = useState(basePost?.likes ?? 0);
   const [isLiked, setIsLiked] = useState(false);
   const countedPostRef = useRef(null);
@@ -31,6 +31,7 @@ export default function PostDetailPage() {
       return;
     }
 
+    // TODO: Supabase 상세 조회 연동 후 /post/preview 분기 및 sessionStorage 미리보기 읽기 로직 제거
     const savedPost = sessionStorage.getItem("community-preview-post");
     setPreviewPost(savedPost ? JSON.parse(savedPost) : null);
   }, [postId]);
@@ -46,7 +47,7 @@ export default function PostDetailPage() {
       countedPostRef.current = basePost.id;
       setViews(current => current + 1);
     }
-  }, [basePost]);
+  }, [basePost?.id, basePost?.views, basePost?.likes]);
 
   if (!basePost) {
     return (
