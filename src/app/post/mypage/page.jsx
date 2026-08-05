@@ -7,6 +7,11 @@ import "@/community/mypage.css";
 import React, { useState } from "react";
 import Link from "next/link";
 import {
+  AccountCircleIcon,
+  FavoriteIcon,
+  RemoveRedEyeIcon,
+} from "@/images_icon";
+import {
   getCommentsByAuthorId,
   getCurrentUserProfile,
   getLikedPostsByCurrentUser,
@@ -37,9 +42,15 @@ export default function MyPage() {
           <h3 className="mypage-postTitle">{post.title}</h3>
 
           <div className="mypage-postFooter">
-            <span>👁️ 조회 {post.views}</span>
+            <span>
+              <RemoveRedEyeIcon aria-hidden="true" fontSize="small" /> 조회{" "}
+              {post.views}
+            </span>
 
-            <span>❤️ 좋아요 {post.likes}</span>
+            <span>
+              <FavoriteIcon aria-hidden="true" fontSize="small" /> 좋아요{" "}
+              {post.likes}
+            </span>
           </div>
         </Link>
       ))}
@@ -50,7 +61,9 @@ export default function MyPage() {
     <main className="community-scope community-page mypage-container">
       <section className="mypage-profileCard">
         <div className="mypage-profileInfo">
-          <div className="mypage-avatar">👤</div>
+          <div className="mypage-avatar">
+            <AccountCircleIcon aria-hidden="true" />
+          </div>
 
           <div className="mypage-userDetails">
             <div className="mypage-nameGroup">
