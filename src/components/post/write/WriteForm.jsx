@@ -6,6 +6,8 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import "react-quill-new/dist/quill.snow.css";
 import ContentFetcher from "./ContentFetcher";
+import Button from "@/components/ui/Button";
+import { CloseIcon, InfoOutlinedIcon } from "@/images_icon";
 import { communityBoards } from "@/data/communityPosts";
 
 // React Quill SSR 이슈 방지를 위한 Dynamic Import
@@ -89,6 +91,7 @@ export default function WriteForm() {
       commentsCount: 0,
     };
 
+    // TODO: Supabase 게시글 insert 연동 후 sessionStorage 미리보기 저장 및 /post/preview 이동 로직 제거
     sessionStorage.setItem("community-preview-post", JSON.stringify(newPost));
     router.push("/post/preview");
   };
@@ -187,7 +190,7 @@ export default function WriteForm() {
                     className="write-tagRemoveBtn"
                     aria-label={`${tag} 태그 삭제`}
                   >
-                    ✕
+                    <CloseIcon aria-hidden="true" fontSize="small" />
                   </button>
                 </span>
               ))}
@@ -207,15 +210,16 @@ export default function WriteForm() {
 
           {/* 등록 버튼 영역 */}
           <div className="write-actionRow">
-            <button type="submit" className="write-btnPrimary">
+            <Button type="submit" variant="primary" size="md">
               등록
-            </button>
+            </Button>
           </div>
 
           {/* 커뮤니티 활동 안내 */}
           <div className="write-noticeCard">
             <div className="write-noticeTitle">
-              <span className="write-infoIcon">ⓘ</span> 커뮤니티 활동 안내
+              <InfoOutlinedIcon className="write-infoIcon" aria-hidden="true" />
+              커뮤니티 활동 안내
             </div>
 
             <p className="write-noticeText">
