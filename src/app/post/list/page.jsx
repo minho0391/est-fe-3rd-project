@@ -25,11 +25,19 @@ export default function PostListPage() {
         .includes(query.toLowerCase()),
     );
 
-    return [...filtered].sort((a, b) => {
-      if (sort === "likes") return b.likes - a.likes;
-      if (sort === "views") return b.views - a.views;
-      return b.id - a.id;
-    });
+    const noticePosts = filtered
+      .filter(post => post.isNotice)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+    const normalPosts = filtered
+      .filter(post => !post.isNotice)
+      .sort((a, b) => {
+        if (sort === "likes") return b.likes - a.likes;
+        if (sort === "views") return b.views - a.views;
+        return b.createdAt.localeCompare(a.createdAt);
+      });
+
+    return [...noticePosts, ...normalPosts];
   }, [query, sort]);
 
   return (
