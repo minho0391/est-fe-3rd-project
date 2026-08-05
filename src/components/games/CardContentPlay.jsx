@@ -28,6 +28,8 @@ export default function CardContentPlay() {
   const [opened, setOpened] = useState({}); // { 카드인덱스: 콘텐츠 }
   const [result, setResult] = useState(null);
 
+  // TODO: 추후 Edge Function으로 AI 생성 콘텐츠를 받아오도록 변경 예정.
+  // 현재는 default_contents 조회로 유지.
   useEffect(() => {
     (async () => {
       try {
