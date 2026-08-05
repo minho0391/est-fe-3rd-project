@@ -2,6 +2,11 @@
 "use client";
 
 import Link from "next/link";
+import {
+  ChatBubbleOutlineIcon,
+  FavoriteIcon,
+  RemoveRedEyeIcon,
+} from "@/images_icon";
 
 export default function PostItem({ post, compact = false }) {
   if (!post || post.id === undefined || post.id === null) {
@@ -52,11 +57,26 @@ export default function PostItem({ post, compact = false }) {
         <span className="post-item-author">{author}</span>
 
         <div className="post-item-statsGroup">
-          <span className="post-item-statItem">조회 {views}</span>
+          <span className="post-item-statItem">
+            <RemoveRedEyeIcon
+              className="post-item-statIcon"
+              aria-hidden="true"
+            />
+            조회수 {views}
+          </span>
 
-          <span className="post-item-statItem">좋아요 {likes}</span>
+          <span className="post-item-statItem">
+            <FavoriteIcon className="post-item-statIcon" aria-hidden="true" />
+            좋아요 {likes}
+          </span>
 
-          <span className="post-item-statItem">댓글 {commentsCount}</span>
+          <span className="post-item-statItem">
+            <ChatBubbleOutlineIcon
+              className="post-item-statIcon"
+              aria-hidden="true"
+            />
+            댓글 {commentsCount}
+          </span>
         </div>
       </div>
     </Link>
