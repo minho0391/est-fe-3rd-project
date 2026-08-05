@@ -743,18 +743,23 @@
   .popular-postList {
     grid-template-columns: repeat(8, 1fr);
   }
+
   .top-three-rankCard {
     grid-column: span 4;
   }
+
   .top-three-rankCard:last-child {
     grid-column: span 8;
   }
+
   .feature-card {
     grid-column: span 4;
   }
+
   .popular-postCard {
     grid-column: span 4;
   }
+
   .popular-postCard:last-child {
     grid-column: span 8;
   }
@@ -770,26 +775,31 @@
   .write-container {
     width: min(calc(100% - 32px), var(--container));
   }
+
   .detail-page-container,
   .write-form,
   .feature-container,
   .popular-container {
     padding-block: 32px;
   }
+
   .top-three-topThreeContainer {
     padding-top: 32px;
   }
+
   .top-three-cardGrid,
   .feature-cardGrid,
   .popular-postList {
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
   }
+
   .top-three-rankCard,
   .feature-card,
   .popular-postCard {
     grid-column: span 4;
   }
+
   .top-three-header,
   .feature-header,
   .write-headerRow,
@@ -798,44 +808,54 @@
     align-items: flex-start;
     flex-direction: column;
   }
+
   .write-fetcherWrapper,
   .write-fetcherGroup {
     width: 100%;
   }
+
   .write-fetcher-btnSecondary,
   .write-fetcher-btnTertiary {
     flex: 1 1 100%;
   }
+
   .post-body-container,
   .comments-container,
   .write-section,
   .write-headerRow {
     padding: 24px;
   }
+
   .post-body-title,
   .write-pageTitle {
     font-size: 24px;
     line-height: 32px;
   }
+
   .post-body-postStats {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
   }
+
   .comments-commentItem {
     flex-direction: column;
   }
+
   .post-filter-tabBtn {
     flex: 1 1 auto;
     padding-inline: 16px;
   }
+
   .post-item-itemCard {
     padding: 24px;
   }
+
   .post-item-footerRow {
     align-items: flex-start;
     flex-direction: column;
   }
+
   .post-item-statsGroup {
     gap: 16px;
     flex-wrap: wrap;
@@ -889,4 +909,38 @@
   .popular-postList {
     grid-template-columns: repeat(var(--columns-mobile), minmax(0, 1fr));
   }
+}
+
+/* 상세 페이지 좋아요 토글 및 빈 상태 */
+.community-scope .post-body-likeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink-subtle);
+  font: inherit;
+  cursor: pointer;
+}
+
+.community-scope .post-body-likeButton:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.community-scope .post-body-likeButtonActive {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.community-scope .post-detail-emptyState {
+  padding: 64px 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  text-align: center;
 }
