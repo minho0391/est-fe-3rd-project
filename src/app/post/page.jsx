@@ -1,3 +1,4 @@
+// [커뮤니티 메인] 페이지 (localhost:3000/post)
 import "@/community/common.css";
 import "@/community/post.css";
 
