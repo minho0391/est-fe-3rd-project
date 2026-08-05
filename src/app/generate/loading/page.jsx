@@ -9,6 +9,7 @@ import { useState } from "react";
 
 import Box from "@mui/material/Box";
 import { useTheme } from "@emotion/react";
+import { Typography } from "@mui/material";
 
 // 진행률 구간별 안내 문구
 const PROGRESS_STEPS = [
@@ -45,7 +46,36 @@ export default function GenerateLoadingPage() {
 
 //로딩 진행 화면
 function LoadingView() {
-  return <></>;
+  return (
+    <>
+      <Box
+        sx={{
+          display: "inline-block",
+          bgcolor: "primary.main",
+          color: "#fff",
+          fontWeight: 700,
+          fontSize: "0.9rem",
+          borderRadius: 5,
+          px: 2.5,
+          py: 1,
+          mb: 3,
+        }}
+      >
+        AI 분석 진행중입니다.
+      </Box>
+      <Typography>AI가 최적의 대화 가이드를 분석하고 있습니다.</Typography>
+      <Typography>
+        상황을 분석하여 당신만을 위한 맞춤형 스크립트를 생성 중입니다. 잠시만 기다려 주세요.
+        <br />
+        대화의 성공 확률을 높이기 위해 수천 개의 패턴을 대조하고 있습니다.
+      </Typography>
+      <Typography>- progress bar 자리 -</Typography>
+      <Box>
+        <InfoCard>심리 엔진 분석</InfoCard>
+        <InfoCard>맞춤형 스크립트</InfoCard>
+      </Box>
+    </>
+  );
 }
 
 //로딩 실패 시 화면
