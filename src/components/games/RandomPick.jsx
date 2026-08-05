@@ -13,7 +13,7 @@ import { layout } from "@/lib/layout";
 
 const BALL_SIZE = 80;
 const SHUFFLE_STEPS = 4;
-const STEP_DURATION = 380;
+const STEP_DURATION = 600;
 
 const cardSx = {
   bgcolor: "background.paper",
@@ -84,6 +84,8 @@ export default function RandomPick() {
     return clearTimers;
   }, []);
 
+  // TODO: 추후 Edge Function으로 AI 생성 콘텐츠를 받아오도록 변경 예정.
+  // 현재는 default_contents 조회로 유지.
   useEffect(() => {
     let alive = true;
 
@@ -137,7 +139,6 @@ export default function RandomPick() {
 
       <Box
         component="main"
-        onClick={skipShuffle}
         sx={{
           display: "flex",
           flexDirection: "column",
@@ -226,9 +227,21 @@ export default function RandomPick() {
           </Box>
 
           {isShuffling && (
-            <Typography variant="body2" color="text.secondary" align="center">
-              화면을 누르면 건너뛸 수 있어요
-            </Typography>
+            <Box sx={{ display: "flex", justifyContent: "center" }}>
+              <ButtonBase
+                onClick={skipShuffle}
+                sx={{
+                  px: 2,
+                  py: 1,
+                  borderRadius: "9999px",
+                  color: "text.secondary",
+                  typography: "body2",
+                  "&:hover": { color: "text.primary" },
+                }}
+              >
+                건너뛰기
+              </ButtonBase>
+            </Box>
           )}
           {loadError && (
             <Typography variant="body2" color="text.secondary" align="center">
