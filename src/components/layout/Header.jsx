@@ -3,15 +3,23 @@
 import NextLink from "next/link";
 import Box from "@mui/material/Box";
 import MuiLink from "@mui/material/Link";
-import MuiButton from "@mui/material/Button";
+import Button from "@/components/ui/Button";
 import { layout } from "@/lib/layout";
 
 const navItems = [
   { label: "Discover", href: "#", active: false },
   { label: "Topics", href: "#", active: false },
   { label: "Games", href: "#", active: false },
-  { label: "Community", href: "#", active: true },
+  { label: "Community", href: "/post", active: true },
 ];
+
+const navLinkSx = {
+  display: "flex",
+  alignItems: "center",
+  height: 40,
+  fontSize: 14,
+  lineHeight: "24px",
+};
 
 export default function Header() {
   return (
@@ -43,14 +51,12 @@ export default function Header() {
             component={NextLink}
             href="/"
             underline="none"
+            variant="h4"
             sx={{
               display: "flex",
               alignItems: "center",
               height: 40,
               color: "primary.main",
-              fontSize: 24,
-              lineHeight: "32px",
-              fontWeight: 700,
             }}
           >
             Momentalk
@@ -64,11 +70,7 @@ export default function Header() {
                 href={item.href}
                 underline="none"
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  height: 40,
-                  fontSize: 14,
-                  lineHeight: "24px",
+                  ...navLinkSx,
                   color: item.active ? "primary.main" : "text.secondary",
                   fontWeight: item.active ? 700 : 400,
                 }}
@@ -80,35 +82,12 @@ export default function Header() {
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <MuiButton
-            sx={{
-              height: 40,
-              px: 3,
-              py: 1,
-              borderRadius: "8px",
-              color: "primary.main",
-              fontSize: 14,
-              lineHeight: "24px",
-              fontWeight: 400,
-            }}
-          >
+          <Button variant="text" size="nav">
             로그인
-          </MuiButton>
-          <MuiButton
-            variant="contained"
-            disableElevation
-            sx={{
-              height: 40,
-              px: 3,
-              py: 1,
-              borderRadius: "12px",
-              fontSize: 14,
-              lineHeight: "24px",
-              fontWeight: 400,
-            }}
-          >
+          </Button>
+          <Button size="nav" sx={{ borderRadius: "12px" }}>
             회원가입
-          </MuiButton>
+          </Button>
         </Box>
       </Box>
     </Box>

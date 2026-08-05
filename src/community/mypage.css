@@ -1,0 +1,352 @@
+/* My page class-based styles. */
+.mypage-container {
+  width: min(calc(100% - 48px), var(--container));
+  margin-inline: auto;
+}
+
+.mypage-container {
+  padding-block: 64px;
+}
+
+.mypage-boardBadge,
+.mypage-roleBadge,
+.user-profile-roleBadge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 32px;
+  padding: 0 16px;
+  border-radius: 16px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.mypage-tabHeader {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mypage-tabBtn {
+  min-height: 56px;
+  padding: 0 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink-subtle);
+  font-weight: 700;
+}
+
+.mypage-active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.mypage-container {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.mypage-profileCard {
+  grid-column: span 4;
+  padding: 32px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  position: sticky;
+  top: 24px;
+}
+
+.mypage-profileInfo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mypage-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 32px;
+}
+
+.mypage-userDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mypage-nameGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mypage-userName {
+  font-size: 24px;
+  line-height: 32px;
+}
+
+.mypage-userEmail,
+.mypage-joinDate,
+.mypage-postDate,
+.mypage-postFooter {
+  font-size: 14px;
+  color: var(--ink-muted);
+}
+
+.mypage-statsGroup {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+}
+
+.mypage-statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.mypage-statNumber {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 800;
+}
+
+.mypage-statLabel {
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.mypage-statDivider {
+  display: none;
+}
+
+.mypage-contentSection {
+  grid-column: span 8;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.mypage-tabHeader {
+  padding: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.mypage-tabContent {
+  padding: 24px;
+}
+
+.mypage-postList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mypage-postItem {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.mypage-postHeader,
+.mypage-postFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mypage-postTitle {
+  margin: 24px 0;
+  font-size: 18px;
+  line-height: 32px;
+}
+
+.mypage-emptyText {
+  padding: 64px 24px;
+  text-align: center;
+  color: var(--ink-muted);
+}
+
+.user-profile-profileCard {
+  padding: 32px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.user-profile-userInfoGroup {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-profile-avatarWrapper {
+  position: relative;
+}
+
+.user-profile-avatar,
+.user-profile-avatarPlaceholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: grid;
+  place-items: center;
+  background: var(--surface-soft);
+}
+
+.user-profile-levelBadge {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  min-height: 32px;
+  padding: 0 8px;
+  border-radius: 16px;
+  background: var(--primary);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.user-profile-nameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-profile-userName {
+  font-size: 24px;
+  line-height: 32px;
+}
+
+.user-profile-userSubtext {
+  margin-top: 8px;
+  color: var(--ink-muted);
+}
+
+.user-profile-statsContainer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+}
+
+.user-profile-statBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-profile-statLabel {
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+
+.user-profile-statValue {
+  font-weight: 800;
+}
+
+.user-profile-divider {
+  display: none;
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  .mypage-container {
+    grid-template-columns: repeat(8, 1fr);
+  }
+
+  .mypage-profileCard,
+  .mypage-contentSection {
+    grid-column: span 8;
+  }
+
+  .mypage-profileCard {
+    position: static;
+  }
+}
+
+@media (max-width: 767px) {
+  .mypage-container {
+    width: min(calc(100% - 32px), var(--container));
+  }
+
+  .mypage-container {
+    padding-block: 32px;
+  }
+
+  .mypage-container {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .mypage-profileCard,
+  .mypage-contentSection {
+    grid-column: span 4;
+  }
+
+  .mypage-profileCard {
+    padding: 24px;
+  }
+
+  .mypage-profileCard {
+    position: static;
+  }
+
+  .mypage-statsGroup,
+  .user-profile-statsContainer {
+    gap: 8px;
+  }
+
+  .mypage-tabBtn {
+    flex: 1 1 auto;
+    padding-inline: 16px;
+  }
+
+  .user-profile-userInfoGroup {
+    align-items: flex-start;
+  }
+}
+
+.user-profile-userDetails {
+  min-width: 0;
+}
+
+@media (min-width: 1200px) {
+  .mypage-container {
+    grid-template-columns: repeat(var(--columns-desktop), minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  .mypage-container {
+    grid-template-columns: repeat(var(--columns-tablet), minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .mypage-container {
+    grid-template-columns: repeat(var(--columns-mobile), minmax(0, 1fr));
+  }
+}

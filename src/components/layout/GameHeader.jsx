@@ -6,16 +6,18 @@ import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import { layout } from "@/lib/layout";
 
-export default function GameHeader({ title, onHelp, onSettings }) {
+const iconButtonSx = {
+  width: 40,
+  height: 40,
+  p: 0,
+  borderRadius: "9999px",
+  "&:hover": { bgcolor: "momentalk.typeCard" },
+};
+
+export default function GameHeader({ title, onBack, onHelp, onSettings }) {
   const router = useRouter();
 
-  const iconButtonSx = {
-    width: 40,
-    height: 40,
-    p: 0,
-    borderRadius: "9999px",
-    "&:hover": { bgcolor: "momentalk.typeCard" },
-  };
+  const handleBack = onBack ?? (() => router.back());
 
   return (
     <Box
@@ -35,17 +37,16 @@ export default function GameHeader({ title, onHelp, onSettings }) {
           alignItems: "center",
           justifyContent: "space-between",
           width: "100%",
+          maxWidth: `${layout.maxWidth}px`,
+          mx: "auto",
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <IconButton onClick={() => router.back()} aria-label="뒤로 가기" sx={iconButtonSx}>
+          <IconButton onClick={handleBack} aria-label="뒤로 가기" sx={iconButtonSx}>
             <Box component="img" src="/header-back.svg" alt="" sx={{ width: 16, height: 16 }} />
           </IconButton>
 
-          <Typography
-            component="h1"
-            sx={{ color: "primary.main", fontSize: 24, lineHeight: "32px", fontWeight: 600 }}
-          >
+          <Typography component="h1" variant="h4" color="primary.main">
             {title}
           </Typography>
         </Box>
