@@ -18,6 +18,7 @@ const modules = {
     [{ header: [1, 2, 3, false] }],
     ["bold", "italic", "underline", "strike", "blockquote"],
     [{ list: "ordered" }, { list: "bullet" }],
+    [{ align: ["", "center", "right"] }],
     ["link", "image", "video"],
     ["clean"],
   ],
@@ -32,6 +33,7 @@ const formats = [
   "blockquote",
   "list",
   "bullet",
+  "align",
   "link",
   "image",
   "video",
@@ -45,6 +47,12 @@ export default function WriteForm() {
   const [content, setContent] = useState("");
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState("");
+
+  const isContentEmpty =
+    content
+      .replace(/<(.|\n)*?>/g, "")
+      .replace(/&nbsp;/g, " ")
+      .trim().length === 0;
 
   // 태그 추가 함수
   const handleAddTag = () => {
@@ -164,13 +172,18 @@ export default function WriteForm() {
             <label className="write-label">내용</label>
 
             <div className="write-editorWrapper">
+              {isContentEmpty && (
+                <span className="write-editorPlaceholder" aria-hidden="true">
+                  함께 나누고 싶은 소중한 순간을 기록해 보세요.
+                </span>
+              )}
+
               <ReactQuill
                 theme="snow"
                 value={content}
                 onChange={setContent}
                 modules={modules}
                 formats={formats}
-                placeholder="함께 나누고 싶은 소중한 순간을 기록해 보세요."
                 className="write-quillEditor"
               />
             </div>
