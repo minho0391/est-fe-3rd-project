@@ -1,3 +1,5 @@
+// 사이트 주소 : http://localhost:3000/generate
+
 "use client";
 
 import { useState } from "react";
