@@ -80,7 +80,7 @@ export default function PostListPage() {
             </div>
           </div>
 
-          <div className="community-section-heading post-list-heading">
+          <div className="community-section-heading">
             <div>
               <h1 className="community-section-title">전체 글보기</h1>
 
