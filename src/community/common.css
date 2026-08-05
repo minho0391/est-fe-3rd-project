@@ -276,16 +276,6 @@
   padding-left: 24px;
 }
 
-.community-scope .write-quillEditor .ql-editor.ql-blank::before {
-  position: absolute;
-  right: 24px;
-  left: 24px;
-  color: var(--ink-muted);
-  content: attr(data-placeholder);
-  font-style: normal;
-  pointer-events: none;
-}
-
 .community-scope .write-quillEditor .ql-toolbar {
   box-sizing: border-box;
   padding: 16px;
