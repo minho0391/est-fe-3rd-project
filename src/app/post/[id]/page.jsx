@@ -4,49 +4,96 @@
 import "@/community/common.css";
 import "@/community/post.css";
 
-import React from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import PostDetailContent from "@/components/post/detail/PostBody.jsx";
 import CommentSection from "@/components/post/detail/Comments.jsx";
+import {
+  getCommunityPostById,
+  getCommentsByPostId,
+} from "@/data/communityPosts";
 
-export default function PostDetailPage({ params }) {
-  // 동적 파라미터 [id] 수신
-  const postId = params?.id || "1";
+export default function PostDetailPage() {
+  const params = useParams();
+  const postId = params?.id;
+  const basePost = useMemo(() => getCommunityPostById(postId), [postId]);
+  const [views, setViews] = useState(basePost?.views ?? 0);
+  const [likes, setLikes] = useState(basePost?.likes ?? 0);
+  const [isLiked, setIsLiked] = useState(false);
+  const countedPostRef = useRef(null);
 
-  // 실제 서버 API 연동 전 사용할 데이터 구조
-  const mockPostData = {
-    id: postId,
-    title: `[${postId}번] AI 기반 커뮤니티 게시글 상세 예시입니다.`,
-    board: "정보공유",
+  useEffect(() => {
+    if (!basePost) return;
+
+    setViews(basePost.views ?? 0);
+    setLikes(basePost.likes ?? 0);
+    setIsLiked(false);
+
+    if (countedPostRef.current !== basePost.id) {
+      countedPostRef.current = basePost.id;
+      setViews(current => current + 1);
+    }
+  }, [basePost]);
+
+  if (!basePost) {
+    return (
+      <main className="community-scope community-page detail-page-container">
+        <div className="detail-page-navigationRow">
+          <Link href="/post/list" className="detail-page-backBtn">
+            ← 목록으로 돌아가기
+          </Link>
+        </div>
+
+        <section className="post-detail-emptyState">
+          <h1 className="community-section-title">
+            게시글을 찾을 수 없습니다.
+          </h1>
+
+          <p className="community-section-description">
+            삭제되었거나 존재하지 않는 게시글입니다.
+          </p>
+        </section>
+      </main>
+    );
+  }
+
+  const post = {
+    ...basePost,
     author: {
-      name: "홍길동",
-      avatarUrl: "https://via.placeholder.com/40",
-      role: "정회원",
+      id: basePost.authorId,
+      name: basePost.author,
+      avatarUrl: basePost.authorAvatarUrl,
+      role: basePost.authorRole,
     },
-    createdAt: "2026-08-01 14:30",
-    views: 128,
-    likes: 24,
-    tags: ["게시판상세", "Nextjs", "React"],
-    content: `
-      <p>게시판 상세 페이지 본문 영역입니다.</p>
-      <p>공유된 <strong>AI 콘텐츠</strong>와 다양한 사용자 의견을 이곳에서 확인하고 댓글을 작성할 수 있습니다.</p>
-    `,
+    views,
+    likes,
+  };
+
+  const initialComments = getCommentsByPostId(basePost.id);
+
+  const handleLikeToggle = () => {
+    setIsLiked(current => {
+      setLikes(value => Math.max(0, value + (current ? -1 : 1)));
+      return !current;
+    });
   };
 
   return (
     <main className="community-scope community-page detail-page-container">
-      {/* 1. 상단 목록 돌아가기 바 */}
       <div className="detail-page-navigationRow">
-        <Link href="/post" className="detail-page-backBtn">
+        <Link href="/post/list" className="detail-page-backBtn">
           ← 목록으로 돌아가기
         </Link>
       </div>
 
-      {/* 2. 본문 영역 */}
-      <PostDetailContent post={mockPostData} />
+      <PostDetailContent
+        post={post}
+        isLiked={isLiked}
+        onLikeToggle={handleLikeToggle}
+      />
 
-      {/* 3. 댓글 영역 */}
-      <CommentSection />
+      <CommentSection initialComments={initialComments} />
     </main>
   );
 }
