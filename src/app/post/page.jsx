@@ -12,7 +12,7 @@ export default function CommunityMainPage() {
   const viewPosts = [...rankablePosts].sort((a, b) => b.views - a.views);
   const likedPosts = [...rankablePosts].sort((a, b) => b.likes - a.likes);
   const latestPosts = [...rankablePosts]
-    .sort((a, b) => b.id - a.id)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, 3);
 
   return (
