@@ -2,11 +2,12 @@
 "use client";
 
 import Link from "next/link";
+import { EmojiEventsIcon } from "@/images_icon";
 
 const RANK_BADGES = [
-  { rank: 1, medal: "🥇", className: "top-three-gold" },
-  { rank: 2, medal: "🥈", className: "top-three-silver" },
-  { rank: 3, medal: "🥉", className: "top-three-bronze" },
+  { rank: 1, className: "top-three-gold" },
+  { rank: 2, className: "top-three-silver" },
+  { rank: 3, className: "top-three-bronze" },
 ];
 
 const METRIC_LABELS = {
@@ -51,7 +52,10 @@ export default function TopThree({
               className={`top-three-rankCard ${rankInfo.className}`}
             >
               <div className="top-three-medalBadge">
-                <span className="top-three-medalIcon">{rankInfo.medal}</span>
+                <EmojiEventsIcon
+                  className="top-three-medalIcon"
+                  aria-hidden="true"
+                />
 
                 <span className="top-three-rankText">{rankInfo.rank}위</span>
               </div>
