@@ -944,3 +944,233 @@
   background: var(--surface);
   text-align: center;
 }
+
+/* Page-level layouts shared by /post and /post/list */
+.community-scope.community-main-page,
+.community-scope.post-list-page,
+.community-scope.post-write-page {
+  min-height: 100vh;
+  background: var(--surface-soft);
+}
+
+.community-main-container,
+.post-list-container {
+  width: min(calc(100% - 48px), var(--container));
+  margin-inline: auto;
+  padding-block: 64px 80px;
+}
+
+.community-main-rankingGrid,
+.post-list-rankingGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.community-main-rankingGrid .top-three-topThreeContainer,
+.post-list-rankingGrid .top-three-topThreeContainer {
+  width: 100%;
+  padding-top: 0;
+}
+
+.community-main-rankingGrid .top-three-cardGrid,
+.post-list-rankingGrid .top-three-cardGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.community-main-rankingGrid .top-three-rankCard,
+.post-list-rankingGrid .top-three-rankCard {
+  grid-column: auto;
+}
+
+.community-latest-section,
+.post-list-boardSection {
+  margin-top: 48px;
+  padding: 32px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.community-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.community-section-title {
+  margin: 0;
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 800;
+}
+
+.community-section-description {
+  margin: 8px 0 0;
+  color: var(--ink-muted);
+  line-height: 24px;
+}
+
+.community-text-link {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.community-post-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.community-post-stack .post-item-itemCard {
+  width: 100%;
+  margin-top: 0;
+}
+
+.post-item-compact {
+  padding: 20px 24px;
+}
+
+.post-list-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.post-list-searchGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.post-list-searchLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.post-list-searchInput {
+  width: 320px;
+  min-height: 56px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  font: inherit;
+}
+
+.post-list-writeLink {
+  min-height: 56px;
+  padding: 0 24px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.post-list-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 32px;
+}
+
+.post-list-pageButton {
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.post-list-pageButtonActive {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+/* Quill tooltip must stay inside the editor viewport. */
+.write-pageContent,
+.write-section,
+.write-editorWrapper,
+.write-quillEditor,
+.write-quillEditor .ql-container {
+  overflow: visible;
+}
+
+.write-editorWrapper {
+  position: relative;
+}
+
+.write-quillEditor .ql-container {
+  min-height: 320px;
+}
+
+.write-quillEditor .ql-editor {
+  min-height: 320px;
+  overflow-y: auto;
+}
+
+.write-quillEditor .ql-snow .ql-tooltip,
+.write-quillEditor .ql-tooltip {
+  left: 16px !important;
+  right: auto !important;
+  transform: none !important;
+  z-index: 30;
+  white-space: nowrap;
+}
+
+.write-quillEditor .ql-tooltip input[type="text"] {
+  width: 220px;
+  max-width: calc(100vw - 96px);
+}
+
+@media (max-width: 1199px) {
+  .community-main-rankingGrid,
+  .post-list-rankingGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .community-main-container,
+  .post-list-container {
+    width: min(calc(100% - 32px), var(--container));
+    padding-block: 32px 64px;
+  }
+
+  .community-latest-section,
+  .post-list-boardSection {
+    margin-top: 32px;
+    padding: 24px;
+  }
+
+  .community-section-heading,
+  .post-list-toolbar,
+  .post-list-searchGroup {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .post-list-searchInput,
+  .post-list-writeLink {
+    width: 100%;
+  }
+
+  .community-main-rankingGrid .top-three-cardGrid,
+  .post-list-rankingGrid .top-three-cardGrid {
+    grid-template-columns: 1fr;
+  }
+}

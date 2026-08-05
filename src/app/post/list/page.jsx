@@ -1,3 +1,4 @@
+// [게시글 목록] 페이지 (localhost:3000/post/list)
 "use client";
 
 import "@/community/common.css";

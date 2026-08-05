@@ -17,11 +17,23 @@ import {
 export default function PostDetailPage() {
   const params = useParams();
   const postId = params?.id;
-  const basePost = useMemo(() => getCommunityPostById(postId), [postId]);
-  const [views, setViews] = useState(basePost?.views ?? 0);
+  const staticPost = useMemo(() => getCommunityPostById(postId), [postId]);
+  const [previewPost, setPreviewPost] = useState(null);
+  const basePost = postId === "preview" ? previewPost : staticPost;
+  const [views, setViews] = useState(staticPost?.views ?? 0);
   const [likes, setLikes] = useState(basePost?.likes ?? 0);
   const [isLiked, setIsLiked] = useState(false);
   const countedPostRef = useRef(null);
+
+  useEffect(() => {
+    if (postId !== "preview") {
+      setPreviewPost(null);
+      return;
+    }
+
+    const savedPost = sessionStorage.getItem("community-preview-post");
+    setPreviewPost(savedPost ? JSON.parse(savedPost) : null);
+  }, [postId]);
 
   useEffect(() => {
     if (!basePost) return;
@@ -44,10 +56,12 @@ export default function PostDetailPage() {
             ← 목록으로 돌아가기
           </Link>
         </div>
+
         <section className="post-detail-emptyState">
           <h1 className="community-section-title">
             게시글을 찾을 수 없습니다.
           </h1>
+
           <p className="community-section-description">
             삭제되었거나 존재하지 않는 게시글입니다.
           </p>

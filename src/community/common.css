@@ -215,20 +215,25 @@
   .cabinet-fetcherWrapper {
     width: 100%;
   }
+
   .cabinet-triggerButton {
     flex: 1 1 100%;
   }
+
   .cabinet-filterBtn {
     flex: 1 1 auto;
     padding-inline: 16px;
   }
+
   .cabinet-modalOverlay {
     padding: 16px;
   }
+
   .cabinet-drawerCard {
     padding: 24px;
     max-height: calc(100vh - 32px);
   }
+
   .cabinet-drawerHeader {
     align-items: flex-start;
   }
