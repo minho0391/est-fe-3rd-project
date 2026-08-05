@@ -4,8 +4,12 @@
 import Link from "next/link";
 
 export default function PostItem({ post, compact = false }) {
+  if (!post || post.id === undefined || post.id === null) {
+    return null;
+  }
+
   const {
-    id = 1,
+    id,
     isNotice = false,
     board = "자유게시판",
     title = "게시글 제목이 들어갈 위치입니다.",
@@ -15,7 +19,7 @@ export default function PostItem({ post, compact = false }) {
     views = 0,
     likes = 0,
     commentsCount = 0,
-  } = post || {};
+  } = post;
 
   return (
     <Link
