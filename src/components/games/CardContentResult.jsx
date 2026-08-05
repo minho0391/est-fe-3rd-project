@@ -5,6 +5,17 @@ import Typography from "@mui/material/Typography";
 import Dialog from "@mui/material/Dialog";
 import Button from "@/components/ui/Button";
 
+const badgeSx = {
+  px: 2,
+  py: 1,
+  bgcolor: "background.paper",
+  border: 1,
+  borderColor: "primary.main",
+  borderRadius: "999px",
+};
+
+const keepAllSx = { wordBreak: "keep-all" };
+
 export default function CardContentResult({ content, onClose, onNext }) {
   return (
     <Dialog
@@ -53,20 +64,7 @@ export default function CardContentResult({ content, onClose, onNext }) {
           />
 
           <Box sx={{ position: "relative", pb: 8, pt: 1 }}>
-            <Typography
-              component="span"
-              sx={{
-                px: 2,
-                py: 1,
-                bgcolor: "background.paper",
-                border: 1,
-                borderColor: "primary.main",
-                borderRadius: "999px",
-                color: "primary.main",
-                fontSize: 14,
-                lineHeight: "21px",
-              }}
-            >
+            <Typography component="span" variant="body2" color="primary.main" sx={badgeSx}>
               {content.title || "뽑힌 콘텐츠"}
             </Typography>
           </Box>
@@ -83,14 +81,9 @@ export default function CardContentResult({ content, onClose, onNext }) {
             }}
           >
             <Typography
-              sx={{
-                width: 340,
-                fontSize: 28,
-                lineHeight: "39px",
-                fontWeight: 700,
-                textAlign: "center",
-                wordBreak: "keep-all",
-              }}
+              variant="h3"
+              align="center"
+              sx={{ ...keepAllSx, width: 340, lineHeight: "39px" }}
             >
               {content.scripts?.[0]}
             </Typography>
@@ -100,13 +93,10 @@ export default function CardContentResult({ content, onClose, onNext }) {
                 {content.tips.map((tip, index) => (
                   <Typography
                     key={index}
-                    sx={{
-                      fontSize: 14,
-                      lineHeight: "21px",
-                      color: "text.secondary",
-                      textAlign: "center",
-                      wordBreak: "keep-all",
-                    }}
+                    variant="body2"
+                    color="text.secondary"
+                    align="center"
+                    sx={keepAllSx}
                   >
                     {tip}
                   </Typography>

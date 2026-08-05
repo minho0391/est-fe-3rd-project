@@ -20,16 +20,32 @@ const modes = [
   },
 ];
 
+const modeCardSx = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  width: 300,
+  height: 400,
+  p: "24px",
+  bgcolor: "background.paper",
+  borderRadius: "20px",
+  filter: "drop-shadow(0px 4px 6px rgba(31, 41, 55, 0.08))",
+  transition: "border-color 0.15s ease",
+};
+
+const badgeSx = { mt: 3, px: 2, py: 1, borderRadius: "9999px" };
+
 export default function CardModeSelect({ onSelect }) {
   const [focused, setFocused] = useState("content");
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 6, width: "100%" }}>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1, textAlign: "center" }}>
-        <Typography component="h2" sx={{ fontSize: 24, lineHeight: "32px", fontWeight: 600 }}>
+        <Typography component="h2" variant="h4">
           어떤 방식으로 즐길까요?
         </Typography>
-        <Typography sx={{ fontSize: 16, lineHeight: "24px", color: "text.secondary" }}>
+        <Typography variant="body1" color="text.secondary" sx={{ lineHeight: "24px" }}>
           원하시는 게임 모드를 선택해 주세요.
         </Typography>
       </Box>
@@ -45,45 +61,28 @@ export default function CardModeSelect({ onSelect }) {
               onMouseEnter={() => setFocused(mode.id)}
               onFocus={() => setFocused(mode.id)}
               sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 300,
-                height: 400,
-                p: "24px",
-                bgcolor: "background.paper",
+                ...modeCardSx,
                 border: isFocused ? 2 : 1,
                 borderColor: isFocused ? "primary.main" : "divider",
-                borderRadius: "20px",
-                filter: "drop-shadow(0px 4px 6px rgba(31, 41, 55, 0.08))",
-                transition: "border-color 0.15s ease",
               }}
             >
               <Box component="img" src={mode.icon} alt="" sx={{ width: 80, height: 80, mb: 3 }} />
 
-              <Typography sx={{ fontSize: 20, lineHeight: "28px", fontWeight: 600 }}>
-                {mode.title}
-              </Typography>
+              <Typography variant="h5">{mode.title}</Typography>
 
-              <Typography
-                sx={{ fontSize: 14, lineHeight: "21px", color: "text.secondary", mt: 0.5 }}
-              >
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                 {mode.description}
               </Typography>
 
               <Box
                 sx={{
-                  mt: 3,
-                  px: 2,
-                  py: 1,
+                  ...badgeSx,
                   bgcolor: isFocused ? "primary.main" : "momentalk.presetCard",
-                  borderRadius: "9999px",
                 }}
               >
                 <Typography
+                  variant="body2"
                   sx={{
-                    fontSize: 14,
                     lineHeight: "20px",
                     letterSpacing: "0.6px",
                     color: isFocused ? "#fff" : "text.secondary",

@@ -44,12 +44,10 @@ export default function PostDetailPage() {
             ← 목록으로 돌아가기
           </Link>
         </div>
-
         <section className="post-detail-emptyState">
           <h1 className="community-section-title">
             게시글을 찾을 수 없습니다.
           </h1>
-
           <p className="community-section-description">
             삭제되었거나 존재하지 않는 게시글입니다.
           </p>

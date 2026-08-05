@@ -3,9 +3,17 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import MuiLink from "@mui/material/Link";
+import Link from "next/link";
 import { layout } from "@/lib/layout";
 
 const links = ["About", "Privacy Policy", "Terms of Service", "Help Center"];
+
+const linkSx = {
+  display: "flex",
+  alignItems: "center",
+  height: 40,
+  textDecorationColor: "inherit",
+};
 
 export default function Footer() {
   return (
@@ -32,20 +40,22 @@ export default function Footer() {
         }}
       >
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-          <Typography
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              height: 40,
-              color: "primary.main",
-              fontSize: 20,
-              lineHeight: "28px",
-              fontWeight: 700,
-            }}
+          <MuiLink
+            component={Link}
+            href="/"
+            underline="none"
+            aria-label="홈으로 이동"
+            sx={{ width: "fit-content" }}
           >
-            Momentalk
-          </Typography>
-          <Typography sx={{ fontSize: 14, lineHeight: "21px", color: "text.secondary" }}>
+            <Typography
+              variant="h5"
+              color="primary.main"
+              sx={{ display: "flex", alignItems: "center", height: 40, fontWeight: 700 }}
+            >
+              Momentalk
+            </Typography>
+          </MuiLink>
+          <Typography variant="body2" color="text.secondary">
             © 2026 Momentalk AI. All rights reserved.
           </Typography>
         </Box>
@@ -56,15 +66,9 @@ export default function Footer() {
               key={label}
               href="#"
               underline="always"
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                height: 40,
-                color: "text.secondary",
-                fontSize: 14,
-                lineHeight: "21px",
-                textDecorationColor: "inherit",
-              }}
+              variant="body2"
+              color="text.secondary"
+              sx={linkSx}
             >
               {label}
             </MuiLink>
