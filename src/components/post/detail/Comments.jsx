@@ -3,6 +3,8 @@
 
 import React, { useState } from "react";
 import { currentCommunityUser } from "@/data/communityPosts";
+import Button from "@/components/ui/Button";
+import { AccountCircleIcon, DeleteOutlineIcon } from "@/images_icon";
 
 export default function CommentSection({ initialComments = [] }) {
   const [comments, setComments] = useState(initialComments);
@@ -50,13 +52,14 @@ export default function CommentSection({ initialComments = [] }) {
         />
 
         <div className="comments-inputActionRow">
-          <button
+          <Button
             type="submit"
+            variant="primary"
+            size="md"
             disabled={!commentInput.trim()}
-            className="comments-submitBtn"
           >
             댓글 등록
-          </button>
+          </Button>
         </div>
       </form>
 
@@ -74,7 +77,9 @@ export default function CommentSection({ initialComments = [] }) {
                     className="comments-avatar"
                   />
                 ) : (
-                  <div className="comments-avatarPlaceholder">👤</div>
+                  <div className="comments-avatarPlaceholder">
+                    <AccountCircleIcon aria-hidden="true" />
+                  </div>
                 )}
               </div>
 
@@ -93,8 +98,10 @@ export default function CommentSection({ initialComments = [] }) {
                       type="button"
                       onClick={() => handleDelete(comment.id)}
                       className="comments-deleteBtn"
+                      aria-label="댓글 삭제"
                     >
-                      삭제
+                      <DeleteOutlineIcon aria-hidden="true" fontSize="small" />
+                      <span>삭제</span>
                     </button>
                   )}
                 </div>
