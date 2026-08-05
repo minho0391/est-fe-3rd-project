@@ -1,7 +1,7 @@
 // [커뮤니티 공통 아이콘] MUI React SVG 아이콘을 한 곳에서 관리합니다.
 export { default as AccountCircleIcon } from "@mui/icons-material/AccountCircle";
 export { default as AutoAwesomeIcon } from "@mui/icons-material/AutoAwesome";
-export { default as ChatBubbleOutlineIcon } from "@mui/icons-material/ChatBubbleOutline";
+export { default as ChatBubbleOutlineIcon } from "@mui/icons-material/ChatBubbleOutlineOutlined";
 export { default as CloseIcon } from "@mui/icons-material/Close";
 export { default as DeleteOutlineIcon } from "@mui/icons-material/DeleteOutline";
 export { default as EmojiEventsIcon } from "@mui/icons-material/EmojiEvents";
