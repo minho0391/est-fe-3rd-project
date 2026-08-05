@@ -1,16 +1,32 @@
 // [저장된 콘텐츠 불러오기 영역]
+"use client";
+
 import React from "react";
+import Button from "@/components/ui/Button";
+import { AutoAwesomeIcon, RefreshIcon } from "@/images_icon";
 
 export default function ContentFetcher() {
   return (
     <div className="write-fetcher-fetcherWrapper">
-      <button type="button" className="write-fetcher-btnSecondary">
-        <span>✨</span> AI 콘텐츠 생성하기
-      </button>
+      <Button
+        type="button"
+        variant="secondary"
+        size="md"
+        className="write-fetcher-actionButton"
+        leadingIcon={<AutoAwesomeIcon aria-hidden="true" />}
+      >
+        AI 콘텐츠 생성하기
+      </Button>
 
-      <button type="button" className="write-fetcher-btnTertiary">
-        <span>🔄</span> 기존 콘텐츠 불러오기
-      </button>
+      <Button
+        type="button"
+        variant="tertiary"
+        size="md"
+        className="write-fetcher-actionButton"
+        leadingIcon={<RefreshIcon aria-hidden="true" />}
+      >
+        기존 콘텐츠 불러오기
+      </Button>
     </div>
   );
 }
