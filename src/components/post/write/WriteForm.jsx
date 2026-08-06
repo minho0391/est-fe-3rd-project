@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import "react-quill-new/dist/quill.snow.css";
 import ContentFetcher from "./ContentFetcher";
 import Button from "@/components/ui/Button";
-import { CloseIcon, InfoOutlinedIcon } from "@/images_icon";
+import { CloseIcon, InfoOutlinedIcon } from "@/images/icons";
 import { communityBoards } from "@/data/communityPosts";
 
 // React Quill SSR 이슈 방지를 위한 Dynamic Import
@@ -68,29 +68,48 @@ export default function WriteForm() {
     const wrapper = editorWrapperRef.current;
     if (!wrapper) return undefined;
 
-    let toolbarResizeObserver;
+    let observedToolbar = null;
 
-    const updateToolbarHeight = () => {
-      const toolbar = wrapper.querySelector(".ql-toolbar");
+    const updateToolbarHeight = toolbar => {
       if (!toolbar) return;
 
       wrapper.style.setProperty(
         "--quill-toolbar-height",
         `${toolbar.getBoundingClientRect().height}px`,
       );
-
-      toolbarResizeObserver?.disconnect();
-      toolbarResizeObserver = new ResizeObserver(updateToolbarHeight);
-      toolbarResizeObserver.observe(toolbar);
     };
 
-    const toolbarMountObserver = new MutationObserver(updateToolbarHeight);
+    // ResizeObserver는 컴포넌트 생명주기 동안 한 번만 생성합니다.
+    const toolbarResizeObserver = new ResizeObserver(entries => {
+      const [entry] = entries;
+      const toolbar = entry?.target;
+
+      if (toolbar instanceof HTMLElement) {
+        updateToolbarHeight(toolbar);
+      }
+    });
+
+    const observeToolbar = () => {
+      const toolbar = wrapper.querySelector(".ql-toolbar");
+      if (!toolbar || toolbar === observedToolbar) return;
+
+      if (observedToolbar) {
+        toolbarResizeObserver.unobserve(observedToolbar);
+      }
+
+      observedToolbar = toolbar;
+      toolbarResizeObserver.observe(toolbar);
+      updateToolbarHeight(toolbar);
+    };
+
+    // Dynamic import 이후 툴바가 마운트되는 시점만 감지합니다.
+    const toolbarMountObserver = new MutationObserver(observeToolbar);
     toolbarMountObserver.observe(wrapper, { childList: true, subtree: true });
-    updateToolbarHeight();
+    observeToolbar();
 
     return () => {
       toolbarMountObserver.disconnect();
-      toolbarResizeObserver?.disconnect();
+      toolbarResizeObserver.disconnect();
     };
   }, []);
 
