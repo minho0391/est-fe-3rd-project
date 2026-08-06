@@ -28,8 +28,11 @@ function LoadingContent() {
     setProgress(0);
 
     const progressTimer = setInterval(() => {
-      setProgress(prev => (prev >= 96 ? prev : prev + Math.random() * 8));
-    }, 500);
+      setProgress(prev => {
+        if (prev >= 95) return prev;
+        return prev + (Math.random() * 3 + 2);
+      });
+    }, 100);
 
     mockGenerateGuide(searchParams)
       .then(() => {
