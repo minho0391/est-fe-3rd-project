@@ -1136,21 +1136,6 @@
   border-style: solid;
 }
 
-.community-scope .top-three-postTitle {
-  min-height: 56px;
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  /* 
-  line-clamp: 2;
-  -webkit-line-clamp: 2; 
-  */
-
-  /* stylelint-disable-next-line property-no-unknown */
-  line-clamp: 2;
-}
-
 .community-scope .top-three-gold {
   background: #fffaf0;
   border-color: #f5c451;
@@ -1203,11 +1188,6 @@
   margin-right: 4px;
 }
 
-.community-scope .write-quillEditor .ql-toolbar.ql-snow .ql-picker.ql-header {
-  width: 96px;
-  margin-right: 0;
-}
-
 .community-scope .write-quillEditor .ql-toolbar.ql-snow button,
 .community-scope .write-quillEditor .ql-toolbar.ql-snow .ql-picker-label {
   flex: 0 0 auto;
@@ -1235,6 +1215,12 @@
   .community-scope .write-pageContent {
     padding-bottom: 64px;
   }
+
+  .community-scope .write-editorPlaceholder {
+    left: 16px;
+    right: 16px;
+    top: calc(var(--quill-toolbar-height, 57px) + 16px);
+  }
 }
 
 /* Final community UI refinements: truncation, metric icons, and Quill alignment. */
@@ -1243,8 +1229,8 @@
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
   line-clamp: 2;
+  -webkit-line-clamp: 2;
 }
 
 .community-scope .top-three-cardFooter {
@@ -1291,6 +1277,18 @@
 .community-scope .write-editorWrapper {
   position: relative;
   overflow: visible;
+}
+
+.community-scope .write-editorPlaceholder {
+  position: absolute;
+  top: calc(var(--quill-toolbar-height, 57px) + 24px);
+  left: 24px;
+  right: 24px;
+  z-index: 2;
+  color: var(--ink-muted);
+  font-size: 16px;
+  line-height: 24px;
+  pointer-events: none;
 }
 
 .community-scope .write-quillEditor .ql-toolbar.ql-snow .ql-picker.ql-header {
