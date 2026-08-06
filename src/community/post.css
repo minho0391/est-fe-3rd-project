@@ -1199,13 +1199,13 @@
 .community-scope .write-quillEditor .ql-toolbar.ql-snow .ql-formats {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  margin-right: 8px;
+  gap: 2px;
+  margin-right: 4px;
 }
 
 .community-scope .write-quillEditor .ql-toolbar.ql-snow .ql-picker.ql-header {
-  width: 112px;
-  margin-right: 4px;
+  width: 96px;
+  margin-right: 0;
 }
 
 .community-scope .write-quillEditor .ql-toolbar.ql-snow button,
@@ -1293,20 +1293,9 @@
   overflow: visible;
 }
 
-.community-scope .write-editorPlaceholder {
-  position: absolute;
-  z-index: 2;
-  top: 82px;
-  left: 24px;
-  right: 24px;
-  color: var(--ink-muted);
-  line-height: 24px;
-  pointer-events: none;
-}
-
 .community-scope .write-quillEditor .ql-toolbar.ql-snow .ql-picker.ql-header {
-  width: 120px;
-  min-width: 120px;
+  width: 96px;
+  min-width: 96px;
 }
 
 .community-scope
@@ -1316,7 +1305,7 @@
   .ql-picker-label {
   width: 100%;
   height: 32px;
-  padding: 0 28px 0 8px;
+  padding: 0 20px 0 8px;
   display: flex;
   align-items: center;
   line-height: 32px;
