@@ -3,7 +3,7 @@
 
 import React from "react";
 import Button from "@/components/ui/Button";
-import { AutoAwesomeIcon, RefreshIcon } from "@/images_icon";
+import { AutoAwesomeIcon, RefreshIcon } from "@/images/icons";
 
 export default function ContentFetcher() {
   return (
