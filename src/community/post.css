@@ -1331,12 +1331,3 @@
   width: 18px;
   height: 18px;
 }
-
-.community-scope
-  .write-quillEditor
-  .ql-toolbar.ql-snow
-  .ql-align
-  .ql-picker-options
-  .ql-picker-item[data-value="justify"] {
-  display: none;
-}
