@@ -1,4 +1,5 @@
 import { withSupabase } from "@supabase/server";
+import { createClient } from "@supabase/supabase-js";
 
 // 환경변수 가져오기
 const ALAN_CLIENT_ID = Deno.env.get("ALAN_CLIENT_ID");
@@ -6,6 +7,7 @@ const ALAN_BASE = "https://kdt-api-function.azurewebsites.net/api/v1";
 
 // DB 행 타입 (ctx.supabase에 스키마 제네릭이 없어 직접 선언)
 type PresetRow = {
+  id: number;
   title: string;
   conditions: {
     situation?: string;
@@ -27,6 +29,13 @@ type ContentRow = {
   tips: string[] | null;
   extras: Record<string, unknown> | null;
   level: number | null;
+};
+
+type ResultItem = {
+  title: string;
+  scripts: string[];
+  tips: string[];
+  extras: Record<string, unknown>;
 };
 
 // 형식별 출력 규칙
@@ -126,8 +135,19 @@ export default {
     // 6. Supabase 클라이언트 가져오기 (호출자 권한 — RLS 적용됨)
     const db = ctx.supabase;
 
+    // 6-1. 호출자 세션이 실린 클라이언트 (저장용)
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const userClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } },
+    );
+
+    // 6-2. 응답 시간 측정 시작
+    const startedAt = Date.now();
+
     // 7. 폴백 조회 함수 (AI 실패 시 사용)
-    async function getFallback() {
+    async function getFallback(): Promise<ResultItem[]> {
       const { data } = (await db
         .from("default_contents")
         .select("title, scripts, tips, extras, level")
@@ -158,11 +178,71 @@ export default {
         });
     }
 
+    // 7-1. 생성 이력 저장 (로그인 사용자만, 실패해도 화면은 유지)
+    async function saveGeneration(params: {
+      presetId: number | null;
+      conditions: Record<string, unknown>;
+      source: string;
+      errorCode: string | null;
+      results: ResultItem[];
+    }): Promise<boolean> {
+      try {
+        const { data: { user } } = await userClient.auth.getUser();
+        if (!user) return false;
+
+        const { data: gen, error: genError } = await userClient
+          .from("generations")
+          .insert({
+            user_id: user.id,
+            preset_id: params.presetId,
+            format_code,
+            conditions: params.conditions,
+            status: params.results.length > 0 ? "succeeded" : "failed",
+            source: params.source,
+            model: params.source === "ai" ? "alan" : null,
+            error_code: params.errorCode,
+            latency_ms: Date.now() - startedAt,
+          })
+          .select("id")
+          .single();
+
+        if (genError || !gen) {
+          console.log("generations insert 실패:", genError);
+          return false;
+        }
+
+        if (params.results.length === 0) return true;
+
+        const items = params.results.slice(0, 3).map((r, i) => ({
+          generation_id: gen.id,
+          position: i + 1,
+          title: r.title ?? "",
+          scripts: r.scripts ?? [],
+          tips: r.tips ?? [],
+          extras: r.extras ?? {},
+        }));
+
+        const { error: itemError } = await userClient
+          .from("generation_items")
+          .insert(items);
+
+        if (itemError) {
+          console.log("generation_items insert 실패:", itemError);
+          return false;
+        }
+
+        return true;
+      } catch (e) {
+        console.log("saveGeneration 예외:", e);
+        return false;
+      }
+    }
+
     try {
       // 8. 프리셋 조건 조회
       const { data: preset } = (await db
         .from("presets")
-        .select("title, conditions")
+        .select("id, title, conditions")
         .eq("code", preset_code)
         .eq("is_active", true)
         .single()) as { data: PresetRow | null };
@@ -192,6 +272,29 @@ export default {
       const target = labelOf("target", cond.target);
       const mood = labelOf("mood", cond.mood);
       const formatLabel = labelOf("format", format_code) ?? format_code;
+
+      // 저장에 함께 남길 조건 스냅샷
+      const snapshot = { ...cond, level };
+
+      // 폴백 응답 + 저장을 한 번에 처리
+      const fallbackResponse = async (reason: string, extra = {}) => {
+        const results = await getFallback();
+        const saved = await saveGeneration({
+          presetId: preset.id,
+          conditions: snapshot,
+          source: "fallback",
+          errorCode: reason,
+          results,
+        });
+        return jsonResponse({
+          source: "fallback",
+          reason,
+          saved,
+          meta: { situation, format: formatLabel, level, mood },
+          results,
+          ...extra,
+        });
+      };
 
       // 10. 앨런 이전 대화 상태 초기화
       await fetch(`${ALAN_BASE}/reset-state`, {
@@ -228,12 +331,8 @@ export default {
 
       // 13. 앨런 호출 오류 확인
       if (!alanResponse.ok) {
-        return jsonResponse({
-          source: "fallback",
-          reason: "alan_request_failed",
+        return await fallbackResponse("alan_request_failed", {
           status: alanResponse.status,
-          meta: { situation, format: formatLabel, level, mood },
-          results: await getFallback(),
         });
       }
 
@@ -243,12 +342,7 @@ export default {
       // 14. 응답에서 JSON 부분만 추출
       const match = answer.match(/\{[\s\S]*\}/);
       if (!match) {
-        return jsonResponse({
-          source: "fallback",
-          reason: "alan_json_not_found",
-          meta: { situation, format: formatLabel, level, mood },
-          results: await getFallback(),
-        });
+        return await fallbackResponse("alan_json_not_found");
       }
 
       // 15. JSON 파싱 오류 확인
@@ -256,28 +350,29 @@ export default {
       try {
         parsed = JSON.parse(match[0]);
       } catch {
-        return jsonResponse({
-          source: "fallback",
-          reason: "alan_json_parse_failed",
-          meta: { situation, format: formatLabel, level, mood },
-          results: await getFallback(),
-        });
+        return await fallbackResponse("alan_json_parse_failed");
       }
 
       // 16. 결과 개수 검증
-      const results = Array.isArray(parsed?.results) ? parsed.results : [];
+      const results: ResultItem[] = Array.isArray(parsed?.results)
+        ? parsed.results
+        : [];
       if (results.length === 0) {
-        return jsonResponse({
-          source: "fallback",
-          reason: "alan_empty_results",
-          meta: { situation, format: formatLabel, level, mood },
-          results: await getFallback(),
-        });
+        return await fallbackResponse("alan_empty_results");
       }
 
-      // 17. 생성 결과를 프론트엔드에 반환
+      // 17. 생성 이력 저장 후 결과 반환
+      const saved = await saveGeneration({
+        presetId: preset.id,
+        conditions: snapshot,
+        source: "ai",
+        errorCode: null,
+        results,
+      });
+
       return jsonResponse({
         source: "ai",
+        saved,
         meta: { situation, format: formatLabel, level, mood },
         results,
       });
