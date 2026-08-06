@@ -4,10 +4,10 @@
 import React from "react";
 import Link from "next/link";
 import {
-  ChatBubbleOutlineIcon,
+  ChatBubbleOutlineOutlined,
   FavoriteIcon,
   LocalFireDepartmentIcon,
-} from "@/images_icon";
+} from "@/images/icons";
 import { getPopularCommunityPosts } from "@/data/communityPosts";
 
 export default function PopularPreview({ posts = [] }) {
@@ -53,7 +53,10 @@ export default function PopularPreview({ posts = [] }) {
                 </span>
 
                 <span className="popular-statItem">
-                  <ChatBubbleOutlineIcon aria-hidden="true" fontSize="small" />{" "}
+                  <ChatBubbleOutlineOutlined
+                    aria-hidden="true"
+                    fontSize="small"
+                  />{" "}
                   {post.commentsCount}
                 </span>
               </div>
