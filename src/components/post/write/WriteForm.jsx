@@ -19,8 +19,7 @@ const modules = {
     ["bold", "italic", "underline", "strike", "blockquote"],
     [{ list: "ordered" }, { list: "bullet" }],
     [{ align: ["", "center", "right"] }],
-    ["link", "image", "video"],
-    ["clean"],
+    ["link", "video", "image"],
   ],
 };
 
@@ -59,10 +58,13 @@ export default function WriteForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState(""); // 추가 설명 State
   const [content, setContent] = useState("");
+  const [isEditorFocused, setIsEditorFocused] = useState(false);
+  const [contentSource, setContentSource] = useState("MANUAL");
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState("");
 
-  const showEditorPlaceholder = isQuillContentEmpty(content);
+  const showEditorPlaceholder =
+    !isEditorFocused && isQuillContentEmpty(content);
 
   useEffect(() => {
     const wrapper = editorWrapperRef.current;
@@ -156,6 +158,7 @@ export default function WriteForm() {
       views: 0,
       likes: 0,
       commentsCount: 0,
+      isAiGenerated: contentSource === "AI",
     };
 
     // TODO: Supabase 게시글 insert 연동 후 sessionStorage 미리보기 저장 및 /post/preview 이동 로직 제거
@@ -177,7 +180,10 @@ export default function WriteForm() {
           </div>
 
           <div className="write-fetcherGroup">
-            <ContentFetcher />
+            <ContentFetcher
+              onAiGenerate={() => setContentSource("AI")}
+              onExistingContent={() => setContentSource("EXISTING")}
+            />
           </div>
         </div>
 
@@ -235,6 +241,8 @@ export default function WriteForm() {
                 theme="snow"
                 value={content}
                 onChange={setContent}
+                onFocus={() => setIsEditorFocused(true)}
+                onBlur={() => setIsEditorFocused(false)}
                 modules={modules}
                 formats={formats}
                 className="write-quillEditor"
