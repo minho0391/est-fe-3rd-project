@@ -9,7 +9,7 @@ import {
   FolderOpenIcon,
   PushPinIcon,
   RefreshIcon,
-} from "@/images_icon";
+} from "@/images/icons";
 
 import { savedCommunityContents } from "@/data/communityPosts";
 
