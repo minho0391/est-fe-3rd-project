@@ -229,6 +229,23 @@ export const savedCommunityContents = [
 
 export const communityBoards = ["자유게시판", "Q&A", "정보공유"];
 
+export const compareCommunityPostCreatedAtDesc = (a, b) => {
+  const toTimestamp = value => {
+    const normalized = String(value ?? "")
+      .trim()
+      .replace(/\.+$/, "")
+      .replaceAll(".", "-");
+    const timestamp = Date.parse(normalized);
+
+    return Number.isNaN(timestamp) ? 0 : timestamp;
+  };
+
+  const dateDifference = toTimestamp(b?.createdAt) - toTimestamp(a?.createdAt);
+
+  // 같은 날짜에는 기존 최신글 순서와 동일하게 큰 id를 먼저 표시합니다.
+  return dateDifference || Number(b?.id ?? 0) - Number(a?.id ?? 0);
+};
+
 export const getCommunityPostById = id =>
   communityPosts.find(post => String(post.id) === String(id));
 
@@ -236,7 +253,9 @@ export const getRankablePosts = () =>
   communityPosts.filter(post => !post.isNotice);
 
 export const getLatestCommunityPosts = (limit = 3) =>
-  [...getRankablePosts()].sort((a, b) => b.id - a.id).slice(0, limit);
+  [...getRankablePosts()]
+    .sort(compareCommunityPostCreatedAtDesc)
+    .slice(0, limit);
 
 export const getPopularCommunityPosts = (limit = 3) =>
   [...getRankablePosts()].sort((a, b) => b.likes - a.likes).slice(0, limit);

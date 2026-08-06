@@ -3,10 +3,17 @@
 
 import React, { useState } from "react";
 import Button from "@/components/ui/Button";
+import {
+  AutoAwesomeIcon,
+  CloseIcon,
+  FolderOpenIcon,
+  PushPinIcon,
+  RefreshIcon,
+} from "@/images/icons";
 
 import { savedCommunityContents } from "@/data/communityPosts";
 
-export default function ContentFetcher({ onSelectContent }) {
+export default function ContentCabinet({ onSelectContent }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const [filter, setFilter] = useState("ALL"); // ALL, AI, ADMIN
@@ -40,7 +47,7 @@ export default function ContentFetcher({ onSelectContent }) {
         variant="secondary"
         size="md"
         className="cabinet-triggerButton"
-        leadingIcon={<span aria-hidden="true">✨</span>}
+        leadingIcon={<AutoAwesomeIcon aria-hidden="true" />}
         onClick={toggleDrawer}
       >
         AI 콘텐츠 생성하기
@@ -51,7 +58,7 @@ export default function ContentFetcher({ onSelectContent }) {
         variant="tertiary"
         size="md"
         className="cabinet-triggerButton"
-        leadingIcon={<span aria-hidden="true">🔄</span>}
+        leadingIcon={<RefreshIcon aria-hidden="true" />}
         onClick={toggleDrawer}
       >
         콘텐츠 보관함 불러오기
@@ -66,7 +73,9 @@ export default function ContentFetcher({ onSelectContent }) {
           >
             <div className="cabinet-drawerHeader">
               <div>
-                <h3 className="cabinet-drawerTitle">📂 콘텐츠 보관함</h3>
+                <h3 className="cabinet-drawerTitle">
+                  <FolderOpenIcon aria-hidden="true" /> 콘텐츠 보관함
+                </h3>
 
                 <p className="cabinet-drawerSubtitle">
                   AI가 생성한 글과 운영진 제공 기본 템플릿을 선택하여
@@ -78,8 +87,9 @@ export default function ContentFetcher({ onSelectContent }) {
                 type="button"
                 className="cabinet-closeBtn"
                 onClick={toggleDrawer}
+                aria-label="콘텐츠 보관함 닫기"
               >
-                ✕
+                <CloseIcon aria-hidden="true" />
               </button>
             </div>
 
@@ -98,7 +108,7 @@ export default function ContentFetcher({ onSelectContent }) {
                 className={`${"cabinet-filterBtn"} ${filter === "AI" ? "cabinet-activeFilter" : ""}`}
                 onClick={() => setFilter("AI")}
               >
-                ✨ AI 생성
+                <AutoAwesomeIcon aria-hidden="true" fontSize="small" /> AI 생성
               </button>
 
               <button
@@ -106,7 +116,7 @@ export default function ContentFetcher({ onSelectContent }) {
                 className={`${"cabinet-filterBtn"} ${filter === "ADMIN" ? "cabinet-activeFilter" : ""}`}
                 onClick={() => setFilter("ADMIN")}
               >
-                📌 운영진 기본
+                <PushPinIcon aria-hidden="true" fontSize="small" /> 운영진 기본
               </button>
             </div>
 
