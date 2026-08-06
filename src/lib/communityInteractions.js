@@ -12,6 +12,7 @@ const canUseStorage = () => typeof window !== "undefined";
 
 const toSafeCount = value => {
   const count = Number(value);
+
   return Number.isFinite(count) && count >= 0 ? Math.floor(count) : 0;
 };
 
@@ -19,7 +20,12 @@ const getLikeStorageKey = ({ postId, userId }) =>
   `${LIKE_STORAGE_KEY_PREFIX}:${String(postId)}:${String(userId)}`;
 
 /**
- * 로그인 후 원래 보던 페이지로 돌아올 수 있는 URL을 만듭니다.
+ * 로그인 후 원래 보던 페이지로 돌아갈 URL 생성
+ *
+ * 예:
+ * /post/5
+ * →
+ * /sign-in?returnUrl=%2Fpost%2F5
  */
 export function buildCommunityLoginUrl(returnUrl = "/post") {
   const safeReturnUrl =
@@ -27,19 +33,25 @@ export function buildCommunityLoginUrl(returnUrl = "/post") {
       ? returnUrl
       : "/post";
 
-  return `/login?returnUrl=${encodeURIComponent(safeReturnUrl)}`;
+  return `/sign-in?returnUrl=${encodeURIComponent(safeReturnUrl)}`;
 }
 
 /**
- * 목 인증 사용자 정보를 반환합니다.
- * 인증 담당 코드가 연결되기 전까지 localStorage의 community-session-user를 사용합니다.
- * 값이 없거나 파싱에 실패하면 비로그인 상태(null)로 처리합니다.
+ * 목 인증 사용자 반환
+ *
+ * TODO:
+ * Supabase 세션으로 교체 예정
  */
 export function getCommunitySessionUser() {
-  if (!canUseStorage()) return null;
+  if (!canUseStorage()) {
+    return null;
+  }
 
   const savedUser = window.localStorage.getItem(SESSION_STORAGE_KEY);
-  if (!savedUser) return null;
+
+  if (!savedUser) {
+    return null;
+  }
 
   try {
     const user = JSON.parse(savedUser);
@@ -51,14 +63,15 @@ export function getCommunitySessionUser() {
     return user;
   } catch (error) {
     console.warn("커뮤니티 목 사용자 정보를 읽지 못했습니다.", error);
+
     window.localStorage.removeItem(SESSION_STORAGE_KEY);
+
     return null;
   }
 }
 
 /**
- * 현재 사용자의 게시글 좋아요 상태를 반환합니다.
- * 저장된 상태가 없으면 게시글 목데이터의 초기값을 사용합니다.
+ * 현재 사용자의 좋아요 상태 반환
  */
 export function getCommunityPostLikeState({
   postId,
@@ -75,10 +88,16 @@ export function getCommunityPostLikeState({
     return fallbackState;
   }
 
-  const storageKey = getLikeStorageKey({ postId, userId });
+  const storageKey = getLikeStorageKey({
+    postId,
+    userId,
+  });
+
   const savedState = window.localStorage.getItem(storageKey);
 
-  if (!savedState) return fallbackState;
+  if (!savedState) {
+    return fallbackState;
+  }
 
   try {
     const parsedState = JSON.parse(savedState);
@@ -89,14 +108,18 @@ export function getCommunityPostLikeState({
     };
   } catch (error) {
     console.warn("게시글 좋아요 상태를 읽지 못했습니다.", error);
+
     window.localStorage.removeItem(storageKey);
+
     return fallbackState;
   }
 }
 
 /**
- * 좋아요 상태를 한 번 토글하고 갱신된 서버 응답 형태를 반환합니다.
- * 현재는 localStorage 목 저장소를 사용하며, 비로그인 상태에서는 변경하지 않습니다.
+ * 좋아요 토글
+ *
+ * TODO:
+ * Supabase API 응답으로 교체 예정
  */
 export async function toggleCommunityPostLike({
   postId,
@@ -120,6 +143,7 @@ export async function toggleCommunityPostLike({
   });
 
   const nextLiked = !currentState.liked;
+
   const nextLikeCount = Math.max(
     0,
     currentState.likeCount + (nextLiked ? 1 : -1),
@@ -131,7 +155,11 @@ export async function toggleCommunityPostLike({
   };
 
   if (canUseStorage()) {
-    const storageKey = getLikeStorageKey({ postId, userId });
+    const storageKey = getLikeStorageKey({
+      postId,
+      userId,
+    });
+
     window.localStorage.setItem(storageKey, JSON.stringify(nextState));
   }
 
