@@ -136,12 +136,6 @@
   font-weight: 800;
 }
 
-.top-three-postTitle {
-  font-size: 18px;
-  line-height: 24px;
-  font-weight: 800;
-}
-
 .top-three-cardFooter {
   margin-top: auto;
   color: var(--ink-muted);
@@ -1226,8 +1220,12 @@
 /* Final community UI refinements: truncation, metric icons, and Quill alignment. */
 .community-scope .top-three-postTitle {
   min-height: 48px;
-  display: -webkit-box;
+  margin: 0;
   overflow: hidden;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 24px;
+  display: -webkit-box;
   -webkit-box-orient: vertical;
   line-clamp: 2;
   -webkit-line-clamp: 2;
