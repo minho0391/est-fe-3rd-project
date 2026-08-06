@@ -4,44 +4,7 @@
 import React, { useState } from "react";
 import Button from "@/components/ui/Button";
 
-// 보관함에 저장된 콘텐츠 데이터 샘플 (AI 생성 & 운영진 기본 콘텐츠)
-const SAVED_CONTENTS = [
-  {
-    id: 1,
-    type: "AI",
-    badge: "✨ AI 생성",
-    title: "여름 휴가철 커뮤니티 에티켓 안내",
-    content:
-      "안녕하세요! 즐거운 여름 휴가철을 맞아 서로를 배려하는 커뮤니티 에티켓을 공유합니다...",
-    tags: ["휴가", "에티켓", "공지"],
-  },
-  {
-    id: 2,
-    type: "AI",
-    badge: "✨ AI 생성",
-    title: "주간 개발 및 소통 초안",
-    content:
-      "이번 주 업데이트된 주요 기능과 커뮤니티 피드백 반영 사항을 정리해 드립니다...",
-    tags: ["업데이트", "개발일지"],
-  },
-  {
-    id: 3,
-    type: "ADMIN",
-    badge: "📌 운영진 기본",
-    title: "자유게시판 기본 작성 템플릿",
-    content:
-      "1. 오늘 공유하고 싶은 내용:\n2. 추천하는 이유:\n3. 함께 나누고 싶은 질문:",
-    tags: ["템플릿", "자유게시판"],
-  },
-  {
-    id: 4,
-    type: "ADMIN",
-    badge: "📌 운영진 기본",
-    title: "Q&A 질문 양식 템플릿",
-    content: "[질문 유형]: \n[현재 상황]: \n[원하는 해결 방향]: ",
-    tags: ["템플릿", "Q&A"],
-  },
-];
+import { savedCommunityContents } from "@/data/communityPosts";
 
 export default function ContentFetcher({ onSelectContent }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -61,7 +24,7 @@ export default function ContentFetcher({ onSelectContent }) {
   };
 
   // 필터링된 콘텐츠 리스트
-  const filteredContents = SAVED_CONTENTS.filter(item => {
+  const filteredContents = savedCommunityContents.filter(item => {
     if (filter === "AI") return item.type === "AI";
 
     if (filter === "ADMIN") return item.type === "ADMIN";

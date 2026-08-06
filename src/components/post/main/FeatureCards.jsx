@@ -45,7 +45,7 @@ export default function FeatureSelection() {
 
         {/* 2. 커뮤니티 카드 */}
         <Link
-          href="/post"
+          href="/post/list"
           className={`${"feature-card"} ${"feature-communityCard"}`}
         >
           <div className="feature-cardHeader">

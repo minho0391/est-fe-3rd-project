@@ -3,8 +3,10 @@
 
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import "react-quill-new/dist/quill.snow.css";
 import ContentFetcher from "./ContentFetcher";
+import { communityBoards } from "@/data/communityPosts";
 
 // React Quill SSR 이슈 방지를 위한 Dynamic Import
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -33,9 +35,8 @@ const formats = [
   "video",
 ];
 
-const BOARDS = ["자유게시판", "Q&A", "정보공유"];
-
 export default function WriteForm() {
+  const router = useRouter();
   const [board, setBoard] = useState("자유게시판");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState(""); // 추가 설명 State
@@ -67,15 +68,33 @@ export default function WriteForm() {
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
-  // 폼 제출 함수
+  // 폼 제출 함수: 목데이터 단계에서는 sessionStorage에 저장 후 미리보기 상세로 이동
   const handleSubmit = e => {
     e.preventDefault();
 
-    console.log({ board, title, description, content, tags });
+    const newPost = {
+      id: "preview",
+      board,
+      title: title.trim(),
+      description: description.trim(),
+      content,
+      tags,
+      authorId: "user-1",
+      author: "홍길동",
+      authorRole: "정회원",
+      authorAvatarUrl: "https://via.placeholder.com/40",
+      createdAt: new Date().toISOString().slice(0, 10).replaceAll("-", "."),
+      views: 0,
+      likes: 0,
+      commentsCount: 0,
+    };
+
+    sessionStorage.setItem("community-preview-post", JSON.stringify(newPost));
+    router.push("/post/preview");
   };
 
   return (
-    <div className="write-form">
+    <div className="write-pageContent">
       <div className="write-container">
         {/* Header Area */}
         <div className="write-headerRow">
@@ -102,7 +121,7 @@ export default function WriteForm() {
               onChange={e => setBoard(e.target.value)}
               className="write-select"
             >
-              {BOARDS.map(boardName => (
+              {communityBoards.map(boardName => (
                 <option key={boardName} value={boardName}>
                   {boardName}
                 </option>
