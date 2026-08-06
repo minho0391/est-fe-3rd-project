@@ -2,7 +2,11 @@
 "use client";
 
 import Link from "next/link";
-import { EmojiEventsIcon, FavoriteIcon, RemoveRedEyeIcon } from "@/images_icon";
+import {
+  EmojiEventsIcon,
+  FavoriteIcon,
+  RemoveRedEyeIcon,
+} from "@/images/icons";
 
 const RANK_BADGES = [
   { rank: 1, className: "top-three-gold" },
