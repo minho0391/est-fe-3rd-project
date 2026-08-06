@@ -2,19 +2,20 @@
 // 로딩 실패 테스트용 사이트 주소 : http://localhost:3000/generate/loading?forceError=true
 "use client";
 
-//import
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+
 import Box from "@mui/material/Box";
 import { useTheme } from "@mui/material/styles";
+
 import { styles } from "./_components/styles";
 import { mockGenerateGuide } from "@/lib/mockGenerateGuide";
 import LoadingView from "./_components/LoadingView";
 import ErrorView from "./_components/ErrorView";
 
-export default function GenerateLoadingPage() {
+function LoadingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const theme = useTheme();
@@ -27,13 +28,8 @@ export default function GenerateLoadingPage() {
     setProgress(0);
 
     const progressTimer = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 95) return prev;
-        return prev + (Math.random() * 3 + 2);
-      });
-    }, 100);
-
-    //supabase 호출 시 교체 예정
+      setProgress(prev => (prev >= 96 ? prev : prev + Math.random() * 8));
+    }, 500);
 
     mockGenerateGuide(searchParams)
       .then(() => {
@@ -71,5 +67,13 @@ export default function GenerateLoadingPage() {
       </Box>
       <Footer />
     </>
+  );
+}
+
+export default function GenerateLoadingPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoadingContent />
+    </Suspense>
   );
 }
