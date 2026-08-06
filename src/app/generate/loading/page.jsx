@@ -2,14 +2,13 @@
 // 로딩 실패 테스트용 사이트 주소 : http://localhost:3000/generate/loading?forceError=true
 "use client";
 
+//import
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-
 import Box from "@mui/material/Box";
 import { useTheme } from "@mui/material/styles";
-
 import { styles } from "./_components/styles";
 import { mockGenerateGuide } from "@/lib/mockGenerateGuide";
 import LoadingView from "./_components/LoadingView";
