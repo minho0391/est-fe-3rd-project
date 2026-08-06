@@ -10,7 +10,7 @@ import {
   AccountCircleIcon,
   FavoriteIcon,
   RemoveRedEyeIcon,
-} from "@/images_icon";
+} from "@/images/icons";
 import {
   getCommentsByAuthorId,
   getCurrentUserProfile,
