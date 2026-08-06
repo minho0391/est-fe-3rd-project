@@ -6,6 +6,7 @@
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Box, Typography } from "@mui/material";
+import Button from "@/components/ui/Button";
 
 export default function GenerateResultPage() {
   return (
