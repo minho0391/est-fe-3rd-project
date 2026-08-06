@@ -27,8 +27,11 @@ export default function GenerateLoadingPage() {
     setProgress(0);
 
     const progressTimer = setInterval(() => {
-      setProgress(prev => (prev >= 96 ? prev : prev + Math.random() * 8));
-    }, 500);
+      setProgress(prev => {
+        if (prev >= 95) return prev;
+        return prev + (Math.random() * 3 + 2);
+      });
+    }, 100);
 
     //supabase 호출 시 교체 예정
 
