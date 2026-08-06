@@ -20,6 +20,7 @@ const modules = {
     [{ list: "ordered" }, { list: "bullet" }],
     [{ align: ["", "center", "right"] }],
     ["link", "video", "image"],
+    ["clean"],
   ],
 };
 
