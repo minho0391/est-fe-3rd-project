@@ -55,17 +55,19 @@ function LoadingContent() {
 
   return (
     <>
-      <Header />
-      <Box sx={styles.page}>
-        <Box sx={styles.container}>
-          {status === "loading" ? (
-            <LoadingView progress={progress} theme={theme} />
-          ) : (
-            <ErrorView theme={theme} onRetry={runGeneration} onBack={() => router.push("/generate")} />
-          )}
+      <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+        <Header />
+        <Box sx={styles.page}>
+          <Box sx={styles.container}>
+            {status === "loading" ? (
+              <LoadingView progress={progress} theme={theme} />
+            ) : (
+              <ErrorView theme={theme} onRetry={runGeneration} onBack={() => router.push("/generate")} />
+            )}
+          </Box>
         </Box>
+        <Footer />
       </Box>
-      <Footer />
     </>
   );
 }
