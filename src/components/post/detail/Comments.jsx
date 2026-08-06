@@ -4,7 +4,7 @@
 import React, { useState } from "react";
 import { currentCommunityUser } from "@/data/communityPosts";
 import Button from "@/components/ui/Button";
-import { AccountCircleIcon, DeleteOutlineIcon } from "@/images_icon";
+import { AccountCircleIcon, DeleteOutlined } from "@/images/icons";
 
 export default function CommentSection({ initialComments = [] }) {
   const [comments, setComments] = useState(initialComments);
@@ -100,7 +100,7 @@ export default function CommentSection({ initialComments = [] }) {
                       className="comments-deleteBtn"
                       aria-label="댓글 삭제"
                     >
-                      <DeleteOutlineIcon aria-hidden="true" fontSize="small" />
+                      <DeleteOutlined aria-hidden="true" fontSize="small" />
                       <span>삭제</span>
                     </button>
                   )}
