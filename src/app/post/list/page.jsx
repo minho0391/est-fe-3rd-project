@@ -9,7 +9,10 @@ import Link from "next/link";
 import TopThree from "@/components/post/list/TopThree";
 import PostFilter from "@/components/post/list/PostFilter";
 import PostItem from "@/components/post/list/PostItem";
-import { communityPosts } from "@/data/communityPosts";
+import {
+  communityPosts,
+  compareCommunityPostCreatedAtDesc,
+} from "@/data/communityPosts";
 
 const posts = communityPosts;
 
@@ -25,11 +28,19 @@ export default function PostListPage() {
         .includes(query.toLowerCase()),
     );
 
-    return [...filtered].sort((a, b) => {
-      if (sort === "likes") return b.likes - a.likes;
-      if (sort === "views") return b.views - a.views;
-      return b.id - a.id;
-    });
+    const noticePosts = filtered
+      .filter(post => post.isNotice)
+      .sort(compareCommunityPostCreatedAtDesc);
+
+    const normalPosts = filtered
+      .filter(post => !post.isNotice)
+      .sort((a, b) => {
+        if (sort === "likes") return b.likes - a.likes;
+        if (sort === "views") return b.views - a.views;
+        return compareCommunityPostCreatedAtDesc(a, b);
+      });
+
+    return [...noticePosts, ...normalPosts];
   }, [query, sort]);
 
   return (
@@ -80,7 +91,7 @@ export default function PostListPage() {
             </div>
           </div>
 
-          <div className="community-section-heading post-list-heading">
+          <div className="community-section-heading">
             <div>
               <h1 className="community-section-title">전체 글보기</h1>
 

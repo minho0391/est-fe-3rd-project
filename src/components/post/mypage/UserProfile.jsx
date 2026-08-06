@@ -2,6 +2,7 @@
 "use client";
 
 import React from "react";
+import { AccountCircleIcon, FavoriteIcon } from "@/images/icons";
 
 export default function UserProfile({ user }) {
   // 전달받은 프로필 데이터가 없을 때 사용할 기본값 설정
@@ -27,7 +28,9 @@ export default function UserProfile({ user }) {
               className="user-profile-avatar"
             />
           ) : (
-            <div className="user-profile-avatarPlaceholder">👤</div>
+            <div className="user-profile-avatarPlaceholder">
+              <AccountCircleIcon aria-hidden="true" />
+            </div>
           )}
 
           <span className="user-profile-levelBadge">Lv.{level}</span>
@@ -67,7 +70,9 @@ export default function UserProfile({ user }) {
         <div className="user-profile-statBox">
           <span className="user-profile-statLabel">받은 좋아요</span>
 
-          <span className="user-profile-statValue">❤️ {likeCount}</span>
+          <span className="user-profile-statValue">
+            <FavoriteIcon aria-hidden="true" fontSize="small" /> {likeCount}
+          </span>
         </div>
       </div>
     </div>

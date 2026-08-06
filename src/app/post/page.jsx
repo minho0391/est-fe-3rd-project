@@ -5,14 +5,17 @@ import "@/community/post.css";
 import Link from "next/link";
 import TopThree from "@/components/post/list/TopThree";
 import PostItem from "@/components/post/list/PostItem";
-import { getRankablePosts } from "@/data/communityPosts";
+import {
+  compareCommunityPostCreatedAtDesc,
+  getRankablePosts,
+} from "@/data/communityPosts";
 
 export default function CommunityMainPage() {
   const rankablePosts = getRankablePosts();
   const viewPosts = [...rankablePosts].sort((a, b) => b.views - a.views);
   const likedPosts = [...rankablePosts].sort((a, b) => b.likes - a.likes);
   const latestPosts = [...rankablePosts]
-    .sort((a, b) => b.id - a.id)
+    .sort(compareCommunityPostCreatedAtDesc)
     .slice(0, 3);
 
   return (

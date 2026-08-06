@@ -16,13 +16,24 @@ import {
 
 export default function PostDetailPage() {
   const params = useParams();
+
   const postId = params?.id;
-  const staticPost = useMemo(() => getCommunityPostById(postId), [postId]);
+
+  const staticPost = useMemo(
+    () => (postId === "preview" ? null : getCommunityPostById(postId)),
+    [postId],
+  );
+
   const [previewPost, setPreviewPost] = useState(null);
-  const basePost = postId === "preview" ? previewPost : staticPost;
-  const [views, setViews] = useState(staticPost?.views ?? 0);
+
+  const basePost = previewPost ?? staticPost;
+
+  const [views, setViews] = useState(basePost?.views ?? 0);
+
   const [likes, setLikes] = useState(basePost?.likes ?? 0);
+
   const [isLiked, setIsLiked] = useState(false);
+
   const countedPostRef = useRef(null);
 
   useEffect(() => {
@@ -31,8 +42,21 @@ export default function PostDetailPage() {
       return;
     }
 
+    // TODO: Supabase 상세 조회 연동 후 /post/preview 분기 및 sessionStorage 미리보기 읽기 로직 제거
     const savedPost = sessionStorage.getItem("community-preview-post");
-    setPreviewPost(savedPost ? JSON.parse(savedPost) : null);
+
+    if (!savedPost) {
+      setPreviewPost(null);
+      return;
+    }
+
+    try {
+      setPreviewPost(JSON.parse(savedPost));
+    } catch (error) {
+      console.error("게시글 미리보기 데이터를 불러오지 못했습니다.", error);
+      sessionStorage.removeItem("community-preview-post");
+      setPreviewPost(null);
+    }
   }, [postId]);
 
   useEffect(() => {
@@ -46,7 +70,7 @@ export default function PostDetailPage() {
       countedPostRef.current = basePost.id;
       setViews(current => current + 1);
     }
-  }, [basePost]);
+  }, [basePost?.id, basePost?.views, basePost?.likes]);
 
   if (!basePost) {
     return (

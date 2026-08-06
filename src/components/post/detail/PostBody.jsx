@@ -2,6 +2,12 @@
 "use client";
 
 import React from "react";
+import {
+  AccountCircleIcon,
+  AutoAwesomeIcon,
+  FavoriteBorderIcon,
+  FavoriteIcon,
+} from "@/images/icons";
 
 export default function PostDetailContent({
   post,
@@ -31,7 +37,9 @@ export default function PostDetailContent({
               className="post-body-avatar"
             />
           ) : (
-            <div className="post-body-avatarPlaceholder">👤</div>
+            <div className="post-body-avatarPlaceholder">
+              <AccountCircleIcon aria-hidden="true" />
+            </div>
           )}
 
           <div className="post-body-authorMeta">
@@ -56,7 +64,14 @@ export default function PostDetailContent({
             aria-pressed={isLiked}
             onClick={onLikeToggle}
           >
-            {isLiked ? "좋아요 취소" : "좋아요"} {likes}
+            {isLiked ? (
+              <FavoriteIcon aria-hidden="true" fontSize="small" />
+            ) : (
+              <FavoriteBorderIcon aria-hidden="true" fontSize="small" />
+            )}
+            <span>
+              {isLiked ? "좋아요 취소" : "좋아요"} {likes}
+            </span>
           </button>
         </div>
       </div>
@@ -66,7 +81,10 @@ export default function PostDetailContent({
       {/* 3. 공유된 AI 생성 콘텐츠 내용 영역 */}
       <div className="post-body-contentWrapper">
         <div className="post-body-aiBadge">
-          <span>✨ AI로 생성 및 공유된 콘텐츠입니다.</span>
+          <span>
+            <AutoAwesomeIcon aria-hidden="true" fontSize="small" /> AI로 생성 및
+            공유된 콘텐츠입니다.
+          </span>
         </div>
 
         {/* HTML 태그를 그대로 렌더링할 때 dangerouslySetInnerHTML 활용 */}
