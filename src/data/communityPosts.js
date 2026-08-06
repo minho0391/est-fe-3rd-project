@@ -229,6 +229,16 @@ export const savedCommunityContents = [
 
 export const communityBoards = ["자유게시판", "Q&A", "정보공유"];
 
+export const compareCommunityPostCreatedAtDesc = (a, b) => {
+  const toTimestamp = value => {
+    const normalized = String(value ?? "").replaceAll(".", "-");
+    const timestamp = Date.parse(normalized);
+    return Number.isNaN(timestamp) ? 0 : timestamp;
+  };
+
+  return toTimestamp(b?.createdAt) - toTimestamp(a?.createdAt);
+};
+
 export const getCommunityPostById = id =>
   communityPosts.find(post => String(post.id) === String(id));
 
