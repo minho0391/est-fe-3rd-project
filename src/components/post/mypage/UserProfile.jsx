@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import { AccountCircleIcon, FavoriteIcon } from "@/images_icon";
+import { AccountCircleIcon, FavoriteIcon } from "@/images/icons";
 
 export default function UserProfile({ user }) {
   // 전달받은 프로필 데이터가 없을 때 사용할 기본값 설정
