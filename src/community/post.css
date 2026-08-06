@@ -280,10 +280,26 @@
 }
 
 .post-body-postDate,
-.post-body-postStats,
 .comments-date {
   color: var(--ink-muted);
   font-size: 14px;
+  line-height: 24px;
+}
+
+.community-scope .post-body-postStats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: var(--ink-muted);
+  font-size: 14px;
+  line-height: 24px;
+}
+
+.community-scope .post-body-statItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .post-body-divider {
@@ -304,6 +320,12 @@
   background: var(--primary-soft);
   color: var(--primary);
   font-weight: 700;
+}
+
+.community-scope .post-body-aiBadge > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .post-body-articleBody {
@@ -473,12 +495,6 @@
 .write-pageSubtitle {
   color: var(--ink-muted);
   line-height: 24px;
-}
-
-.write-fetcherWrapper {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
 }
 
 .write-container > .write-form {
@@ -762,7 +778,7 @@
     flex-direction: column;
   }
 
-  .write-fetcherWrapper,
+  .write-fetcher-fetcherWrapper,
   .write-fetcherGroup {
     width: 100%;
   }
@@ -815,7 +831,6 @@
 }
 
 .top-three-author,
-.post-item-authorGroup,
 .comments-avatarWrapper,
 .feature-cardBody {
   min-width: 0;
@@ -868,6 +883,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   min-height: 40px;
   padding: 0 16px;
   border: 1px solid var(--line);
@@ -875,6 +891,7 @@
   background: var(--surface);
   color: var(--ink-subtle);
   font: inherit;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -887,6 +904,11 @@
   border-color: var(--primary);
   background: var(--primary-soft);
   color: var(--primary);
+}
+
+.community-scope .post-body-likeButton:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
 }
 
 .community-scope .post-detail-emptyState {
@@ -1330,86 +1352,4 @@
   display: block;
   width: 18px;
   height: 18px;
-}
-
-/* Quill dropdown and editor placeholder interaction */
-.community-scope .write-quillEditor .ql-toolbar .ql-picker.ql-expanded {
-  z-index: 10000;
-}
-
-.community-scope .write-quillEditor .ql-toolbar .ql-picker-options {
-  z-index: 9999;
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-}
-
-/* Detail header stats alignment */
-.community-scope .post-body-postStats {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.community-scope .post-body-statItem,
-.community-scope .post-body-likeButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.community-scope .post-body-likeButton:disabled {
-  cursor: wait;
-  opacity: 0.72;
-}
-
-.community-scope .post-body-aiBadge > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-@media (max-width: 767px) {
-  .community-scope .post-body-authorRow {
-    align-items: flex-start;
-  }
-
-  .community-scope .post-body-postStats {
-    gap: 12px;
-  }
-}
-
-/* Quill toolbar vertical alignment */
-.community-scope .ql-toolbar {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.community-scope .ql-formats {
-  display: flex;
-  align-items: center;
-}
-
-.community-scope .ql-picker {
-  display: flex;
-  align-items: center;
-}
-
-.community-scope .ql-picker-label {
-  display: flex;
-  align-items: center;
-  height: 32px;
-}
-
-.community-scope .ql-toolbar button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.community-scope .ql-toolbar button svg,
-.community-scope .ql-toolbar .ql-picker svg {
-  display: block;
 }
