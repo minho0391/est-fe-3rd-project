@@ -7,7 +7,7 @@ import {
   AutoAwesomeIcon,
   FavoriteBorderIcon,
   FavoriteIcon,
-} from "@/images_icon";
+} from "@/images/icons";
 
 export default function PostDetailContent({
   post,
