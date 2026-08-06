@@ -246,7 +246,9 @@ export const getRankablePosts = () =>
   communityPosts.filter(post => !post.isNotice);
 
 export const getLatestCommunityPosts = (limit = 3) =>
-  [...getRankablePosts()].sort((a, b) => b.id - a.id).slice(0, limit);
+  [...getRankablePosts()]
+    .sort(compareCommunityPostCreatedAtDesc)
+    .slice(0, limit);
 
 export const getPopularCommunityPosts = (limit = 3) =>
   [...getRankablePosts()].sort((a, b) => b.likes - a.likes).slice(0, limit);
