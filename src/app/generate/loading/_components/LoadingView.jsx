@@ -4,7 +4,7 @@ import LinearProgress from "@mui/material/LinearProgress";
 import { styles } from "./styles";
 import InfoCard from "./InfoCard";
 
-// 진행률 구간별 안내 문구
+// 진행 구간 안내 문구
 const PROGRESS_STEPS = [
   { until: 30, label: "상황 정보 분석 중..." },
   { until: 65, label: "스크립트 구성 요소 생성 중..." },
@@ -13,9 +13,7 @@ const PROGRESS_STEPS = [
 ];
 
 export function getCurrentStepLabel(progress) {
-  return (
-    PROGRESS_STEPS.find(step => progress <= step.until)?.label ?? PROGRESS_STEPS[PROGRESS_STEPS.length - 1].label
-  );
+  return PROGRESS_STEPS.find(step => progress <= step.until)?.label ?? PROGRESS_STEPS[PROGRESS_STEPS.length - 1].label;
 }
 
 export default function LoadingView({ progress, theme }) {

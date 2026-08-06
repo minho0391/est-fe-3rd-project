@@ -30,6 +30,8 @@ export default function GenerateLoadingPage() {
       setProgress(prev => (prev >= 96 ? prev : prev + Math.random() * 8));
     }, 500);
 
+    //supabase 호출 시 교체 예정
+
     mockGenerateGuide(searchParams)
       .then(() => {
         clearInterval(progressTimer);

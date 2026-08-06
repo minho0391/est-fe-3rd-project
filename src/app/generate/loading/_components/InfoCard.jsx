@@ -6,8 +6,7 @@ import { alpha } from "@mui/material/styles";
 import { styles } from "./styles";
 
 // 로딩/에러 화면 공용 정보 카드
-// variant="tinted": 로딩 화면용 (은은한 톤 배경 + 흰색 원형 아바타)
-// variant="plain": 에러 화면용 (흰 배경 + 테두리 + 사각 아바타)
+// variant="tinted": 로딩 화면용 , variant="plain": 에러 화면용
 export default function InfoCard({ variant, icon, title, desc, theme }) {
   const isTinted = variant === "tinted";
 
