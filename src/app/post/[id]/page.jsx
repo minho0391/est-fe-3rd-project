@@ -6,17 +6,24 @@ import "@/community/post.css";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import PostDetailContent from "@/components/post/detail/PostBody.jsx";
 import CommentSection from "@/components/post/detail/Comments.jsx";
 import {
   getCommunityPostById,
   getCommentsByPostId,
 } from "@/data/communityPosts";
+import {
+  buildCommunityLoginUrl,
+  getCommunityPostLikeState,
+  getCommunitySessionUser,
+  toggleCommunityPostLike,
+} from "@/lib/communityInteractions";
 
 export default function PostDetailPage() {
   const params = useParams();
-
+  const router = useRouter();
+  const pathname = usePathname();
   const postId = params?.id;
 
   const staticPost = useMemo(
@@ -33,8 +40,14 @@ export default function PostDetailPage() {
   const [likes, setLikes] = useState(basePost?.likes ?? 0);
 
   const [isLiked, setIsLiked] = useState(false);
+  const [isLikePending, setIsLikePending] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const countedPostRef = useRef(null);
+
+  useEffect(() => {
+    setCurrentUser(getCommunitySessionUser());
+  }, []);
 
   useEffect(() => {
     if (postId !== "preview") {
@@ -63,8 +76,16 @@ export default function PostDetailPage() {
     if (!basePost) return;
 
     setViews(basePost.views ?? 0);
-    setLikes(basePost.likes ?? 0);
-    setIsLiked(false);
+
+    const likeState = getCommunityPostLikeState({
+      postId: basePost.id,
+      initialLikeCount: basePost.likes ?? 0,
+      initialLiked: basePost.likedByCurrentUser ?? false,
+      userId: getCommunitySessionUser()?.id,
+    });
+
+    setLikes(likeState.likeCount);
+    setIsLiked(likeState.liked);
 
     if (countedPostRef.current !== basePost.id) {
       countedPostRef.current = basePost.id;
@@ -108,11 +129,30 @@ export default function PostDetailPage() {
 
   const initialComments = getCommentsByPostId(basePost.id);
 
-  const handleLikeToggle = () => {
-    setIsLiked(current => {
-      setLikes(value => Math.max(0, value + (current ? -1 : 1)));
-      return !current;
-    });
+  const handleLikeToggle = async () => {
+    if (!currentUser) {
+      router.push(buildCommunityLoginUrl(pathname));
+      return;
+    }
+
+    if (isLikePending) return;
+
+    setIsLikePending(true);
+
+    try {
+      const nextState = await toggleCommunityPostLike({
+        postId: basePost.id,
+        initialLikeCount: likes,
+        initialLiked: isLiked,
+        userId: currentUser.id,
+      });
+
+      // 서버(현재는 목 저장소)가 반환한 값을 그대로 반영해 이중 증가를 방지합니다.
+      setLikes(nextState.likeCount);
+      setIsLiked(nextState.liked);
+    } finally {
+      setIsLikePending(false);
+    }
   };
 
   return (
@@ -126,10 +166,15 @@ export default function PostDetailPage() {
       <PostDetailContent
         post={post}
         isLiked={isLiked}
+        isLikePending={isLikePending}
         onLikeToggle={handleLikeToggle}
       />
 
-      <CommentSection initialComments={initialComments} />
+      <CommentSection
+        initialComments={initialComments}
+        currentUser={currentUser}
+        returnUrl={pathname}
+      />
     </main>
   );
 }

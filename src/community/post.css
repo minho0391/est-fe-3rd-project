@@ -280,10 +280,26 @@
 }
 
 .post-body-postDate,
-.post-body-postStats,
 .comments-date {
   color: var(--ink-muted);
   font-size: 14px;
+  line-height: 24px;
+}
+
+.community-scope .post-body-postStats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: var(--ink-muted);
+  font-size: 14px;
+  line-height: 24px;
+}
+
+.community-scope .post-body-statItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .post-body-divider {
@@ -304,6 +320,12 @@
   background: var(--primary-soft);
   color: var(--primary);
   font-weight: 700;
+}
+
+.community-scope .post-body-aiBadge > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .post-body-articleBody {
@@ -473,12 +495,6 @@
 .write-pageSubtitle {
   color: var(--ink-muted);
   line-height: 24px;
-}
-
-.write-fetcherWrapper {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
 }
 
 .write-container > .write-form {
@@ -762,7 +778,7 @@
     flex-direction: column;
   }
 
-  .write-fetcherWrapper,
+  .write-fetcher-fetcherWrapper,
   .write-fetcherGroup {
     width: 100%;
   }
@@ -815,7 +831,6 @@
 }
 
 .top-three-author,
-.post-item-authorGroup,
 .comments-avatarWrapper,
 .feature-cardBody {
   min-width: 0;
@@ -868,6 +883,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   min-height: 40px;
   padding: 0 16px;
   border: 1px solid var(--line);
@@ -875,6 +891,7 @@
   background: var(--surface);
   color: var(--ink-subtle);
   font: inherit;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -887,6 +904,11 @@
   border-color: var(--primary);
   background: var(--primary-soft);
   color: var(--primary);
+}
+
+.community-scope .post-body-likeButton:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
 }
 
 .community-scope .post-detail-emptyState {
