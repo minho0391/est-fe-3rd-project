@@ -1,6 +1,14 @@
 // 로딩/에러 화면 공용 sx 스타일
 export const styles = {
-  page: { bgcolor: "background.default", minHeight: "100vh", py: 10, px: 2 },
+  page: {
+    bgcolor: "background.default",
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    py: 10,
+    px: 2,
+  },
   container: { maxWidth: 900, mx: "auto", textAlign: "center" },
   badge: {
     display: "inline-block",
