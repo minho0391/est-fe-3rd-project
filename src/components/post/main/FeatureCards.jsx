@@ -3,7 +3,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { AutoAwesomeIcon, ChatBubbleOutlineIcon } from "@/images_icon";
+import { AutoAwesomeIcon, ChatBubbleOutlineOutlined } from "@/images/icons";
 
 export default function FeatureSelection() {
   return (
@@ -53,7 +53,7 @@ export default function FeatureSelection() {
         >
           <div className="feature-cardHeader">
             <div className="feature-iconBox">
-              <ChatBubbleOutlineIcon aria-hidden="true" />
+              <ChatBubbleOutlineOutlined aria-hidden="true" />
             </div>
 
             <span className="feature-badge">실시간 소통</span>
