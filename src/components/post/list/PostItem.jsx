@@ -3,10 +3,10 @@
 
 import Link from "next/link";
 import {
-  ChatBubbleOutlineIcon,
+  ChatBubbleOutlineOutlined,
   FavoriteIcon,
   RemoveRedEyeIcon,
-} from "@/images_icon";
+} from "@/images/icons";
 
 export default function PostItem({ post, compact = false }) {
   if (!post || post.id === undefined || post.id === null) {
@@ -71,7 +71,7 @@ export default function PostItem({ post, compact = false }) {
           </span>
 
           <span className="post-item-statItem">
-            <ChatBubbleOutlineIcon
+            <ChatBubbleOutlineOutlined
               className="post-item-statIcon"
               aria-hidden="true"
             />
