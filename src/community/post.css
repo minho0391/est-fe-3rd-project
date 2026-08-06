@@ -713,6 +713,11 @@
   }
 }
 
+.community-scope {
+  --write-placeholder-x: 24px;
+  --write-placeholder-y: 24px;
+}
+
 @media (max-width: 767px) {
   .detail-page-container,
   .top-three-topThreeContainer,
@@ -1210,10 +1215,9 @@
     padding-bottom: 64px;
   }
 
-  .community-scope .write-editorPlaceholder {
-    left: 16px;
-    right: 16px;
-    top: calc(var(--quill-toolbar-height, 57px) + 16px);
+  .community-scope {
+    --write-placeholder-x: 16px;
+    --write-placeholder-y: 16px;
   }
 }
 
@@ -1279,9 +1283,9 @@
 
 .community-scope .write-editorPlaceholder {
   position: absolute;
-  top: calc(var(--quill-toolbar-height, 57px) + 24px);
-  left: 24px;
-  right: 24px;
+  top: calc(var(--quill-toolbar-height, 57px) + var(--write-placeholder-y));
+  left: var(--write-placeholder-x);
+  right: var(--write-placeholder-x);
   z-index: 2;
   color: var(--ink-muted);
   font-size: 16px;
