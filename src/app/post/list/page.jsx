@@ -9,7 +9,10 @@ import Link from "next/link";
 import TopThree from "@/components/post/list/TopThree";
 import PostFilter from "@/components/post/list/PostFilter";
 import PostItem from "@/components/post/list/PostItem";
-import { communityPosts } from "@/data/communityPosts";
+import {
+  communityPosts,
+  compareCommunityPostCreatedAtDesc,
+} from "@/data/communityPosts";
 
 const posts = communityPosts;
 
@@ -27,14 +30,14 @@ export default function PostListPage() {
 
     const noticePosts = filtered
       .filter(post => post.isNotice)
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      .sort(compareCommunityPostCreatedAtDesc);
 
     const normalPosts = filtered
       .filter(post => !post.isNotice)
       .sort((a, b) => {
         if (sort === "likes") return b.likes - a.likes;
         if (sort === "views") return b.views - a.views;
-        return b.createdAt.localeCompare(a.createdAt);
+        return compareCommunityPostCreatedAtDesc(a, b);
       });
 
     return [...noticePosts, ...normalPosts];
