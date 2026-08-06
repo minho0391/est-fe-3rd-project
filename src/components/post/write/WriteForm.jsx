@@ -1,7 +1,7 @@
 // [글 작성 폼] (제목, 추가 설명 입력창)
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import "react-quill-new/dist/quill.snow.css";
@@ -24,6 +24,20 @@ const modules = {
   ],
 };
 
+const isQuillContentEmpty = value => {
+  if (!value) return true;
+
+  const hasEmbeddedContent = /<(img|video|iframe)\b/i.test(value);
+  if (hasEmbeddedContent) return false;
+
+  return (
+    value
+      .replace(/<[^>]*>/g, "")
+      .replace(/&nbsp;/g, " ")
+      .trim().length === 0
+  );
+};
+
 const formats = [
   "header",
   "bold",
@@ -40,12 +54,45 @@ const formats = [
 
 export default function WriteForm() {
   const router = useRouter();
+  const editorWrapperRef = useRef(null);
   const [board, setBoard] = useState("자유게시판");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState(""); // 추가 설명 State
   const [content, setContent] = useState("");
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState("");
+
+  const showEditorPlaceholder = isQuillContentEmpty(content);
+
+  useEffect(() => {
+    const wrapper = editorWrapperRef.current;
+    if (!wrapper) return undefined;
+
+    let toolbarResizeObserver;
+
+    const updateToolbarHeight = () => {
+      const toolbar = wrapper.querySelector(".ql-toolbar");
+      if (!toolbar) return;
+
+      wrapper.style.setProperty(
+        "--quill-toolbar-height",
+        `${toolbar.getBoundingClientRect().height}px`,
+      );
+
+      toolbarResizeObserver?.disconnect();
+      toolbarResizeObserver = new ResizeObserver(updateToolbarHeight);
+      toolbarResizeObserver.observe(toolbar);
+    };
+
+    const toolbarMountObserver = new MutationObserver(updateToolbarHeight);
+    toolbarMountObserver.observe(wrapper, { childList: true, subtree: true });
+    updateToolbarHeight();
+
+    return () => {
+      toolbarMountObserver.disconnect();
+      toolbarResizeObserver?.disconnect();
+    };
+  }, []);
 
   // 태그 추가 함수
   const handleAddTag = () => {
@@ -164,16 +211,21 @@ export default function WriteForm() {
           <div className="write-section">
             <label className="write-label">내용</label>
 
-            <div className="write-editorWrapper">
+            <div ref={editorWrapperRef} className="write-editorWrapper">
               <ReactQuill
                 theme="snow"
-                placeholder="함께 나누고 싶은 소중한 순간을 기록해 보세요."
                 value={content}
                 onChange={setContent}
                 modules={modules}
                 formats={formats}
                 className="write-quillEditor"
               />
+
+              {showEditorPlaceholder && (
+                <span className="write-editorPlaceholder" aria-hidden="true">
+                  함께 나누고 싶은 소중한 순간을 기록해 보세요.
+                </span>
+              )}
             </div>
           </div>
 
