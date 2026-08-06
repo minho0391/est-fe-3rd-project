@@ -25,29 +25,37 @@ export default function GenerateResultPage() {
               {" "}
               {/* icon */}
               {/* icon img 파일 svg 로드 Box component="img" ... */}
-              <Typography>{/* title */}</Typography>
-              <Typography>{/* subtitle */}</Typography>
             </Box>
+            <Typography>{/* title */}</Typography>
+            <Typography>{/* subtitle */}</Typography>
+          </Box>
+          <Box>
+            {" "}
+            {/* topic 1,2 용 */}
             <Box />
             {/* Topic 1 */}
             <Box />
             {/* Topic 2 */}
           </Box>
-          <Box /> {/* Topic 3 */}
-        </Box>
-        <Box>
-          {" "}
-          {/* footer container */}
           <Box>
-            <Typography>이 가이드가 마음에 드시나요?</Typography>
-            <Typography>가이드를 저장하고 실제 상황에서 바로 꺼내보세요.</Typography>
+            {" "}
+            {/* topic 3 용 */}
+            <Box /> {/* Topic 3 */}
           </Box>
           <Box>
             {" "}
-            {/* CTA */}
-            {/* Button - 다른 주제 생성 / 가이드 저장 */}
-            <Button>다른 주제 생성하기</Button>
-            <Button>가이드 저장하기</Button>
+            {/* footer container */}
+            <Box>
+              <Typography>이 가이드가 마음에 드시나요?</Typography>
+              <Typography>가이드를 저장하고 실제 상황에서 바로 꺼내보세요.</Typography>
+            </Box>
+            <Box>
+              {" "}
+              {/* CTA */}
+              {/* Button - 다른 주제 생성 / 가이드 저장 */}
+              <Button>다른 주제 생성하기</Button>
+              <Button>가이드 저장하기</Button>
+            </Box>
           </Box>
         </Box>
       </Box>
