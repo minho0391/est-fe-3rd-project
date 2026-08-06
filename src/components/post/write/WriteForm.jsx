@@ -6,6 +6,8 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import "react-quill-new/dist/quill.snow.css";
 import ContentFetcher from "./ContentFetcher";
+import AiContentModal from "./AiContentModal";
+import ContentFetcherModal from "./ContentFetcherModal";
 import Button from "@/components/ui/Button";
 import { CloseIcon, InfoOutlinedIcon } from "@/images/icons";
 import { communityBoards } from "@/data/communityPosts";
@@ -63,6 +65,8 @@ export default function WriteForm() {
   const [contentSource, setContentSource] = useState("MANUAL");
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState("");
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isExistingModalOpen, setIsExistingModalOpen] = useState(false);
 
   const showEditorPlaceholder =
     !isEditorFocused && isQuillContentEmpty(content);
@@ -115,6 +119,23 @@ export default function WriteForm() {
       toolbarResizeObserver.disconnect();
     };
   }, []);
+
+  const handleApplyAiContent = generatedPost => {
+    setTitle(generatedPost.title ?? "");
+    setDescription(generatedPost.description ?? "");
+    setContent(generatedPost.content ?? "");
+    setTags(Array.isArray(generatedPost.tags) ? generatedPost.tags : []);
+    setContentSource("AI");
+  };
+
+  const handleApplyExistingContent = selectedPost => {
+    setBoard(selectedPost.board ?? "자유게시판");
+    setTitle(selectedPost.title ?? "");
+    setDescription(selectedPost.description ?? "");
+    setContent(selectedPost.content ?? "");
+    setTags(Array.isArray(selectedPost.tags) ? selectedPost.tags : []);
+    setContentSource(selectedPost.isAiGenerated ? "AI" : "EXISTING");
+  };
 
   // 태그 추가 함수
   const handleAddTag = () => {
@@ -182,8 +203,8 @@ export default function WriteForm() {
 
           <div className="write-fetcherGroup">
             <ContentFetcher
-              onAiGenerate={() => setContentSource("AI")}
-              onExistingContent={() => setContentSource("EXISTING")}
+              onAiGenerate={() => setIsAiModalOpen(true)}
+              onExistingContent={() => setIsExistingModalOpen(true)}
             />
           </div>
         </div>
@@ -312,6 +333,21 @@ export default function WriteForm() {
           </div>
         </form>
       </div>
+
+      <AiContentModal
+        open={isAiModalOpen}
+        initialTitle={title}
+        initialDescription={description}
+        initialKeywords={tags}
+        onClose={() => setIsAiModalOpen(false)}
+        onApply={handleApplyAiContent}
+      />
+
+      <ContentFetcherModal
+        open={isExistingModalOpen}
+        onClose={() => setIsExistingModalOpen(false)}
+        onApply={handleApplyExistingContent}
+      />
     </div>
   );
 }
