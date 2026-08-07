@@ -1,4 +1,3 @@
-// src/lib/generateOptions.js
 import { createClient } from "@/utils/supabase/client";
 
 export async function fetchOptions() {
