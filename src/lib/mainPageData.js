@@ -44,7 +44,7 @@ export const games = [
   },
   {
     id: "chosung",
-    href: "/game/initial-quiz",
+    href: "/game/chosung-quiz",
     title: "초성 퀴즈",
     description: "두뇌 풀가동! 상황별 키워드를 초성으로 맞혀보세요",
     icon: "/game-chosung.svg",
