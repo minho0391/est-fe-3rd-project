@@ -6,15 +6,17 @@ const ALAN_CLIENT_ID = Deno.env.get("ALAN_CLIENT_ID");
 const ALAN_BASE = "https://kdt-api-function.azurewebsites.net/api/v1";
 
 // DB 행 타입 (ctx.supabase에 스키마 제네릭이 없어 직접 선언)
+type Conditions = {
+  situation?: string;
+  relation?: string;
+  target?: string;
+  mood?: string;
+};
+
 type PresetRow = {
   id: number;
   title: string;
-  conditions: {
-    situation?: string;
-    relation?: string;
-    target?: string;
-    mood?: string;
-  } | null;
+  conditions: Conditions | null;
 };
 
 type OptionRow = {
@@ -71,15 +73,20 @@ const LEVEL_RULE: Record<number, string> = {
   3: "가치관이나 솔직한 속마음을 꺼내는 수준 (게임·벌칙은 적극적인 활동)",
 };
 
-// 프리셋별 금지 소재
-const BANNED: Record<string, string> = {
+// 상황별 금지 소재 (프리셋·직접 선택 양쪽에 적용)
+const BANNED_BY_SITUATION: Record<string, string> = {
   dinner:
     "연봉, 인사평가, 승진, 사내정치, 사생활 추궁, 음주 강요, 금전적 부담, 정치, 종교",
   blind_date: "외모 평가, 전 연애사 캐묻기, 수입, 가족사, 정치, 종교",
   ot:
     "외모 평가, 학벌·성적 비교, 입시 결과, 연애, 가족, 정치, 종교, 술·담배 강요",
   mt: "특정인 비하, 과한 스킨십 요구, 금전적 부담, 정치, 종교",
+  first_meet: "외모 평가, 수입, 가족사, 사생활 추궁, 정치, 종교",
+  trip: "특정인 비하, 금전적 부담, 정치, 종교",
+  birthday: "나이 지적, 외모 평가, 금전적 부담, 정치, 종교",
 };
+
+const BANNED_DEFAULT = "정치, 종교, 외모 평가, 사생활 추궁";
 
 // JSON 응답 함수 만들기
 function jsonResponse(body: unknown, status = 200) {
@@ -111,14 +118,13 @@ export default {
     const level = [1, 2, 3].includes(Number(body?.level))
       ? Number(body.level)
       : 1;
+    const inputConditions: Conditions = body?.conditions ?? {};
+    const overrides: Conditions = body?.overrides ?? {};
 
     // 5. 입력값 검증
-    if (!preset_code || !format_code) {
+    if (!format_code) {
       return jsonResponse(
-        {
-          error: "invalid_request",
-          detail: "preset_code와 format_code는 필수입니다",
-        },
+        { error: "invalid_request", detail: "format_code는 필수입니다" },
         400,
       );
     }
@@ -127,6 +133,15 @@ export default {
         {
           error: "invalid_format",
           detail: `지원하지 않는 형식입니다: ${format_code}`,
+        },
+        400,
+      );
+    }
+    if (!preset_code && !inputConditions.situation) {
+      return jsonResponse(
+        {
+          error: "invalid_request",
+          detail: "preset_code 또는 conditions.situation 중 하나는 필수입니다",
         },
         400,
       );
@@ -147,14 +162,15 @@ export default {
     const startedAt = Date.now();
 
     // 7. 폴백 조회 함수 (AI 실패 시 사용)
+    //    조건 조합은 252가지라 형식·레벨 기준으로만 조회한다.
+    //    폴백은 화면 유지가 목적이므로 조건까지 맞추지 않는다.
     async function getFallback(): Promise<ResultItem[]> {
       const { data } = (await db
         .from("default_contents")
         .select("title, scripts, tips, extras, level")
         .eq("is_active", true)
-        .eq("preset_code", preset_code)
         .eq("format_code", format_code)
-        .limit(40)) as { data: ContentRow[] | null };
+        .limit(120)) as { data: ContentRow[] | null };
 
       if (!data?.length) return [];
 
@@ -239,26 +255,39 @@ export default {
     }
 
     try {
-      // 8. 프리셋 조건 조회
-      const { data: preset } = (await db
-        .from("presets")
-        .select("id, title, conditions")
-        .eq("code", preset_code)
-        .eq("is_active", true)
-        .single()) as { data: PresetRow | null };
+      // 8. 조건 확정
+      //    프리셋을 보냈으면 프리셋 조건을 기본값으로 쓰고 overrides로 덮는다.
+      //    프리셋 없이 conditions만 보냈으면 그대로 쓴다.
+      let presetId: number | null = null;
+      let presetTitle = "";
+      let cond: Conditions;
 
-      if (!preset) {
-        return jsonResponse(
-          {
-            error: "preset_not_found",
-            detail: `없는 프리셋입니다: ${preset_code}`,
-          },
-          400,
-        );
+      if (preset_code) {
+        const { data: preset } = (await db
+          .from("presets")
+          .select("id, title, conditions")
+          .eq("code", preset_code)
+          .eq("is_active", true)
+          .single()) as { data: PresetRow | null };
+
+        if (!preset) {
+          return jsonResponse(
+            {
+              error: "preset_not_found",
+              detail: `없는 프리셋입니다: ${preset_code}`,
+            },
+            400,
+          );
+        }
+
+        presetId = preset.id;
+        presetTitle = preset.title;
+        cond = { ...(preset.conditions ?? {}), ...overrides };
+      } else {
+        cond = { ...inputConditions };
       }
 
       // 9. 조건 코드를 한글 라벨로 변환
-      const cond = preset.conditions ?? {};
       const { data: options } = (await db
         .from("options")
         .select("category, code, label")) as { data: OptionRow[] | null };
@@ -267,7 +296,8 @@ export default {
         options?.find((o) => o.category === category && o.code === code)
           ?.label ?? null;
 
-      const situation = labelOf("situation", cond.situation) ?? preset.title;
+      const situation = labelOf("situation", cond.situation) ?? presetTitle ??
+        "모임";
       const relation = labelOf("relation", cond.relation);
       const target = labelOf("target", cond.target);
       const mood = labelOf("mood", cond.mood);
@@ -280,7 +310,7 @@ export default {
       const fallbackResponse = async (reason: string, extra = {}) => {
         const results = await getFallback();
         const saved = await saveGeneration({
-          presetId: preset.id,
+          presetId,
           conditions: snapshot,
           source: "fallback",
           errorCode: reason,
@@ -305,6 +335,9 @@ export default {
 
       // 11. 조건으로 프롬프트 조립
       const who = [relation, target].filter(Boolean).join(" · ");
+      const banned = BANNED_BY_SITUATION[cond.situation ?? ""] ??
+        BANNED_DEFAULT;
+
       const prompt = [
         `${situation} 상황에서 ${
           who ? who + "와 " : ""
@@ -320,7 +353,7 @@ export default {
         format_code === "penalty"
           ? "results는 3개."
           : "results는 3개, 각 tips는 2개.",
-        `금지 소재: ${BANNED[preset_code] ?? "정치, 종교, 외모 평가"}`,
+        `금지 소재: ${banned}`,
       ].filter(Boolean).join("\n");
 
       // 12. 앨런 AI로 대화 소재 생성
@@ -360,10 +393,21 @@ export default {
       if (results.length === 0) {
         return await fallbackResponse("alan_empty_results");
       }
+      // 16-1. 마크다운 강조 제거 (AI가 종종 별표를 붙임)
+      const strip = (s: string) =>
+        typeof s === "string"
+          ? s.replace(/\*\*(.+?)\*\*/g, "$1").replace(/\*/g, "")
+          : s;
+
+      results.forEach((r) => {
+        r.title = strip(r.title);
+        r.scripts = (r.scripts ?? []).map(strip);
+        r.tips = (r.tips ?? []).map(strip);
+      });
 
       // 17. 생성 이력 저장 후 결과 반환
       const saved = await saveGeneration({
-        presetId: preset.id,
+        presetId,
         conditions: snapshot,
         source: "ai",
         errorCode: null,
