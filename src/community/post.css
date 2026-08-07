@@ -1099,9 +1099,9 @@
 
 .write-quillEditor .ql-snow .ql-tooltip,
 .write-quillEditor .ql-tooltip {
-  left: 16px !important;
-  right: auto !important;
-  transform: none !important;
+  left: 16px;
+  right: auto;
+  transform: none;
   z-index: 30;
   white-space: nowrap;
 }
@@ -1702,4 +1702,44 @@
     flex-direction: column;
     gap: 4px;
   }
+}
+
+/* Quill toolbar: Normal picker and SVG icon vertical alignment */
+.community-scope .write-quillEditor .ql-toolbar.ql-snow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.community-scope .write-quillEditor .ql-toolbar.ql-snow .ql-formats {
+  display: inline-flex;
+  align-items: center;
+}
+
+.community-scope .write-quillEditor .ql-toolbar.ql-snow .ql-picker {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+}
+
+.community-scope .write-quillEditor .ql-toolbar.ql-snow .ql-picker-label {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  line-height: 32px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.community-scope .write-quillEditor .ql-toolbar.ql-snow button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  vertical-align: middle;
+}
+
+.community-scope .write-quillEditor .ql-toolbar.ql-snow button svg,
+.community-scope .write-quillEditor .ql-toolbar.ql-snow .ql-picker svg {
+  display: block;
 }
