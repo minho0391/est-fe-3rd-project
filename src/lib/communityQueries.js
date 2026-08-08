@@ -38,7 +38,7 @@ const toDescription = (text, max = 60) => {
 };
 
 const POST_SELECT = `
-  id, title, content_html, content_text, author_id,
+  id, title, description, content_html, content_text, author_id,
   view_count, like_count, comment_count, created_at,
   boards ( name, is_notice ),
   profiles ( nickname, role, avatar_url ),
@@ -51,7 +51,7 @@ const mapPost = (row, likedIds = new Set()) => ({
   isNotice: row.boards?.is_notice ?? false,
   board: row.boards?.name ?? "",
   title: row.title,
-  description: toDescription(row.content_text),
+  description: row.description ?? toDescription(row.content_text),
   content: row.content_html,
   authorId: row.author_id,
   author: row.profiles?.nickname ?? "탈퇴한 사용자",
