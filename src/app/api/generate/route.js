@@ -100,7 +100,8 @@ export async function POST(req) {
       throw new AlanError("앨런이 결과를 만들지 못했습니다.");
     }
 
-    const normalized = results.map((item, index) => ({
+    // generation_items.position 이 1~3 으로 제한돼 있어 앨런이 더 많이 반환해도 3개까지만 저장합니다.
+    const normalized = results.slice(0, 3).map((item, index) => ({
       position: index + 1,
       title: item.title ?? "",
       scripts: Array.isArray(item.scripts) ? item.scripts : [],
