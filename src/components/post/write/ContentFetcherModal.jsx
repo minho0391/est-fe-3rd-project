@@ -15,18 +15,13 @@
 import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import { CloseIcon, RefreshIcon } from "@/images/icons";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
+import {
+  getPostsByAuthorId,
+  getCurrentCommunityUser,
+} from "@/lib/communityQueries";
 
-const normalizePost = post => ({
-  id: post.id,
-  board: post.board_type ?? post.boardType ?? "자유게시판",
-  title: post.title ?? "",
-  description: post.description ?? "",
-  content: post.content ?? "",
-  tags: Array.isArray(post.tags) ? post.tags : [],
-  isAiGenerated: Boolean(post.is_ai_generated ?? post.isAiGenerated),
-  createdAt: post.created_at ?? post.createdAt ?? "",
-});
+const supabase = createClient();
 
 export default function ContentFetcherModal({ open, onClose, onApply }) {
   const [posts, setPosts] = useState([]);
@@ -60,26 +55,15 @@ export default function ContentFetcherModal({ open, onClose, onApply }) {
       setErrorMessage("");
 
       try {
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
+        const me = await getCurrentCommunityUser();
 
-        if (userError) throw userError;
-        if (!user) {
+        if (!me) {
           throw new Error("기존 콘텐츠를 불러오려면 로그인이 필요합니다.");
         }
 
-        const { data, error } = await supabase
-          .from("posts")
-          .select(
-            "id, board_type, title, description, content, tags, is_ai_generated, created_at",
-          )
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false });
+        const posts = await getPostsByAuthorId(me.id);
 
-        if (error) throw error;
-        if (isMounted) setPosts((data ?? []).map(normalizePost));
+        if (isMounted) setPosts(posts ?? []);
       } catch (error) {
         console.error("기존 콘텐츠 조회에 실패했습니다.", error);
         if (isMounted) {
