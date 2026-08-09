@@ -15,76 +15,42 @@
   padding-block: 64px;
 }
 
-.write-btnPrimary,
-.write-fetcher-btnSecondary,
-.write-fetcher-btnTertiary,
-.comments-submitBtn,
 .popular-moreBtn,
 .detail-page-backBtn {
   min-height: 56px;
   border-radius: 16px;
   padding: 0 24px;
-  border: 0;
+  border: 1px solid var(--line);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  background: var(--surface);
+  color: var(--ink);
   font-weight: 700;
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
+    color 0.2s ease;
 }
 
-.write-btnPrimary,
-.comments-submitBtn {
-  background: var(--primary);
-  color: #fff;
-}
-
-.write-btnPrimary:hover,
-.comments-submitBtn:hover {
-  background: var(--primary-hover);
-}
-
-.write-fetcher-btnSecondary {
-  background: var(--secondary);
-  color: #fff;
-}
-
-.write-fetcher-btnSecondary:hover {
-  background: var(--secondary-hover);
-}
-
-.write-fetcher-btnTertiary,
-.detail-page-backBtn,
-.popular-moreBtn {
-  background: var(--surface);
-  color: var(--ink);
-  border: 1px solid var(--line);
-}
-
-.write-fetcher-btnTertiary:hover,
-.detail-page-backBtn:hover,
-.popular-moreBtn:hover {
+.popular-moreBtn:hover,
+.detail-page-backBtn:hover {
   background: var(--surface-soft);
 }
 
-:is(
-  .write-btnPrimary,
-  .write-fetcher-btnSecondary,
-  .write-fetcher-btnTertiary,
-  .comments-submitBtn,
-  .popular-moreBtn,
-  .detail-page-backBtn
-):disabled {
+:is(.popular-moreBtn, .detail-page-backBtn):disabled {
   opacity: 0.48;
   cursor: not-allowed;
 }
 
 .top-three-topThreeContainer {
   padding-top: 64px;
+}
+
+.top-three-compact {
+  width: 100%;
+  padding-top: 0;
 }
 
 .top-three-header,
@@ -142,18 +108,6 @@
   transform: translateY(-8px);
 }
 
-.top-three-gold {
-  background: #fffaf0;
-}
-
-.top-three-silver {
-  background: #f8f9fc;
-}
-
-.top-three-bronze {
-  background: #fff7f2;
-}
-
 .top-three-medalBadge {
   display: flex;
   align-items: center;
@@ -179,12 +133,6 @@
   background: var(--primary-soft);
   color: var(--primary);
   font-size: 12px;
-  font-weight: 800;
-}
-
-.top-three-postTitle {
-  font-size: 18px;
-  line-height: 24px;
   font-weight: 800;
 }
 
@@ -332,10 +280,26 @@
 }
 
 .post-body-postDate,
-.post-body-postStats,
 .comments-date {
   color: var(--ink-muted);
   font-size: 14px;
+  line-height: 24px;
+}
+
+.community-scope .post-body-postStats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: var(--ink-muted);
+  font-size: 14px;
+  line-height: 24px;
+}
+
+.community-scope .post-body-statItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .post-body-divider {
@@ -356,6 +320,12 @@
   background: var(--primary-soft);
   color: var(--primary);
   font-weight: 700;
+}
+
+.community-scope .post-body-aiBadge > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .post-body-articleBody {
@@ -525,12 +495,6 @@
 .write-pageSubtitle {
   color: var(--ink-muted);
   line-height: 24px;
-}
-
-.write-fetcherWrapper {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
 }
 
 .write-container > .write-form {
@@ -743,21 +707,31 @@
   .popular-postList {
     grid-template-columns: repeat(8, 1fr);
   }
+
   .top-three-rankCard {
     grid-column: span 4;
   }
+
   .top-three-rankCard:last-child {
     grid-column: span 8;
   }
+
   .feature-card {
     grid-column: span 4;
   }
+
   .popular-postCard {
     grid-column: span 4;
   }
+
   .popular-postCard:last-child {
     grid-column: span 8;
   }
+}
+
+.community-scope {
+  --write-placeholder-x: 24px;
+  --write-placeholder-y: 24px;
 }
 
 @media (max-width: 767px) {
@@ -770,26 +744,31 @@
   .write-container {
     width: min(calc(100% - 32px), var(--container));
   }
+
   .detail-page-container,
   .write-form,
   .feature-container,
   .popular-container {
     padding-block: 32px;
   }
+
   .top-three-topThreeContainer {
     padding-top: 32px;
   }
+
   .top-three-cardGrid,
   .feature-cardGrid,
   .popular-postList {
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
   }
+
   .top-three-rankCard,
   .feature-card,
   .popular-postCard {
     grid-column: span 4;
   }
+
   .top-three-header,
   .feature-header,
   .write-headerRow,
@@ -798,44 +777,53 @@
     align-items: flex-start;
     flex-direction: column;
   }
-  .write-fetcherWrapper,
+
+  .write-fetcher-fetcherWrapper,
   .write-fetcherGroup {
     width: 100%;
   }
-  .write-fetcher-btnSecondary,
-  .write-fetcher-btnTertiary {
+
+  .write-fetcher-actionButton {
     flex: 1 1 100%;
   }
+
   .post-body-container,
   .comments-container,
   .write-section,
   .write-headerRow {
     padding: 24px;
   }
+
   .post-body-title,
   .write-pageTitle {
     font-size: 24px;
     line-height: 32px;
   }
+
   .post-body-postStats {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
   }
+
   .comments-commentItem {
     flex-direction: column;
   }
+
   .post-filter-tabBtn {
     flex: 1 1 auto;
     padding-inline: 16px;
   }
+
   .post-item-itemCard {
     padding: 24px;
   }
+
   .post-item-footerRow {
     align-items: flex-start;
     flex-direction: column;
   }
+
   .post-item-statsGroup {
     gap: 16px;
     flex-wrap: wrap;
@@ -843,7 +831,6 @@
 }
 
 .top-three-author,
-.post-item-authorGroup,
 .comments-avatarWrapper,
 .feature-cardBody {
   min-width: 0;
@@ -897,6 +884,7 @@
   }
 }
 
+
 /* signup css*/
 .signup-container {
   width: min(calc(100% - 48px), 560px);
@@ -932,4 +920,480 @@
 }
 .signup-form {
   padding: 24px;
+}
+=======
+/* 상세 페이지 좋아요 토글 및 빈 상태 */
+.community-scope .post-body-likeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink-subtle);
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.community-scope .post-body-likeButton:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.community-scope .post-body-likeButtonActive {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.community-scope .post-body-likeButton:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.community-scope .post-detail-emptyState {
+  padding: 64px 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  text-align: center;
+}
+
+/* Page-level layouts shared by /post and /post/list */
+.community-scope.community-main-page,
+.community-scope.post-list-page,
+.community-scope.post-write-page {
+  min-height: 100vh;
+  background: var(--surface-soft);
+}
+
+.community-main-container,
+.post-list-container {
+  width: min(calc(100% - 48px), var(--container));
+  margin-inline: auto;
+  padding-block: 64px 80px;
+}
+
+.community-main-rankingGrid,
+.post-list-rankingGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.community-main-rankingGrid .top-three-topThreeContainer,
+.post-list-rankingGrid .top-three-topThreeContainer {
+  width: 100%;
+  padding-top: 0;
+}
+
+.community-main-rankingGrid .top-three-cardGrid,
+.post-list-rankingGrid .top-three-cardGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.community-main-rankingGrid .top-three-rankCard,
+.post-list-rankingGrid .top-three-rankCard {
+  grid-column: auto;
+}
+
+.community-latest-section,
+.post-list-boardSection {
+  margin-top: 48px;
+  padding: 32px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.community-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.community-section-title {
+  margin: 0;
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 800;
+}
+
+.community-section-description {
+  margin: 8px 0 0;
+  color: var(--ink-muted);
+  line-height: 24px;
+}
+
+.community-text-link {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.community-post-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.community-post-stack .post-item-itemCard {
+  width: 100%;
+  margin-top: 0;
+}
+
+.post-item-compact {
+  padding: 20px 24px;
+}
+
+.post-list-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.post-list-searchGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.post-list-searchLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.post-list-searchInput {
+  width: 320px;
+  min-height: 56px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  font: inherit;
+}
+
+.post-list-writeLink {
+  min-height: 56px;
+  padding: 0 24px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.post-list-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 32px;
+}
+
+.post-list-pageButton {
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.post-list-pageButtonActive {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+/* Quill tooltip must stay inside the editor viewport. */
+.write-pageContent,
+.write-section,
+.write-editorWrapper,
+.write-quillEditor,
+.write-quillEditor .ql-container {
+  overflow: visible;
+}
+
+.write-editorWrapper {
+  position: relative;
+}
+
+.write-quillEditor .ql-container {
+  min-height: 320px;
+}
+
+.write-quillEditor .ql-editor {
+  min-height: 320px;
+  overflow-y: auto;
+}
+
+.write-quillEditor .ql-snow .ql-tooltip,
+.write-quillEditor .ql-tooltip {
+  left: 16px !important;
+  right: auto !important;
+  transform: none !important;
+  z-index: 30;
+  white-space: nowrap;
+}
+
+.write-quillEditor .ql-tooltip input[type="text"] {
+  width: 220px;
+  max-width: calc(100vw - 96px);
+}
+
+@media (max-width: 1199px) {
+  .community-main-rankingGrid,
+  .post-list-rankingGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .community-main-container,
+  .post-list-container {
+    width: min(calc(100% - 32px), var(--container));
+    padding-block: 32px 64px;
+  }
+
+  .community-latest-section,
+  .post-list-boardSection {
+    margin-top: 32px;
+    padding: 24px;
+  }
+
+  .community-section-heading,
+  .post-list-toolbar,
+  .post-list-searchGroup {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .post-list-searchInput,
+  .post-list-writeLink {
+    width: 100%;
+  }
+
+  .community-main-rankingGrid .top-three-cardGrid,
+  .post-list-rankingGrid .top-three-cardGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* TOP 3 cards: equal dimensions and clearer gold/silver/bronze hierarchy. */
+.community-scope .top-three-rankCard {
+  height: 190px;
+  min-height: 190px;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.community-scope .top-three-gold {
+  background: #fffaf0;
+  border-color: #f5c451;
+}
+
+.community-scope .top-three-gold .top-three-medalIcon {
+  color: #d9a514;
+}
+
+.community-scope .top-three-silver {
+  background: #f8f9fc;
+  border-color: #b9c2d0;
+}
+
+.community-scope .top-three-silver .top-three-medalIcon {
+  color: #7f8b9f;
+}
+
+.community-scope .top-three-bronze {
+  background: #fff7f2;
+  border-color: #d89a6b;
+}
+
+.community-scope .top-three-bronze .top-three-medalIcon {
+  color: #b86f3d;
+}
+
+/* Keep the list-page write action aligned to the shared md button spec. */
+.community-scope .post-list-writeLink {
+  min-width: 108px;
+  min-height: 56px;
+  padding-inline: 24px;
+  border-radius: 16px;
+  white-space: nowrap;
+}
+
+/* Quill toolbar spacing and alignment controls. */
+.community-scope .write-quillEditor .ql-toolbar.ql-snow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px;
+}
+
+.community-scope .write-quillEditor .ql-toolbar.ql-snow .ql-formats {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-right: 4px;
+}
+
+.community-scope .write-quillEditor .ql-toolbar.ql-snow button,
+.community-scope .write-quillEditor .ql-toolbar.ql-snow .ql-picker-label {
+  flex: 0 0 auto;
+}
+
+/* Give the notice area breathing room before the shared footer. */
+.community-scope .write-noticeCard {
+  margin-bottom: 64px;
+}
+
+.community-scope .write-pageContent {
+  padding-bottom: 80px;
+}
+
+@media (max-width: 767px) {
+  .community-scope .top-three-rankCard {
+    height: auto;
+    min-height: 176px;
+  }
+
+  .community-scope .write-noticeCard {
+    margin-bottom: 48px;
+  }
+
+  .community-scope .write-pageContent {
+    padding-bottom: 64px;
+  }
+
+  .community-scope {
+    --write-placeholder-x: 16px;
+    --write-placeholder-y: 16px;
+  }
+}
+
+/* Final community UI refinements: truncation, metric icons, and Quill alignment. */
+.community-scope .top-three-postTitle {
+  min-height: 48px;
+  margin: 0;
+  overflow: hidden;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 24px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+}
+
+.community-scope .top-three-cardFooter {
+  min-width: 0;
+}
+
+.community-scope .top-three-author {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.community-scope .top-three-statItem,
+.community-scope .post-item-statItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.community-scope .top-three-statIcon,
+.community-scope .post-item-statIcon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  color: currentColor;
+}
+
+.community-scope .post-item-title,
+.community-scope .post-item-description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.community-scope .post-item-statsGroup {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.community-scope .write-editorWrapper {
+  position: relative;
+  overflow: visible;
+}
+
+.community-scope .write-editorPlaceholder {
+  position: absolute;
+  top: calc(var(--quill-toolbar-height, 57px) + var(--write-placeholder-y));
+  left: var(--write-placeholder-x);
+  right: var(--write-placeholder-x);
+  z-index: 2;
+  color: var(--ink-muted);
+  font-size: 16px;
+  line-height: 24px;
+  pointer-events: none;
+}
+
+.community-scope .write-quillEditor .ql-toolbar.ql-snow .ql-picker.ql-header {
+  width: 96px;
+  min-width: 96px;
+}
+
+.community-scope
+  .write-quillEditor
+  .ql-toolbar.ql-snow
+  .ql-picker.ql-header
+  .ql-picker-label {
+  width: 100%;
+  height: 32px;
+  padding: 0 20px 0 8px;
+  display: flex;
+  align-items: center;
+  line-height: 32px;
+}
+
+.community-scope
+  .write-quillEditor
+  .ql-toolbar.ql-snow
+  .ql-picker.ql-header
+  .ql-picker-label::before {
+  line-height: 32px;
+}
+
+.community-scope .write-quillEditor .ql-toolbar.ql-snow button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.community-scope .write-quillEditor .ql-toolbar.ql-snow button svg {
+  display: block;
+  width: 18px;
+  height: 18px;
 }

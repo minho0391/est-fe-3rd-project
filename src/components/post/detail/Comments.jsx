@@ -2,89 +2,93 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import Button from "@/components/ui/Button";
+import { AccountCircleIcon, DeleteOutlined } from "@/images/icons";
+import { buildCommunityLoginUrl } from "@/lib/communityInteractions";
 
-export default function CommentSection({ initialComments = [] }) {
-  // 샘플 댓글 데이터
-  const sampleComments = [
-    {
-      id: 1,
-      author: "이영희",
-      avatarUrl: "https://via.placeholder.com/36",
-      content:
-        "유익한 정보 감사합니다! AI 생성 콘텐츠도 품질이 아주 훌륭하네요.",
-      createdAt: "10분 전",
-    },
-    {
-      id: 2,
-      author: "박민수",
-      avatarUrl: "https://via.placeholder.com/36",
-      content: "혹시 사용하신 프롬프트 공유도 가능한가요?",
-      createdAt: "30분 전",
-    },
-  ];
-
-  const [comments, setComments] = useState(
-    initialComments.length > 0 ? initialComments : sampleComments,
-  );
-
+export default function CommentSection({
+  initialComments = [],
+  currentUser = null,
+  returnUrl = "/post",
+}) {
+  const router = useRouter();
+  const [comments, setComments] = useState(initialComments);
   const [commentInput, setCommentInput] = useState("");
 
-  // 댓글 등록 처리
-  const handleSubmit = e => {
-    e.preventDefault();
+  const redirectToLogin = () => {
+    router.push(buildCommunityLoginUrl(returnUrl));
+  };
+
+  const handleInputFocus = event => {
+    if (currentUser) return;
+
+    event.currentTarget.blur();
+    redirectToLogin();
+  };
+
+  const handleSubmit = event => {
+    event.preventDefault();
+
+    if (!currentUser) {
+      redirectToLogin();
+      return;
+    }
 
     const trimmedInput = commentInput.trim();
-
     if (!trimmedInput) return;
 
     const newComment = {
       id: Date.now(),
-      author: "현재 사용자", // 실제 구현 시 로그인한 사용자 정보 적용
-      avatarUrl: "https://via.placeholder.com/36",
+      authorId: currentUser.id,
+      author: currentUser.name,
+      avatarUrl: currentUser.avatarUrl,
       content: trimmedInput,
       createdAt: "방금 전",
     };
 
-    setComments([newComment, ...comments]);
+    setComments(current => [newComment, ...current]);
     setCommentInput("");
   };
 
-  // 댓글 삭제 처리
   const handleDelete = commentId => {
-    setComments(comments.filter(item => item.id !== commentId));
+    setComments(current => current.filter(item => item.id !== commentId));
   };
 
   return (
     <section className="comments-container">
-      {/* 댓글 헤더 */}
       <div className="comments-header">
         <h3 className="comments-title">
           댓글 <span className="comments-count">{comments.length}</span>
         </h3>
       </div>
 
-      {/* 1. 댓글 입력창 */}
       <form onSubmit={handleSubmit} className="comments-inputForm">
         <textarea
           value={commentInput}
-          onChange={e => setCommentInput(e.target.value)}
+          onChange={event => setCommentInput(event.target.value)}
+          onFocus={handleInputFocus}
+          onClick={() => {
+            if (!currentUser) redirectToLogin();
+          }}
           placeholder="따뜻한 댓글을 남겨주세요."
           className="comments-textarea"
           rows={3}
+          readOnly={!currentUser}
         />
 
         <div className="comments-inputActionRow">
-          <button
+          <Button
             type="submit"
-            disabled={!commentInput.trim()}
-            className="comments-submitBtn"
+            variant="primary"
+            size="md"
+            disabled={Boolean(currentUser) && !commentInput.trim()}
           >
             댓글 등록
-          </button>
+          </Button>
         </div>
       </form>
 
-      {/* 2. 댓글 목록 */}
       <div className="comments-commentList">
         {comments.length === 0 ? (
           <p className="comments-emptyMessage">첫 번째 댓글을 남겨보세요!</p>
@@ -99,7 +103,9 @@ export default function CommentSection({ initialComments = [] }) {
                     className="comments-avatar"
                   />
                 ) : (
-                  <div className="comments-avatarPlaceholder">👤</div>
+                  <div className="comments-avatarPlaceholder">
+                    <AccountCircleIcon aria-hidden="true" />
+                  </div>
                 )}
               </div>
 
@@ -109,17 +115,20 @@ export default function CommentSection({ initialComments = [] }) {
                     <span className="comments-authorName">
                       {comment.author}
                     </span>
-
                     <span className="comments-date">{comment.createdAt}</span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(comment.id)}
-                    className="comments-deleteBtn"
-                  >
-                    삭제
-                  </button>
+                  {comment.authorId === currentUser?.id && (
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(comment.id)}
+                      className="comments-deleteBtn"
+                      aria-label="댓글 삭제"
+                    >
+                      <DeleteOutlined aria-hidden="true" fontSize="small" />
+                      <span>삭제</span>
+                    </button>
+                  )}
                 </div>
 
                 <p className="comments-commentText">{comment.content}</p>

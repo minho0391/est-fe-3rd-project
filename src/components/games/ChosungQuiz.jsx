@@ -10,7 +10,7 @@ import QuizPlay from "./QuizPlay";
 import QuizAnswer from "./QuizAnswer";
 import { layout } from "@/lib/layout";
 
-export default function InitialQuiz() {
+export default function ChosungQuiz() {
   const router = useRouter();
   const [step, setStep] = useState("setup"); // setup | play | answer
   const [quiz, setQuiz] = useState(null);

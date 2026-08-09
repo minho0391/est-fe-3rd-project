@@ -3,6 +3,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { AutoAwesomeIcon, ChatBubbleOutlineOutlined } from "@/images/icons";
 
 export default function FeatureSelection() {
   return (
@@ -22,7 +23,9 @@ export default function FeatureSelection() {
           className={`${"feature-card"} ${"feature-aiCard"}`}
         >
           <div className="feature-cardHeader">
-            <div className="feature-iconBox">✨</div>
+            <div className="feature-iconBox">
+              <AutoAwesomeIcon aria-hidden="true" />
+            </div>
 
             <span className="feature-badge">초스피드 작성</span>
           </div>
@@ -45,11 +48,13 @@ export default function FeatureSelection() {
 
         {/* 2. 커뮤니티 카드 */}
         <Link
-          href="/post"
+          href="/post/list"
           className={`${"feature-card"} ${"feature-communityCard"}`}
         >
           <div className="feature-cardHeader">
-            <div className="feature-iconBox">💬</div>
+            <div className="feature-iconBox">
+              <ChatBubbleOutlineOutlined aria-hidden="true" />
+            </div>
 
             <span className="feature-badge">실시간 소통</span>
           </div>

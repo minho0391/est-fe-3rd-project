@@ -276,10 +276,12 @@
   .mypage-container {
     grid-template-columns: repeat(8, 1fr);
   }
+
   .mypage-profileCard,
   .mypage-contentSection {
     grid-column: span 8;
   }
+
   .mypage-profileCard {
     position: static;
   }
@@ -289,31 +291,39 @@
   .mypage-container {
     width: min(calc(100% - 32px), var(--container));
   }
+
   .mypage-container {
     padding-block: 32px;
   }
+
   .mypage-container {
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
   }
+
   .mypage-profileCard,
   .mypage-contentSection {
     grid-column: span 4;
   }
+
   .mypage-profileCard {
     padding: 24px;
   }
+
   .mypage-profileCard {
     position: static;
   }
+
   .mypage-statsGroup,
   .user-profile-statsContainer {
     gap: 8px;
   }
+
   .mypage-tabBtn {
     flex: 1 1 auto;
     padding-inline: 16px;
   }
+
   .user-profile-userInfoGroup {
     align-items: flex-start;
   }
