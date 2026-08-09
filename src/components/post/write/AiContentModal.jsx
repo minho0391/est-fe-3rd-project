@@ -15,7 +15,9 @@
 import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import { CloseIcon } from "@/images/icons";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
+
+const supabase = createClient();
 
 const parseKeywords = value =>
   value
