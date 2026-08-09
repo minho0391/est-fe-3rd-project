@@ -5,7 +5,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import GameCardBack from "./GameCardBack";
 import CardContentResult from "./CardContentResult";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
 
 const CARD_COUNT = 4;
 
@@ -46,7 +46,7 @@ export default function CardContentPlay() {
   useEffect(() => {
     (async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await createClient()
           .from("default_contents")
           .select("id, title, scripts, tips, format_code")
           .eq("format_code", "game")
