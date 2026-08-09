@@ -1,352 +1,615 @@
-/* My page class-based styles. */
+/* My Page — target image layout, class-scoped only. */
+.mypage-page {
+  min-height: calc(100vh - 160px);
+  padding: 48px 0 80px;
+}
+
 .mypage-container {
-  width: min(calc(100% - 48px), var(--container));
+  width: min(calc(100% - 64px), 1480px);
   margin-inline: auto;
-}
-
-.mypage-container {
-  padding-block: 64px;
-}
-
-.mypage-boardBadge,
-.mypage-roleBadge,
-.user-profile-roleBadge {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  min-height: 32px;
-  padding: 0 16px;
-  border-radius: 16px;
-  background: var(--primary-soft);
-  color: var(--primary);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.mypage-tabHeader {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.mypage-tabBtn {
-  min-height: 56px;
-  padding: 0 24px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--surface);
-  color: var(--ink-subtle);
-  font-weight: 700;
-}
-
-.mypage-active {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary);
-}
-
-.mypage-container {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 24px;
+  grid-template-columns: 380px minmax(0, 1fr);
+  gap: 40px;
   align-items: start;
 }
 
-.mypage-profileCard {
-  grid-column: span 4;
-  padding: 32px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
+/* Left column */
+.mypage-leftColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.mypage-profileCard,
+.mypage-menuCard,
+.mypage-summaryCard,
+.mypage-contentSection,
+.mypage-postItem,
+.mypage-commentItem {
   background: var(--surface);
-  position: sticky;
-  top: 24px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+}
+
+.mypage-profileCard {
+  padding: 32px;
 }
 
 .mypage-profileInfo {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
+  min-height: 112px;
 }
 
 .mypage-avatar {
-  width: 80px;
-  height: 80px;
+  flex: 0 0 96px;
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
   border-radius: 50%;
   background: var(--ink);
   color: #fff;
-  display: grid;
-  place-items: center;
-  font-size: 32px;
 }
 
-.mypage-userDetails {
+.mypage-avatar svg {
+  width: 44px;
+  height: 44px;
+}
+
+.mypage-profileText {
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
-.mypage-nameGroup {
+.mypage-profileNameRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.mypage-userName {
-  font-size: 24px;
-  line-height: 32px;
-}
-
-.mypage-userEmail,
-.mypage-joinDate,
-.mypage-postDate,
-.mypage-postFooter {
-  font-size: 14px;
-  color: var(--ink-muted);
-}
-
-.mypage-statsGroup {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-top: 32px;
-  padding-top: 32px;
-  border-top: 1px solid var(--line);
-}
-
-.mypage-statItem {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  text-align: center;
-}
-
-.mypage-statNumber {
-  font-size: 24px;
+.mypage-profileName {
+  font-size: 26px;
   line-height: 32px;
   font-weight: 800;
 }
 
-.mypage-statLabel {
-  font-size: 12px;
+.mypage-roleBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.mypage-userEmail,
+.mypage-joinDate {
   color: var(--ink-muted);
+  font-size: 14px;
+  line-height: 20px;
 }
 
-.mypage-statDivider {
-  display: none;
+.mypage-profileStats {
+  margin-top: 28px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
 }
 
-.mypage-contentSection {
-  grid-column: span 8;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 16px;
+.mypage-profileStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.mypage-profileStat strong {
+  font-size: 25px;
+  line-height: 32px;
+  font-weight: 800;
+}
+
+.mypage-profileStat span {
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.mypage-menuCard {
   overflow: hidden;
 }
 
-.mypage-tabHeader {
-  padding: 24px;
+.mypage-menuItem {
+  width: 100%;
+  min-height: 64px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mypage-menuItem:last-child {
+  border-bottom: 0;
+}
+
+.mypage-menuItem:hover,
+.mypage-menuItemActive {
+  background: #f5f3ff;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.mypage-menuLogout {
+  color: #ff3f67;
+}
+
+/* Main */
+.mypage-main {
+  min-width: 0;
+}
+
+.mypage-title {
+  margin: 0 0 32px;
+  font-size: 34px;
+  line-height: 42px;
+  font-weight: 800;
+}
+
+.mypage-summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.mypage-summaryCard {
+  min-height: 116px;
+  padding: 24px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+}
+
+.mypage-summaryCard strong {
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.mypage-summaryCard span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
+  line-height: 24px;
+}
+
+.mypage-summaryCard:nth-child(2) svg {
+  color: #ff456c;
+}
+
+.mypage-summaryCard:nth-child(3) svg {
+  color: #1f9cf0;
+}
+
+.mypage-contentSection {
+  overflow: hidden;
+}
+
+.mypage-filterBar {
+  min-height: 92px;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
   border-bottom: 1px solid var(--line);
 }
 
-.mypage-tabContent {
-  padding: 24px;
+.mypage-filterTabs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.mypage-filterTab {
+  min-width: 150px;
+  min-height: 54px;
+  padding: 0 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mypage-filterTabActive {
+  border-color: var(--primary);
+  background: linear-gradient(135deg, #6a4df6, #4f46e5);
+  color: #fff;
+}
+
+.mypage-filterState {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-muted);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mypage-filterState strong {
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 800;
 }
 
 .mypage-postList {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
+  padding: 24px;
 }
 
 .mypage-postItem {
-  padding: 24px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
+  min-height: 210px;
+  padding: 24px 28px;
 }
 
-.mypage-postHeader,
-.mypage-postFooter {
+.mypage-postTop {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.mypage-postTopRight {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex: 0 0 auto;
+}
+
+.mypage-tagGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mypage-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.mypage-tagTone1 {
+  background: #f1efff;
+  color: #6654ec;
+}
+
+.mypage-tagTone2 {
+  background: #ffeaf1;
+  color: #f23d71;
+}
+
+.mypage-tagTone3 {
+  background: #eaf6ff;
+  color: #238cc8;
+}
+
+.mypage-tagTone4 {
+  background: #f1efff;
+  color: #6654ec;
+}
+
+.mypage-postDate {
+  color: var(--ink-muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.mypage-postActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mypage-postActions button {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.mypage-postActions .mypage-deleteButton {
+  color: #ff3f67;
+}
+
+.mypage-postLink {
+  display: block;
+  width: min(100%, 720px);
+  margin-top: 14px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.mypage-postTitle {
+  margin: 0;
+  font-size: 17px;
+  line-height: 26px;
+  font-weight: 800;
+}
+
+.mypage-postDescription {
+  margin: 10px 0 0;
+  color: var(--ink-subtle);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.mypage-postFooter {
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  color: var(--ink-subtle);
+  font-size: 14px;
+}
+
+.mypage-postViews,
+.mypage-postReactions,
+.mypage-postReactions span {
+  display: inline-flex;
+  align-items: center;
+}
+
+.mypage-postViews,
+.mypage-postReactions span {
+  gap: 7px;
+}
+
+.mypage-postReactions {
+  gap: 20px;
+}
+
+.mypage-postReactions span:first-child svg {
+  color: #ff456c;
+}
+
+.mypage-postReactions span:last-child svg {
+  color: #1f9cf0;
+}
+
+.mypage-commentItem {
+  display: block;
+  padding: 24px 28px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.mypage-commentTop {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
 }
 
-.mypage-postTitle {
-  margin: 24px 0;
-  font-size: 18px;
-  line-height: 32px;
+.mypage-commentText {
+  margin: 16px 0 0;
+  font-size: 14px;
+  line-height: 24px;
 }
 
 .mypage-emptyText {
+  margin: 0;
   padding: 64px 24px;
   text-align: center;
   color: var(--ink-muted);
 }
 
-.user-profile-profileCard {
-  padding: 32px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--surface);
-}
-
-.user-profile-userInfoGroup {
+.mypage-pagination {
+  min-height: 88px;
+  padding: 18px 24px;
   display: flex;
   align-items: center;
-  gap: 16px;
-}
-
-.user-profile-avatarWrapper {
-  position: relative;
-}
-
-.user-profile-avatar,
-.user-profile-avatarPlaceholder {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  display: grid;
-  place-items: center;
-  background: var(--surface-soft);
-}
-
-.user-profile-levelBadge {
-  position: absolute;
-  right: -8px;
-  bottom: -8px;
-  min-height: 32px;
-  padding: 0 8px;
-  border-radius: 16px;
-  background: var(--primary);
-  color: #fff;
-  display: grid;
-  place-items: center;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.user-profile-nameRow {
-  display: flex;
-  align-items: center;
+  justify-content: center;
   gap: 8px;
-}
-
-.user-profile-userName {
-  font-size: 24px;
-  line-height: 32px;
-}
-
-.user-profile-userSubtext {
-  margin-top: 8px;
-  color: var(--ink-muted);
-}
-
-.user-profile-statsContainer {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  margin-top: 32px;
-  padding-top: 32px;
   border-top: 1px solid var(--line);
 }
 
-.user-profile-statBox {
-  display: flex;
-  flex-direction: column;
+.mypage-pagination button {
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  border: 1px solid #eeeef5;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
 }
 
-.user-profile-statLabel {
-  color: var(--ink-muted);
-  font-size: 13px;
-}
-
-.user-profile-statValue {
+.mypage-pagination .mypage-pageActive {
+  border-color: var(--primary);
+  background: linear-gradient(135deg, #6a4df6, #4f46e5);
+  color: #fff;
   font-weight: 800;
 }
 
-.user-profile-divider {
-  display: none;
+/* Medium desktop: prevent filter wrapping/vertical text. */
+@media (min-width: 1200px) and (max-width: 1399px) {
+  .mypage-container {
+    width: min(calc(100% - 48px), 1320px);
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 32px;
+  }
+
+  .mypage-filterTab {
+    min-width: 118px;
+    padding-inline: 18px;
+  }
 }
 
+/* Tablet */
 @media (min-width: 768px) and (max-width: 1199px) {
   .mypage-container {
-    grid-template-columns: repeat(8, 1fr);
+    width: min(calc(100% - 48px), 100%);
+    grid-template-columns: 1fr;
+    gap: 28px;
   }
 
-  .mypage-profileCard,
-  .mypage-contentSection {
-    grid-column: span 8;
+  .mypage-leftColumn {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
   }
 
-  .mypage-profileCard {
-    position: static;
-  }
-}
-
-@media (max-width: 767px) {
-  .mypage-container {
-    width: min(calc(100% - 32px), var(--container));
-  }
-
-  .mypage-container {
-    padding-block: 32px;
-  }
-
-  .mypage-container {
-    grid-template-columns: repeat(4, 1fr);
+  .mypage-summaryGrid {
     gap: 16px;
   }
 
-  .mypage-profileCard,
-  .mypage-contentSection {
-    grid-column: span 4;
+  .mypage-filterTab {
+    min-width: 112px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .mypage-page {
+    padding: 32px 0 56px;
+  }
+
+  .mypage-container {
+    width: min(calc(100% - 32px), 100%);
+    grid-template-columns: 1fr;
+    gap: 24px;
   }
 
   .mypage-profileCard {
     padding: 24px;
   }
 
-  .mypage-profileCard {
-    position: static;
+  .mypage-profileInfo {
+    align-items: flex-start;
   }
 
-  .mypage-statsGroup,
-  .user-profile-statsContainer {
+  .mypage-avatar {
+    flex-basis: 72px;
+    width: 72px;
+    height: 72px;
+  }
+
+  .mypage-profileName {
+    font-size: 22px;
+  }
+
+  .mypage-menuItem {
+    min-height: 56px;
+  }
+
+  .mypage-title {
+    margin-bottom: 24px;
+    font-size: 26px;
+    line-height: 34px;
+  }
+
+  .mypage-summaryGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .mypage-summaryCard {
+    min-height: 82px;
+    justify-content: space-between;
+  }
+
+  .mypage-filterBar {
+    min-height: auto;
+    padding: 14px 16px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mypage-filterTabs {
+    overflow-x: auto;
+  }
+
+  .mypage-filterTab {
+    flex: 0 0 auto;
+    min-width: 104px;
+    min-height: 48px;
+  }
+
+  .mypage-filterState {
+    align-self: flex-end;
+  }
+
+  .mypage-postList {
+    padding: 16px;
+  }
+
+  .mypage-postItem {
+    min-height: 0;
+    padding: 20px;
+  }
+
+  .mypage-postTop {
+    align-items: flex-start;
+  }
+
+  .mypage-postTopRight {
+    flex-direction: column;
+    align-items: flex-end;
     gap: 8px;
   }
 
-  .mypage-tabBtn {
-    flex: 1 1 auto;
-    padding-inline: 16px;
-  }
-
-  .user-profile-userInfoGroup {
+  .mypage-postFooter {
     align-items: flex-start;
+    flex-direction: column;
+    margin-top: 20px;
   }
-}
 
-.user-profile-userDetails {
-  min-width: 0;
-}
-
-@media (min-width: 1200px) {
-  .mypage-container {
-    grid-template-columns: repeat(var(--columns-desktop), minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 768px) and (max-width: 1199px) {
-  .mypage-container {
-    grid-template-columns: repeat(var(--columns-tablet), minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 767px) {
-  .mypage-container {
-    grid-template-columns: repeat(var(--columns-mobile), minmax(0, 1fr));
+  .mypage-pagination {
+    justify-content: flex-start;
+    overflow-x: auto;
   }
 }
