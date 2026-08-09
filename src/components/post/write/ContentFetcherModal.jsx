@@ -15,13 +15,10 @@
 import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import { CloseIcon, RefreshIcon } from "@/images/icons";
-import { createClient } from "@/utils/supabase/client";
 import {
   getPostsByAuthorId,
   getCurrentCommunityUser,
 } from "@/lib/communityQueries";
-
-const supabase = createClient();
 
 export default function ContentFetcherModal({ open, onClose, onApply }) {
   const [posts, setPosts] = useState([]);
