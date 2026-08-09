@@ -1704,11 +1704,14 @@
   }
 }
 
-/* Quill toolbar: Normal picker and SVG icon vertical alignment */
+/* Quill toolbar: alignment + dropdown layer */
 .community-scope .write-quillEditor .ql-toolbar.ql-snow {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
+  position: relative;
+  z-index: 10;
+  overflow: visible;
 }
 
 .community-scope .write-quillEditor .ql-toolbar.ql-snow .ql-formats {
@@ -1742,4 +1745,15 @@
 .community-scope .write-quillEditor .ql-toolbar.ql-snow button svg,
 .community-scope .write-quillEditor .ql-toolbar.ql-snow .ql-picker svg {
   display: block;
+}
+
+.community-scope
+  .write-quillEditor
+  .ql-toolbar.ql-snow
+  .ql-picker
+  .ql-picker-options {
+  z-index: 100;
+  background-color: #fff;
+  border: 1px solid var(--line);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
