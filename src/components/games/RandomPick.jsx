@@ -7,7 +7,7 @@ import ButtonBase from "@mui/material/ButtonBase";
 import GameHeader from "@/components/layout/GameHeader";
 import Footer from "@/components/layout/Footer";
 import RandomPickResult from "./RandomPickResult";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
 import { balls, RANDOM_PICK_FORMATS } from "@/lib/randomPickData";
 import { layout } from "@/lib/layout";
 
@@ -90,7 +90,7 @@ export default function RandomPick() {
     let alive = true;
 
     (async () => {
-      const { data, error } = await supabase
+      const { data, error } = await createClient()
         .from("default_contents")
         .select("id, title, scripts, tips, format_code")
         .in("format_code", RANDOM_PICK_FORMATS)
