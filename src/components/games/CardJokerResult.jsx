@@ -11,6 +11,7 @@ export default function CardJokerResult({ onConfirm }) {
       open
       onClose={onConfirm}
       aria-label="조커 당첨"
+      transitionDuration={80}
       slotProps={{
         backdrop: { sx: { bgcolor: "rgba(0, 0, 0, 0.7)" } },
         paper: {

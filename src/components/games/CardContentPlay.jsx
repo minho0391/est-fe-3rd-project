@@ -9,6 +9,11 @@ import { supabase } from "@/lib/supabase";
 
 const CARD_COUNT = 4;
 
+// 카드 앞면이 나타날 때 살짝 뒤집히는 모션
+const FLIP_DURATION = 200;
+// 카드가 돌기 시작하자마자 모달이 따라 올라오도록
+const RESULT_DELAY = 0;
+
 const cardSx = {
   display: "flex",
   flexDirection: "column",
@@ -20,6 +25,14 @@ const cardSx = {
   border: 1,
   borderColor: "divider",
   borderRadius: "20px",
+  "@keyframes flipIn": {
+    from: { transform: "rotateY(-70deg)", opacity: 0 },
+    to: { transform: "rotateY(0deg)", opacity: 1 },
+  },
+  animation: `flipIn ${FLIP_DURATION}ms cubic-bezier(0.2, 0.8, 0.3, 1)`,
+  "@media (prefers-reduced-motion: reduce)": {
+    animation: "none",
+  },
 };
 
 export default function CardContentPlay() {
@@ -56,7 +69,9 @@ export default function CardContentPlay() {
     const picked = list[Math.floor(Math.random() * list.length)];
 
     setOpened(prev => ({ ...prev, [index]: picked }));
-    setResult(picked);
+
+    // 카드가 돌아가는 중에 모달이 올라오도록 합니다.
+    setTimeout(() => setResult(picked), RESULT_DELAY);
   };
 
   const handleCloseResult = () => setResult(null);
@@ -76,6 +91,7 @@ export default function CardContentPlay() {
           justifyContent: "space-between",
           width: "100%",
           px: 4,
+          perspective: "1200px",
         }}
       >
         {Array.from({ length: CARD_COUNT }).map((_, index) => {
