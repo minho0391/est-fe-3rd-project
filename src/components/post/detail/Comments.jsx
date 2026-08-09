@@ -2,24 +2,47 @@
 "use client";
 
 import React, { useState } from "react";
-import { currentCommunityUser } from "@/data/communityPosts";
+import { useRouter } from "next/navigation";
+import Button from "@/components/ui/Button";
+import { AccountCircleIcon, DeleteOutlined } from "@/images/icons";
+import { buildCommunityLoginUrl } from "@/lib/communityInteractions";
 
-export default function CommentSection({ initialComments = [] }) {
+export default function CommentSection({
+  initialComments = [],
+  currentUser = null,
+  returnUrl = "/post",
+}) {
+  const router = useRouter();
   const [comments, setComments] = useState(initialComments);
   const [commentInput, setCommentInput] = useState("");
+
+  const redirectToLogin = () => {
+    router.push(buildCommunityLoginUrl(returnUrl));
+  };
+
+  const handleInputFocus = event => {
+    if (currentUser) return;
+
+    event.currentTarget.blur();
+    redirectToLogin();
+  };
 
   const handleSubmit = event => {
     event.preventDefault();
 
-    const trimmedInput = commentInput.trim();
+    if (!currentUser) {
+      redirectToLogin();
+      return;
+    }
 
+    const trimmedInput = commentInput.trim();
     if (!trimmedInput) return;
 
     const newComment = {
       id: Date.now(),
-      authorId: currentCommunityUser.id,
-      author: currentCommunityUser.name,
-      avatarUrl: currentCommunityUser.avatarUrl,
+      authorId: currentUser.id,
+      author: currentUser.name,
+      avatarUrl: currentUser.avatarUrl,
       content: trimmedInput,
       createdAt: "방금 전",
     };
@@ -44,19 +67,25 @@ export default function CommentSection({ initialComments = [] }) {
         <textarea
           value={commentInput}
           onChange={event => setCommentInput(event.target.value)}
+          onFocus={handleInputFocus}
+          onClick={() => {
+            if (!currentUser) redirectToLogin();
+          }}
           placeholder="따뜻한 댓글을 남겨주세요."
           className="comments-textarea"
           rows={3}
+          readOnly={!currentUser}
         />
 
         <div className="comments-inputActionRow">
-          <button
+          <Button
             type="submit"
-            disabled={!commentInput.trim()}
-            className="comments-submitBtn"
+            variant="primary"
+            size="md"
+            disabled={Boolean(currentUser) && !commentInput.trim()}
           >
             댓글 등록
-          </button>
+          </Button>
         </div>
       </form>
 
@@ -74,7 +103,9 @@ export default function CommentSection({ initialComments = [] }) {
                     className="comments-avatar"
                   />
                 ) : (
-                  <div className="comments-avatarPlaceholder">👤</div>
+                  <div className="comments-avatarPlaceholder">
+                    <AccountCircleIcon aria-hidden="true" />
+                  </div>
                 )}
               </div>
 
@@ -84,17 +115,18 @@ export default function CommentSection({ initialComments = [] }) {
                     <span className="comments-authorName">
                       {comment.author}
                     </span>
-
                     <span className="comments-date">{comment.createdAt}</span>
                   </div>
 
-                  {comment.authorId === currentCommunityUser.id && (
+                  {comment.authorId === currentUser?.id && (
                     <button
                       type="button"
                       onClick={() => handleDelete(comment.id)}
                       className="comments-deleteBtn"
+                      aria-label="댓글 삭제"
                     >
-                      삭제
+                      <DeleteOutlined aria-hidden="true" fontSize="small" />
+                      <span>삭제</span>
                     </button>
                   )}
                 </div>

@@ -8,6 +8,11 @@ import CardJokerResult from "./CardJokerResult";
 
 const CARD_COUNT = 4;
 
+// 카드 앞면이 나타날 때 살짝 뒤집히는 모션
+const FLIP_DURATION = 200;
+// 카드가 돌기 시작하자마자 모달이 따라 올라오도록
+const RESULT_DELAY = 0;
+
 const cardSx = {
   display: "flex",
   flexDirection: "column",
@@ -21,6 +26,14 @@ const cardSx = {
   border: 2,
   borderRadius: "20px",
   filter: "drop-shadow(0px 1px 1px rgba(0, 0, 0, 0.05))",
+  "@keyframes flipIn": {
+    from: { transform: "rotateY(-70deg)", opacity: 0 },
+    to: { transform: "rotateY(0deg)", opacity: 1 },
+  },
+  animation: `flipIn ${FLIP_DURATION}ms cubic-bezier(0.2, 0.8, 0.3, 1)`,
+  "@media (prefers-reduced-motion: reduce)": {
+    animation: "none",
+  },
 };
 
 function createDeck() {
@@ -39,7 +52,9 @@ export default function CardJokerPlay() {
     if (isFinished || opened.includes(index)) return;
 
     setOpened(prev => [...prev, index]);
-    if (deck[index]) setShowResult(true);
+
+    // 카드가 돌아가는 중에 모달이 올라오도록 합니다.
+    if (deck[index]) setTimeout(() => setShowResult(true), RESULT_DELAY);
   };
 
   const handleRestart = () => {
@@ -61,6 +76,7 @@ export default function CardJokerPlay() {
           justifyContent: "space-between",
           width: "100%",
           px: 4,
+          perspective: "1200px",
         }}
       >
         {deck.map((isJoker, index) => {

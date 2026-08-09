@@ -3,6 +3,11 @@
 
 import React from "react";
 import Link from "next/link";
+import {
+  ChatBubbleOutlineOutlined,
+  FavoriteIcon,
+  LocalFireDepartmentIcon,
+} from "@/images/icons";
 import { getPopularCommunityPosts } from "@/data/communityPosts";
 
 export default function PopularPreview({ posts = [] }) {
@@ -12,7 +17,10 @@ export default function PopularPreview({ posts = [] }) {
     <section className="popular-container">
       <div className="popular-header">
         <div className="popular-titleGroup">
-          <span className="popular-fireIcon">🔥</span>
+          <LocalFireDepartmentIcon
+            className="popular-fireIcon"
+            aria-hidden="true"
+          />
 
           <h3 className="popular-title">지금 인기 있는 게시글</h3>
         </div>
@@ -39,10 +47,17 @@ export default function PopularPreview({ posts = [] }) {
 
             <div className="popular-cardFooter">
               <div className="popular-statGroup">
-                <span className="popular-statItem">❤️ {post.likes}</span>
+                <span className="popular-statItem">
+                  <FavoriteIcon aria-hidden="true" fontSize="small" />{" "}
+                  {post.likes}
+                </span>
 
                 <span className="popular-statItem">
-                  💬 {post.commentsCount}
+                  <ChatBubbleOutlineOutlined
+                    aria-hidden="true"
+                    fontSize="small"
+                  />{" "}
+                  {post.commentsCount}
                 </span>
               </div>
             </div>

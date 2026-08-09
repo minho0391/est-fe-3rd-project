@@ -2,26 +2,41 @@
 "use client";
 
 import React from "react";
+import {
+  AccountCircleIcon,
+  AutoAwesomeIcon,
+  FavoriteBorderIcon,
+  FavoriteIcon,
+  RemoveRedEyeIcon,
+} from "@/images/icons";
 
 export default function PostDetailContent({
   post,
   isLiked = false,
+  isLikePending = false,
   onLikeToggle,
 }) {
   if (!post) return null;
 
-  const { title, author, createdAt, views, likes, board, tags, content } = post;
+  const {
+    title,
+    author,
+    createdAt,
+    views,
+    likes,
+    board,
+    tags,
+    content,
+    isAiGenerated = false,
+  } = post;
 
   return (
     <article className="post-body-container">
-      {/* 1. 게시판 카테고리 & 제목 */}
       <div className="post-body-header">
         <h1 className="post-body-title">{title}</h1>
-
         <span className="post-body-boardBadge">{board}</span>
       </div>
 
-      {/* 2. 작성자 및 게시글 정보 영역 */}
       <div className="post-body-authorRow">
         <div className="post-body-authorInfo">
           {author?.avatarUrl ? (
@@ -31,52 +46,61 @@ export default function PostDetailContent({
               className="post-body-avatar"
             />
           ) : (
-            <div className="post-body-avatarPlaceholder">👤</div>
+            <div className="post-body-avatarPlaceholder">
+              <AccountCircleIcon aria-hidden="true" />
+            </div>
           )}
 
           <div className="post-body-authorMeta">
             <div className="post-body-nameGroup">
               <span className="post-body-authorName">{author?.name}</span>
-
               <span className="post-body-roleBadge">{author?.role}</span>
             </div>
-
             <span className="post-body-postDate">{createdAt}</span>
           </div>
         </div>
 
         <div className="post-body-postStats">
-          <span>조회수 {views}</span>
-
-          <span>·</span>
+          <span className="post-body-statItem">
+            <RemoveRedEyeIcon aria-hidden="true" fontSize="small" />
+            <span>조회수 {views}</span>
+          </span>
 
           <button
             type="button"
             className={`post-body-likeButton ${isLiked ? "post-body-likeButtonActive" : ""}`}
             aria-pressed={isLiked}
             onClick={onLikeToggle}
+            disabled={isLikePending}
           >
-            {isLiked ? "좋아요 취소" : "좋아요"} {likes}
+            {isLiked ? (
+              <FavoriteIcon aria-hidden="true" fontSize="small" />
+            ) : (
+              <FavoriteBorderIcon aria-hidden="true" fontSize="small" />
+            )}
+            <span>좋아요 {likes}</span>
           </button>
         </div>
       </div>
 
       <hr className="post-body-divider" />
 
-      {/* 3. 공유된 AI 생성 콘텐츠 내용 영역 */}
       <div className="post-body-contentWrapper">
-        <div className="post-body-aiBadge">
-          <span>✨ AI로 생성 및 공유된 콘텐츠입니다.</span>
-        </div>
+        {isAiGenerated && (
+          <div className="post-body-aiBadge">
+            <span>
+              <AutoAwesomeIcon aria-hidden="true" fontSize="small" />
+              AI 로 생성 및 공유된 콘텐츠입니다.
+            </span>
+          </div>
+        )}
 
-        {/* HTML 태그를 그대로 렌더링할 때 dangerouslySetInnerHTML 활용 */}
         <div
           className="post-body-articleBody"
           dangerouslySetInnerHTML={{ __html: content }}
         />
       </div>
 
-      {/* 4. 태그 영역 */}
       {tags && tags.length > 0 && (
         <div className="post-body-tagList">
           {tags.map(tag => (
