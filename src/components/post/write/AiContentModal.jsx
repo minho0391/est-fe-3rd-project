@@ -17,8 +17,6 @@ import Button from "@/components/ui/Button";
 import { CloseIcon } from "@/images/icons";
 import { createClient } from "@/utils/supabase/client";
 
-const supabase = createClient();
-
 const parseKeywords = value =>
   value
     .split(",")
@@ -77,6 +75,7 @@ export default function AiContentModal({
     setFollowUpPrompt("");
 
     try {
+      const supabase = createClient();
       const parsedKeywords = parseKeywords(keywords);
       const { data, error } = await supabase.functions.invoke(
         "generate-community-post",
