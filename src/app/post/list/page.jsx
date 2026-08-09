@@ -101,7 +101,17 @@ export default function PostListPage() {
             </div>
           </div>
 
-          <div className="community-post-stack">
+          <div className="community-listHeader" aria-hidden="true">
+            <span>분류</span>
+            <span>제목</span>
+            <span>작성자</span>
+            <span>작성일</span>
+            <span>조회수</span>
+            <span>좋아요</span>
+            <span>댓글</span>
+          </div>
+
+          <div className="community-post-stack community-tableLikeStack">
             {visiblePosts.map(post => (
               <PostItem key={post.id} post={post} />
             ))}
