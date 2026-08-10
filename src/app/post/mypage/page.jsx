@@ -61,10 +61,25 @@ export default function MyPage() {
   const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
   const [editNickname, setEditNickname] = useState("");
   const [editAvatarFile, setEditAvatarFile] = useState(null);
+  const [editAvatarPreviewUrl, setEditAvatarPreviewUrl] = useState("");
   const [removeCurrentAvatar, setRemoveCurrentAvatar] = useState(false);
   const [profileActionError, setProfileActionError] = useState("");
   const [isProfileSaving, setIsProfileSaving] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+
+  useEffect(() => {
+    if (!editAvatarFile) {
+      setEditAvatarPreviewUrl("");
+      return undefined;
+    }
+
+    const objectUrl = URL.createObjectURL(editAvatarFile);
+    setEditAvatarPreviewUrl(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [editAvatarFile]);
 
   useEffect(() => {
     let isMounted = true;
@@ -160,15 +175,16 @@ export default function MyPage() {
       setIsProfileSaving(true);
       setProfileActionError("");
 
-      await updateCurrentUserProfile({ nickname: editNickname });
-
       let avatarUrl = userProfile?.avatarUrl ?? "";
+
       if (removeCurrentAvatar) {
         await removeAvatar();
         avatarUrl = "";
       } else if (editAvatarFile) {
         avatarUrl = await uploadAvatar(editAvatarFile);
       }
+
+      await updateCurrentUserProfile({ nickname: editNickname });
 
       const refreshed = await getCurrentUserProfile();
       if (refreshed) {
@@ -180,7 +196,7 @@ export default function MyPage() {
     } catch (error) {
       console.error("회원정보 수정 실패", error);
       setProfileActionError(
-        error?.message || "회원정보 수정에 실패했습니다. 다시 시도해 주세요.",
+        "회원정보 수정에 실패했습니다. 입력 내용을 확인한 뒤 다시 시도해 주세요.",
       );
     } finally {
       setIsProfileSaving(false);
@@ -606,7 +622,13 @@ export default function MyPage() {
             <form className="mypage-profileForm" onSubmit={handleProfileSave}>
               <div className="mypage-profileEditAvatarRow">
                 <div className="mypage-avatar mypage-editAvatar">
-                  {!removeCurrentAvatar && userProfile.avatarUrl ? (
+                  {!removeCurrentAvatar && editAvatarPreviewUrl ? (
+                    <img
+                      src={editAvatarPreviewUrl}
+                      alt="선택한 프로필 미리보기"
+                      className="mypage-avatarImage"
+                    />
+                  ) : !removeCurrentAvatar && userProfile.avatarUrl ? (
                     <img
                       src={userProfile.avatarUrl}
                       alt="현재 프로필"
