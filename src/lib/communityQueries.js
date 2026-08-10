@@ -39,7 +39,7 @@ const toDescription = (text, max = 60) => {
 
 const POST_SELECT = `
   id, title, description, content_html, content_text, author_id,
-  view_count, like_count, comment_count, created_at,
+  view_count, like_count, comment_count, is_ai_generated, created_at,
   boards ( name, is_notice ),
   profiles!posts_author_id_fkey ( nickname, role, avatar_url ),
   post_tags ( tags ( name ) )
@@ -61,6 +61,7 @@ const mapPost = (row, likedIds = new Set()) => ({
   views: row.view_count ?? 0,
   likes: row.like_count ?? 0,
   commentsCount: row.comment_count ?? 0,
+  isAiGenerated: row.is_ai_generated ?? false,
   tags: (row.post_tags ?? []).map(pt => pt.tags?.name).filter(Boolean),
   likedByCurrentUser: likedIds.has(row.id),
 });
