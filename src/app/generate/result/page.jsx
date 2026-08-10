@@ -6,7 +6,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import Button from "@/components/ui/Button";
@@ -19,12 +19,13 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Modal from "@mui/material/Modal";
 import { useTheme, alpha } from "@mui/material/styles";
 
+import { createClient } from "@/utils/supabase/client";
 import { getGenerationById, saveGenerationItem } from "@/lib/generateQueries";
-
-const TOPIC_ICON = "/assets/icons/refresh_icon.svg";
+import { styles } from "./_components/styles";
 
 function ResultContent() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const theme = useTheme();
   const id = searchParams.get("id");
@@ -34,6 +35,26 @@ function ResultContent() {
   const [saveState, setSaveState] = useState("idle"); // 'idle' | 'saving' | 'saved' | 'error'
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   //모달 창 확인이 필요할 시 임시로 false >> true로 변경 후 확인
+
+  // 로그인 여부는 결과 데이터 형태(id 유무)로 추측하지 않고 auth 상태로 직접 판별한다.
+  const [user, setUser] = useState(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      setIsAuthLoading(false);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setIsAuthLoading(false);
+    });
+
+    return () => listener.subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,30 +89,37 @@ function ResultContent() {
     };
   }, [id]);
 
+  // (sign-in 페이지에서 redirect 파라미터를 읽어 로그인 성공 시 해당 경로로 이동시켜야 함)
+  const goToSignIn = () => {
+    const query = searchParams.toString();
+    const redirectTarget = query ? `${pathname}?${query}` : pathname;
+    router.push(`/sign-in?redirect=${encodeURIComponent(redirectTarget)}`);
+  };
+
   const handleRegenerate = () => {
     router.push("/generate");
   };
 
-  // 결과 카드 전체(최대 3개)를 순회하며 저장. results[].id 가 없으면
-  // (비로그인 생성) 저장할 수 없으므로 로그인 페이지로 보낸다.
   const handleSaveAll = async () => {
-    const items = data?.results ?? [];
-    const savable = items.filter(item => item.id);
-
-    if (savable.length === 0) {
-      router.push("/sign-in");
+    if (!user) {
+      goToSignIn();
       return;
     }
 
+    if (saveState === "saving" || saveState === "saved") return;
+
+    const items = data?.results ?? [];
+    if (items.length === 0) return;
+
     setSaveState("saving");
     try {
-      await Promise.all(savable.map(item => saveGenerationItem(item.id)));
+      await Promise.all(items.map(item => saveGenerationItem(item, user.id)));
       setSaveState("saved");
       setIsSaveModalOpen(true);
     } catch (e) {
       setSaveState("error");
       if (String(e.message).includes("로그인")) {
-        router.push("/sign-in");
+        goToSignIn();
       } else {
         alert("저장에 실패했습니다. 다시 시도해주세요.");
       }
@@ -123,31 +151,17 @@ function ResultContent() {
   }
 
   const { meta, results } = data;
-  const isLoggedIn = results.some(r => r.id);
+  const isLoggedIn = !!user;
   const topics = results.slice(0, 2);
   const highlight = results[2] ?? null;
 
   const title = meta ? `${meta.situation} - ${meta.format} 가이드 (Level ${meta.level})` : "대화 가이드";
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: "auto" }}>
+    <Box sx={styles.page}>
       {/* 상단 배지 */}
-      <Box
-        sx={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 0.75,
-          bgcolor: theme.palette.momentalk.presetCard,
-          color: "primary.main",
-          fontWeight: 700,
-          fontSize: "0.8rem",
-          borderRadius: 5,
-          px: 1.75,
-          py: 0.6,
-          mb: 1.5,
-        }}
-      >
-        <Box component="img" src="/assets/icons/twinkle_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
+      <Box sx={{ ...styles.topBadge, bgcolor: theme.palette.momentalk.presetCard }}>
+        <Box component="img" src="/assets/icons/twinkle_icon.svg" alt="" sx={styles.icon16} />
         AI 분석 결과
       </Box>
 
@@ -160,7 +174,7 @@ function ResultContent() {
 
       {/* Topic 1 / Topic 2 */}
       {topics.length > 0 && (
-        <Box sx={{ display: "flex", gap: 3, flexWrap: "wrap", mb: 3 }}>
+        <Box sx={styles.topicRow}>
           {topics.map((item, i) => (
             <TopicCard key={item.id ?? i} index={i} item={item} theme={theme} />
           ))}
@@ -171,20 +185,7 @@ function ResultContent() {
       {highlight && <HighlightTopicCard item={highlight} theme={theme} />}
 
       {/* 하단 CTA */}
-      <Paper
-        elevation={0}
-        sx={{
-          mt: 3,
-          p: { xs: 3, sm: 4 },
-          borderRadius: 3,
-          bgcolor: theme.palette.momentalk.typeCard,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 2.5,
-        }}
-      >
+      <Paper elevation={0} sx={{ ...styles.ctaPaper, bgcolor: theme.palette.momentalk.typeCard }}>
         <Box>
           <Typography variant="h5" color="text.primary" mb={0.5}>
             이 가이드가 마음에 드시나요?
@@ -195,15 +196,13 @@ function ResultContent() {
               : "로그인하면 가이드를 저장하고 나중에 다시 볼 수 있어요."}
           </Typography>
         </Box>
-        <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
+        <Box sx={styles.ctaActions}>
           <Button
             variant="tertiary"
             size="md"
             onClick={handleRegenerate}
-            leadingIcon={
-              <Box component="img" src="/assets/icons/result_re_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
-            }
-            sx={{ height: 48, fontSize: "0.9rem" }}
+            leadingIcon={<Box component="img" src="/assets/icons/result_re_icon.svg" alt="" sx={styles.icon16} />}
+            sx={styles.ctaButton}
           >
             다른 주제 생성하기
           </Button>
@@ -212,14 +211,8 @@ function ResultContent() {
             size="md"
             onClick={handleSaveAll}
             disabled={saveState === "saving" || saveState === "saved"}
-            leadingIcon={
-              saveState === "saved" ? (
-                <Box component="img" src="/assets/icons/bookmark.svg" alt="" sx={{ width: 16, height: 16 }} />
-              ) : (
-                <Box component="img" src="/assets/icons/bookmark.svg" alt="" sx={{ width: 16, height: 16 }} />
-              )
-            }
-            sx={{ height: 48, fontSize: "0.9rem" }}
+            leadingIcon={<Box component="img" src="/assets/icons/bookmark.svg" alt="" sx={styles.icon16} />}
+            sx={styles.ctaButton}
           >
             {saveState === "saved" ? "저장 완료" : saveState === "saving" ? "저장 중..." : "가이드 저장하기"}
           </Button>
@@ -228,51 +221,22 @@ function ResultContent() {
 
       {/* 저장 완료 모달 */}
       <Modal open={isSaveModalOpen} onClose={() => setIsSaveModalOpen(false)}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: { xs: "90%", sm: 460 },
-            bgcolor: "background.paper",
-            borderRadius: 4,
-            overflow: "hidden",
-            boxShadow: 24,
-          }}
-        >
-          {/* 상단 그라데이션 배너 + 체크 아이콘 */}
+        <Box sx={styles.modalBox}>
+          {/* 상단 그라데이션 배너 + 계정 아이콘 (배너 정중앙 배치) */}
           <Box
             sx={{
-              position: "relative",
-              height: 190,
+              ...styles.modalBanner,
               background: `radial-gradient(circle at 30% 25%, ${alpha(theme.palette.secondary.main, 0.9)}, ${theme.palette.primary.main})`,
             }}
           >
-            <Box
-              sx={{
-                position: "absolute",
-                bottom: -44,
-                left: "50%",
-                top: "25%",
-                transform: "translateX(-50%)",
-                width: 96,
-                height: 96,
-                borderRadius: "50%",
-                bgcolor: "#fff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
-              }}
-            >
+            <Box sx={styles.modalIconOuter}>
               <Avatar sx={{ bgcolor: "#fff", width: 64, height: 64 }}>
                 <Box component="img" src="/assets/icons/account_icon.svg" alt="" sx={{ width: 48, height: 48 }} />
               </Avatar>
             </Box>
           </Box>
           {/* 본문 */}
-          <Box sx={{ pt: 5, pb: 5, px: { xs: 3, sm: 4.5 }, textAlign: "center" }}>
+          <Box sx={styles.modalBody}>
             <Typography variant="h4" color="text.primary" mb={2}>
               대화 가이드 저장 완료!
             </Typography>
@@ -285,9 +249,9 @@ function ResultContent() {
               size="md"
               fullWidth
               onClick={() => router.push("/post/mypage")}
-              sx={{ height: 52, fontSize: "0.95rem", mb: 1.5 }}
+              leadingIcon={<Box component="img" src="/assets/icons/mypage_icon.svg" alt="" sx={styles.icon16} />}
+              sx={styles.modalPrimaryBtn}
             >
-              <Box component="img" src="/assets/icons/mypage_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
               마이페이지로 이동하기
             </Button>
             <Button
@@ -295,16 +259,16 @@ function ResultContent() {
               size="md"
               fullWidth
               onClick={() => router.push("/post")}
-              sx={{ height: 52, fontSize: "0.95rem", mb: 2.5 }}
+              leadingIcon={<Box component="img" src="/assets/icons/community_icon.svg" alt="" sx={styles.icon16} />}
+              sx={styles.modalSecondaryBtn}
             >
-              <Box component="img" src="/assets/icons/community_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
               커뮤니티에 공유하기
             </Button>
             <Typography
               variant="body2"
               color="text.secondary"
               onClick={() => setIsSaveModalOpen(false)}
-              sx={{ cursor: "pointer", "&:hover": { color: "text.primary" } }}
+              sx={styles.modalDismiss}
             >
               현재 페이지 유지
             </Typography>
@@ -322,19 +286,9 @@ function ScriptsAndTips({ item, theme, tipsColumns = false }) {
 
   return (
     <>
-      <Box sx={{ bgcolor: theme.palette.momentalk.typeCard, borderRadius: 2.5, p: 2.5, mb: 2.5 }}>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 0.75,
-            color: "primary.main",
-            fontWeight: 700,
-            fontSize: "0.85rem",
-            mb: 1,
-          }}
-        >
-          <Box component="img" src="/assets/icons/desc_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
+      <Box sx={{ ...styles.scriptBox, bgcolor: theme.palette.momentalk.typeCard }}>
+        <Box sx={styles.scriptLabel}>
+          <Box component="img" src="/assets/icons/desc_icon.svg" alt="" sx={styles.icon16} />
           실제 추천 대화문
         </Box>
         {(item.scripts ?? []).map((script, i) => (
@@ -362,18 +316,8 @@ function ScriptsAndTips({ item, theme, tipsColumns = false }) {
       {/* tips는 형식에 따라 빈 배열([])로 올 수 있음(예: 벌칙) — 그때는 섹션 자체를 숨김 */}
       {tips.length > 0 && (
         <>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 0.75,
-              color: "text.secondary",
-              fontWeight: 600,
-              fontSize: "0.85rem",
-              mb: 1.5,
-            }}
-          >
-            <Box component="img" src="/assets/icons/tip_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
+          <Box sx={styles.tipLabel}>
+            <Box component="img" src="/assets/icons/tip_icon.svg" alt="" sx={styles.icon16} />
             상황별 팁
           </Box>
           <Box
@@ -386,16 +330,7 @@ function ScriptsAndTips({ item, theme, tipsColumns = false }) {
           >
             {tips.map((tip, i) => (
               <Box key={i} sx={{ display: "flex", gap: 1, flex: tipsColumns ? "1 1 160px" : "initial" }}>
-                <Box
-                  sx={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: "50%",
-                    bgcolor: "warning.main",
-                    mt: 1,
-                    flexShrink: 0,
-                  }}
-                />
+                <Box sx={styles.tipDot} />
                 <Typography variant="body2" color="text.secondary">
                   {tip}
                 </Typography>
@@ -409,32 +344,18 @@ function ScriptsAndTips({ item, theme, tipsColumns = false }) {
 }
 
 function TopicCard({ index, item, theme }) {
-  const Icon = TOPIC_ICON;
-
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        flex: "1 1 400px",
-        p: 3.5,
-        borderRadius: 3,
-        border: "1px solid",
-        borderColor: "divider",
-        bgcolor: "background.paper",
-      }}
-    >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+    <Paper elevation={0} sx={styles.topicCard}>
+      <Box sx={styles.topicCardHeader}>
         <Avatar
           variant="rounded"
           sx={{
+            ...styles.topicAvatar,
             bgcolor: theme.palette.momentalk.presetCard,
             color: "primary.main",
-            borderRadius: 2,
-            width: 40,
-            height: 40,
           }}
         >
-          <Box component="img" src="/assets/icons/chat_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
+          <Box component="img" src="/assets/icons/chat_icon.svg" alt="" sx={styles.icon16} />
         </Avatar>
         <Box>
           <Typography
@@ -457,38 +378,14 @@ function TopicCard({ index, item, theme }) {
 }
 
 function HighlightTopicCard({ item, theme }) {
-  const Icon = TOPIC_ICON;
   const tips = item.tips ?? [];
 
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        display: "flex",
-        flexWrap: "wrap",
-        borderRadius: 3,
-        overflow: "hidden",
-        border: "1px solid",
-        borderColor: "divider",
-      }}
-    >
+    <Paper elevation={0} sx={styles.highlightCard}>
       {/* 좌측 강조 패널 */}
-      <Box
-        sx={{
-          flex: "1 1 300px",
-          bgcolor: "primary.main",
-          color: "#fff",
-          p: { xs: 3, sm: 4 },
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-        }}
-      >
-        <Avatar
-          variant="rounded"
-          sx={{ bgcolor: "rgba(255,255,255,0.15)", color: "#fff", borderRadius: 2, width: 44, height: 44, mb: 2 }}
-        >
-          <Box component="img" src="/assets/icons/topic3_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
+      <Box sx={{ ...styles.highlightLeft, bgcolor: "primary.main" }}>
+        <Avatar variant="rounded" sx={styles.highlightAvatar}>
+          <Box component="img" src="/assets/icons/topic3_icon.svg" alt="" sx={styles.icon16} />
         </Avatar>
         <Typography variant="overline" fontWeight={700} sx={{ opacity: 0.85, letterSpacing: 0.5 }}>
           TOPIC 3
@@ -499,25 +396,15 @@ function HighlightTopicCard({ item, theme }) {
       </Box>
 
       {/* 우측 콘텐츠 */}
-      <Box sx={{ flex: "2 1 500px", p: { xs: 3, sm: 4 }, display: "flex", gap: 4, flexWrap: "wrap" }}>
-        <Box sx={{ flex: "1 1 260px" }}>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 0.75,
-              color: "primary.main",
-              fontWeight: 700,
-              fontSize: "0.85rem",
-              mb: 1.5,
-            }}
-          >
-            <Box component="img" src="/assets/icons/desc_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
+      <Box sx={styles.highlightRight}>
+        <Box sx={styles.highlightColumn}>
+          <Box sx={styles.highlightSectionLabel}>
+            <Box component="img" src="/assets/icons/desc_icon.svg" alt="" sx={styles.icon16} />
             실제 추천 대화문
           </Box>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
             {(item.scripts ?? []).map((script, i) => (
-              <Box key={i} sx={{ bgcolor: theme.palette.momentalk.typeCard, borderRadius: 2, p: 2 }}>
+              <Box key={i} sx={{ ...styles.highlightScriptBox, bgcolor: theme.palette.momentalk.typeCard }}>
                 <Typography variant="body2" color="text.primary" sx={{ lineHeight: "23px" }}>
                   &ldquo;{script}&rdquo;
                 </Typography>
@@ -532,32 +419,19 @@ function HighlightTopicCard({ item, theme }) {
         </Box>
 
         {tips.length > 0 && (
-          <Box sx={{ flex: "1 1 260px" }}>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 0.75,
-                color: "primary.main",
-                fontWeight: 700,
-                fontSize: "0.85rem",
-                mb: 1.5,
-              }}
-            >
-              <Box component="img" src="/assets/icons/tip_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
+          <Box sx={styles.highlightColumn}>
+            <Box sx={styles.highlightSectionLabel}>
+              <Box component="img" src="/assets/icons/tip_icon.svg" alt="" sx={styles.icon16} />
               상황별 팁
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
               {tips.map((tip, i) => (
-                <Box key={i} sx={{ display: "flex", gap: 1.25 }}>
+                <Box key={i} sx={styles.highlightTipRow}>
                   <Avatar
                     sx={{
+                      ...styles.highlightTipNumber,
                       bgcolor: theme.palette.momentalk.presetCard,
                       color: "primary.main",
-                      width: 22,
-                      height: 22,
-                      fontSize: "0.75rem",
-                      fontWeight: 700,
                     }}
                   >
                     {i + 1}
