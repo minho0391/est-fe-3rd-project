@@ -1,28 +1,10 @@
 import { createClient } from "@/utils/supabase/server";
-import { askAlan, toAlanResponse, AlanError } from "@/lib/alan";
-
-/** 조건 라벨을 사람이 읽는 문장으로 조립 */
-const buildPrompt = ({ situation, mood, relation, target, format }) => {
-  const conditions = [
-    situation && `상황: ${situation}`,
-    mood && `원하는 분위기: ${mood}`,
-    relation && `관계: ${relation}`,
-    target && `대화 상대: ${target}`,
-  ]
-    .filter(Boolean)
-    .join("\n");
-
-  return `아래 조건에 맞는 "${format}" 형식의 대화 카드 3개를 만들어줘.
-
-${conditions}
-
-카드 하나에 내용은 딱 1개. 여러 개 넣지 마.
-검색하지 말고 직접 창작해. 출처나 링크 붙이지 마.
-아래 JSON 형식만 출력. 설명이나 인사말 금지.
-{"results":[{"title":"주제","scripts":["내용 1개"],"tips":["팁1","팁2"]}]}
-results는 3개, 각 scripts는 1개, 각 tips는 2개.
-금지 소재: 연봉, 인사평가, 승진, 사내정치, 사생활, 음주강요, 정치, 종교`;
-};
+import {
+  ALAN_TASK,
+  AlanError,
+  generateAlanContent,
+  toAlanResponse,
+} from "@/lib/alan";
 
 /**
  * 대화 가이드 생성.
@@ -38,14 +20,21 @@ export async function POST(req) {
       data: { user },
     } = await db.auth.getUser();
 
-    const { situation, mood, relation, target, format, presetId } = await req.json();
+    const { situation, mood, relation, target, format, presetId } =
+      await req.json();
 
     if (!situation?.trim()) {
-      return Response.json({ source: "failed", error: "상황을 입력해주세요." }, { status: 400 });
+      return Response.json(
+        { source: "failed", error: "상황을 입력해주세요." },
+        { status: 400 },
+      );
     }
 
     if (!format) {
-      return Response.json({ source: "failed", error: "형식을 선택해주세요." }, { status: 400 });
+      return Response.json(
+        { source: "failed", error: "형식을 선택해주세요." },
+        { status: 400 },
+      );
     }
 
     const conditions = { situation, mood, relation, target };
@@ -86,9 +75,18 @@ export async function POST(req) {
     let result;
 
     try {
-      result = await askAlan(buildPrompt({ situation, mood, relation, target, format }));
+      const generated = await generateAlanContent(ALAN_TASK.CONVERSATION, {
+        situation,
+        mood,
+        relation,
+        target,
+        format,
+      });
+      result = generated;
     } catch (error) {
-      await markFailed(error instanceof AlanError ? String(error.status) : "unknown");
+      await markFailed(
+        error instanceof AlanError ? String(error.status) : "unknown",
+      );
       throw error;
     }
 
@@ -121,7 +119,9 @@ export async function POST(req) {
 
     const { data: saved, error: itemError } = await db
       .from("generation_items")
-      .insert(normalized.map(item => ({ ...item, generation_id: generationId })))
+      .insert(
+        normalized.map(item => ({ ...item, generation_id: generationId })),
+      )
       .select("id, position, title, scripts, tips")
       .order("position");
 
