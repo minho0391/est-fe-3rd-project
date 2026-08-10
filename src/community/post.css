@@ -2559,3 +2559,36 @@
     gap: 12px;
   }
 }
+
+/* 게시글 작성 > DB 게시판 목록 조회 오류 */
+.community-scope .write-boardError {
+  margin: 0;
+  color: var(--danger);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+/* 게시글 메인/목록 DB 조회 상태 */
+.community-listState {
+  margin: 0;
+  padding: 32px 24px;
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 14px;
+}
+
+.community-listStateError {
+  color: var(--danger);
+}
+
+.community-listStateError {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.community-listStateError span {
+  font-size: 12px;
+  font-weight: 400;
+  word-break: break-word;
+}
