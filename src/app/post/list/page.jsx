@@ -20,6 +20,9 @@ export default function PostListPage() {
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const pageSize = 10;
 
   useEffect(() => {
     let isMounted = true;
@@ -75,6 +78,35 @@ export default function PostListPage() {
 
     return [...noticePosts, ...normalPosts];
   }, [posts, query, sort]);
+
+  const totalPages = Math.max(1, Math.ceil(visiblePosts.length / pageSize));
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query, sort]);
+
+  useEffect(() => {
+    setCurrentPage(page => Math.min(page, totalPages));
+  }, [totalPages]);
+
+  const paginatedPosts = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return visiblePosts.slice(startIndex, startIndex + pageSize);
+  }, [visiblePosts, currentPage]);
+
+  const pageNumbers = useMemo(() => {
+    const maxVisiblePages = 5;
+    const start = Math.max(
+      1,
+      Math.min(
+        currentPage - Math.floor(maxVisiblePages / 2),
+        totalPages - maxVisiblePages + 1,
+      ),
+    );
+    const count = Math.min(maxVisiblePages, totalPages);
+
+    return Array.from({ length: count }, (_, index) => start + index);
+  }, [currentPage, totalPages]);
 
   return (
     <main className="community-scope community-page post-list-page">
@@ -157,8 +189,8 @@ export default function PostListPage() {
               </div>
 
               <div className="community-post-stack community-tableLikeStack">
-                {visiblePosts.length > 0 ? (
-                  visiblePosts.map(post => (
+                {paginatedPosts.length > 0 ? (
+                  paginatedPosts.map(post => (
                     <PostItem key={post.id} post={post} />
                   ))
                 ) : (
@@ -170,33 +202,46 @@ export default function PostListPage() {
             </>
           )}
 
-          <nav className="post-list-pagination" aria-label="게시글 페이지 이동">
-            <button
-              type="button"
-              className="post-list-pageButton"
-              aria-label="이전 페이지"
+          {!isLoading && !loadError && visiblePosts.length > 0 && (
+            <nav
+              className="post-list-pagination"
+              aria-label="게시글 페이지 이동"
             >
-              ‹
-            </button>
-
-            {[1, 2, 3, 4, 5].map(page => (
               <button
-                key={page}
                 type="button"
-                className={`post-list-pageButton ${page === 1 ? "post-list-pageButtonActive" : ""}`}
+                className="post-list-pageButton"
+                aria-label="이전 페이지"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
               >
-                {page}
+                ‹
               </button>
-            ))}
 
-            <button
-              type="button"
-              className="post-list-pageButton"
-              aria-label="다음 페이지"
-            >
-              ›
-            </button>
-          </nav>
+              {pageNumbers.map(page => (
+                <button
+                  key={page}
+                  type="button"
+                  className={`post-list-pageButton ${page === currentPage ? "post-list-pageButtonActive" : ""}`}
+                  aria-current={page === currentPage ? "page" : undefined}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                className="post-list-pageButton"
+                aria-label="다음 페이지"
+                disabled={currentPage === totalPages}
+                onClick={() =>
+                  setCurrentPage(page => Math.min(totalPages, page + 1))
+                }
+              >
+                ›
+              </button>
+            </nav>
+          )}
         </section>
       </div>
     </main>
