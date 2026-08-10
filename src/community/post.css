@@ -1075,6 +1075,11 @@
   border-color: var(--primary);
 }
 
+.post-list-pageButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
 /* Quill tooltip must stay inside the editor viewport. */
 .write-pageContent,
 .write-section,
