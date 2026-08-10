@@ -1075,6 +1075,11 @@
   border-color: var(--primary);
 }
 
+.post-list-pageButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
 /* Quill tooltip must stay inside the editor viewport. */
 .write-pageContent,
 .write-section,
@@ -1320,7 +1325,11 @@
   min-width: 96px;
 }
 
-.community-scope .write-quillEditor .ql-toolbar.ql-snow .ql-picker.ql-header .ql-picker-label {
+.community-scope
+  .write-quillEditor
+  .ql-toolbar.ql-snow
+  .ql-picker.ql-header
+  .ql-picker-label {
   width: 100%;
   height: 32px;
   padding: 0 20px 0 8px;

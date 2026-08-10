@@ -722,3 +722,204 @@
     overflow-x: auto;
   }
 }
+
+/* Profile edit interactions */
+.mypage-avatarImage {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.mypage-menuItem:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.mypage-modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 18, 32, 0.42);
+}
+
+.mypage-profileModal {
+  width: min(100%, 520px);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: 0 24px 60px rgba(20, 18, 45, 0.18);
+}
+
+.mypage-profileModalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.mypage-profileModalTitle {
+  margin: 4px 0 0;
+  font-size: 24px;
+  line-height: 32px;
+}
+
+.mypage-modalClose {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.mypage-profileForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.mypage-profileEditAvatarRow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.mypage-editAvatar {
+  flex-basis: 80px;
+  width: 80px;
+  height: 80px;
+}
+
+.mypage-avatarActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mypage-fileInput {
+  display: none;
+}
+
+.mypage-profileHelp {
+  width: 100%;
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.mypage-profileField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mypage-profileField input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 400;
+  outline: none;
+}
+
+.mypage-profileField input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.mypage-profileField input:disabled {
+  background: var(--surface-soft);
+  color: var(--ink-muted);
+}
+
+.mypage-profileField small {
+  color: var(--ink-muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.mypage-profileError {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 75, 91, 0.08);
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.mypage-profileModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.mypage-secondaryButton,
+.mypage-primaryButton,
+.mypage-textDangerButton {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mypage-secondaryButton {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.mypage-primaryButton {
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+.mypage-textDangerButton {
+  border: 0;
+  background: transparent;
+  color: var(--danger);
+}
+
+.mypage-secondaryButton:disabled,
+.mypage-primaryButton:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+@media (max-width: 767px) {
+  .mypage-profileModal {
+    padding: 20px;
+  }
+
+  .mypage-profileEditAvatarRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .mypage-profileModalActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
