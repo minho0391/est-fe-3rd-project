@@ -15,7 +15,6 @@
 import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import { CloseIcon } from "@/images/icons";
-import { createClient } from "@/utils/supabase/client";
 
 const parseKeywords = value =>
   value
@@ -75,20 +74,25 @@ export default function AiContentModal({
     setFollowUpPrompt("");
 
     try {
-      const supabase = createClient();
       const parsedKeywords = parseKeywords(keywords);
-      const { data, error } = await supabase.functions.invoke(
-        "generate-community-post",
-        {
-          body: {
-            title: title.trim() || undefined,
-            description: description.trim() || undefined,
-            keywords: parsedKeywords,
-          },
-        },
-      );
 
-      if (error) throw error;
+      const response = await fetch("/api/generate-community-post", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: title.trim() || undefined,
+          description: description.trim() || undefined,
+          keywords: parsedKeywords,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error ?? "AI 생성에 실패했습니다.");
+      }
 
       if (data?.needsMoreInformation) {
         setFollowUpPrompt(
