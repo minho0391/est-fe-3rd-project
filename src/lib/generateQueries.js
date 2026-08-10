@@ -34,14 +34,15 @@ const mapItem = row => ({
 // (generate 함수의 labelOf 와 동일한 로직)
 const buildLabelOf = async db => {
   const { data: options } = await db.from("options").select("category, code, label");
-  return (category, code) =>
-    options?.find(o => o.category === category && o.code === code)?.label ?? null;
+  return (category, code) => options?.find(o => o.category === category && o.code === code)?.label ?? null;
 };
 
 // generations 행 + labelOf → meta ({ situation, format, level, mood })
 const buildMeta = (row, labelOf) => {
   const cond = row.conditions ?? {};
   return {
+    relation: labelOf("relation", cond.relation) ?? cond.relation ?? "",
+    target: labelOf("target", cond.target) ?? cond.target ?? "",
     situation: labelOf("situation", cond.situation) ?? "모임",
     format: labelOf("format", row.format_code) ?? row.format_code,
     level: cond.level ?? 1,
