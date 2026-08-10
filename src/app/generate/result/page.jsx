@@ -32,7 +32,7 @@ function ResultContent() {
   const [state, setState] = useState("loading"); // 'loading' | 'ready' | 'notfound'
   const [data, setData] = useState(null);
   const [saveState, setSaveState] = useState("idle"); // 'idle' | 'saving' | 'saved' | 'error'
-  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -253,6 +253,7 @@ function ResultContent() {
                 position: "absolute",
                 bottom: -44,
                 left: "50%",
+                top: "25%",
                 transform: "translateX(-50%)",
                 width: 96,
                 height: 96,
@@ -264,17 +265,17 @@ function ResultContent() {
                 boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
               }}
             >
-              <Avatar sx={{ bgcolor: "primary.main", width: 64, height: 64 }}>
-                <Box component="img" src="/assets/icons/account_icon.svg" alt="" sx={{ width: 34, height: 34 }} />
+              <Avatar sx={{ bgcolor: "#fff", width: 64, height: 64 }}>
+                <Box component="img" src="/assets/icons/account_icon.svg" alt="" sx={{ width: 48, height: 48 }} />
               </Avatar>
             </Box>
           </Box>
           {/* 본문 */}
-          <Box sx={{ pt: 8, pb: 4.5, px: { xs: 3, sm: 4.5 }, textAlign: "center" }}>
+          <Box sx={{ pt: 5, pb: 5, px: { xs: 3, sm: 4.5 }, textAlign: "center" }}>
             <Typography variant="h4" color="text.primary" mb={2}>
               대화 가이드 저장 완료!
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 4, lineHeight: "24px" }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, mt: 2.5, lineHeight: "24px" }}>
               생성된 대화 가이드를 내 보관함에 저장하거나 친구에게 공유할 수 있습니다. 저장된 내용은 마이페이지에서
               언제든지 다시 확인할 수 있어요.
             </Typography>
@@ -283,9 +284,9 @@ function ResultContent() {
               size="md"
               fullWidth
               onClick={() => router.push("/post/mypage")}
-              leadingIcon="/assets/icons/mypage_icon.svg"
               sx={{ height: 52, fontSize: "0.95rem", mb: 1.5 }}
             >
+              <Box component="img" src="/assets/icons/mypage_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
               마이페이지로 이동하기
             </Button>
             <Button
@@ -293,9 +294,9 @@ function ResultContent() {
               size="md"
               fullWidth
               onClick={() => router.push("/post")}
-              leadingIcon="/assets/icons/community_icon.svg"
               sx={{ height: 52, fontSize: "0.95rem", mb: 2.5 }}
             >
+              <Box component="img" src="/assets/icons/community_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
               커뮤니티에 공유하기
             </Button>
             <Typography
