@@ -32,7 +32,8 @@ function ResultContent() {
   const [state, setState] = useState("loading"); // 'loading' | 'ready' | 'notfound'
   const [data, setData] = useState(null);
   const [saveState, setSaveState] = useState("idle"); // 'idle' | 'saving' | 'saved' | 'error'
-  const [isSaveModalOpen, setIsSaveModalOpen] = useState(true);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  //모달 창 확인이 필요할 시 임시로 false >> true로 변경 후 확인
 
   useEffect(() => {
     let cancelled = false;
