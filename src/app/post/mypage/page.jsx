@@ -196,7 +196,7 @@ export default function MyPage() {
     } catch (error) {
       console.error("회원정보 수정 실패", error);
       setProfileActionError(
-        "회원정보 수정에 실패했습니다. 입력 내용을 확인한 뒤 다시 시도해 주세요.",
+        error?.message || "회원정보 수정에 실패했습니다. 다시 시도해 주세요.",
       );
     } finally {
       setIsProfileSaving(false);
