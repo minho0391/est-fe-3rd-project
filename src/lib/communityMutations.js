@@ -240,3 +240,65 @@ export const deleteSavedContent = async id => {
   const { error } = await db.from("saved_contents").delete().eq("id", id);
   if (error) throw error;
 };
+
+/**
+ * 프로필 사진 업로드.
+ *
+ * avatars 버킷의 {user_id}/ 폴더에 저장하고 profiles.avatar_url 을 갱신합니다.
+ * 버킷 자체가 2MB, 이미지 MIME 만 허용하도록 설정돼 있어 서버에서도 한 번 더 걸러집니다.
+ *
+ * @param {File} file 이미지 파일
+ * @returns {Promise<string>} 공개 URL
+ */
+export const uploadAvatar = async file => {
+  const db = supabase();
+  const user = await requireUser(db);
+
+  if (!file.type.startsWith("image/")) {
+    throw new Error("이미지 파일만 올릴 수 있습니다.");
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    throw new Error("2MB 이하 이미지만 올릴 수 있습니다.");
+  }
+
+  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+  const path = `${user.id}/avatar.${ext}`;
+
+  const { error: uploadError } = await db.storage
+    .from("avatars")
+    .upload(path, file, { upsert: true, cacheControl: "3600" });
+
+  if (uploadError) throw uploadError;
+
+  const {
+    data: { publicUrl },
+  } = db.storage.from("avatars").getPublicUrl(path);
+
+  // 같은 경로에 덮어쓰므로 캐시 무효화용 쿼리스트링을 붙입니다.
+  const url = `${publicUrl}?v=${Date.now()}`;
+
+  const { error: updateError } = await db
+    .from("profiles")
+    .update({ avatar_url: url })
+    .eq("id", user.id);
+
+  if (updateError) throw updateError;
+
+  return url;
+};
+
+/** 프로필 사진 삭제 (기본 아바타로 되돌리기) */
+export const removeAvatar = async () => {
+  const db = supabase();
+  const user = await requireUser(db);
+
+  const { data: files } = await db.storage.from("avatars").list(user.id);
+
+  if (files?.length) {
+    await db.storage.from("avatars").remove(files.map(f => `${user.id}/${f.name}`));
+  }
+
+  const { error } = await db.from("profiles").update({ avatar_url: null }).eq("id", user.id);
+  if (error) throw error;
+};

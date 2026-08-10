@@ -22,6 +22,7 @@ export default function CardContentResult({ content, onClose, onNext }) {
       open
       onClose={onClose}
       aria-label="뽑힌 카드"
+      transitionDuration={80}
       slotProps={{
         backdrop: { sx: { bgcolor: "rgba(0, 0, 0, 0.7)" } },
         paper: {
