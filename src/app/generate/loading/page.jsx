@@ -64,7 +64,8 @@ function LoadingContent() {
           }
         }, 1000);
       })
-      .catch(() => {
+      .catch(err => {
+        console.error("generate 실패:", err);
         clearInterval(progressTimer);
         setStatus("error");
       });

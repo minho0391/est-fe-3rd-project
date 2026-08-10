@@ -67,13 +67,7 @@ function ResultContent() {
   }, [id]);
 
   const handleRegenerate = () => {
-    const lastPayload = sessionStorage.getItem("generate-last-payload");
-    if (!lastPayload) {
-      router.push("/generate");
-      return;
-    }
-    sessionStorage.setItem("generate-payload", lastPayload);
-    router.push("/generate/loading");
+    router.push("/generate");
   };
 
   // 결과 카드 전체(최대 3개)를 순회하며 저장. results[].id 가 없으면
@@ -154,10 +148,10 @@ function ResultContent() {
         AI 분석 결과
       </Box>
 
-      <Typography variant="h2" color="text.primary" mb={1.5}>
+      <Typography variant="h2" color="text.primary" sx={{ mb: 1.5 }}>
         {title}
       </Typography>
-      <Typography variant="body1" color="text.secondary" mb={5}>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 5 }}>
         AI가 당신의 상황에 맞춰 만든 대화 가이드예요.
       </Typography>
 
