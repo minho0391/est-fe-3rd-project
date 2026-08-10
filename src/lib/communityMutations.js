@@ -29,26 +29,17 @@ const toPlainText = html =>
 
 // 게시판 이름 → board_id
 const resolveBoardId = async (db, boardName) => {
-  const { data } = await db
-    .from("boards")
-    .select("id, name")
-    .eq("name", boardName)
-    .single();
+  const { data } = await db.from("boards").select("id, name").eq("name", boardName).single();
   if (!data) throw new Error(`없는 게시판입니다: ${boardName}`);
   return data.id;
 };
 
 // 태그 이름 배열 → tag_id 배열 (없으면 생성)
 const resolveTagIds = async (db, tagNames = []) => {
-  const names = [
-    ...new Set(tagNames.map(t => String(t).trim()).filter(Boolean)),
-  ];
+  const names = [...new Set(tagNames.map(t => String(t).trim()).filter(Boolean))];
   if (names.length === 0) return [];
 
-  const { data: existing } = await db
-    .from("tags")
-    .select("id, name")
-    .in("name", names);
+  const { data: existing } = await db.from("tags").select("id, name").in("name", names);
 
   const found = new Map((existing ?? []).map(t => [t.name, t.id]));
   const missing = names.filter(n => !found.has(n));
@@ -117,10 +108,8 @@ export const createPost = async ({
       description: description.trim() || null,
       content_html: content,
       content_text: toPlainText(content),
-      is_ai_generated: isAiGenerated,
       saved_content_id: savedContentId,
-      shared_content:
-        sharedContent ?? (isAiGenerated ? { source: "ai" } : null),
+      shared_content: sharedContent ?? (isAiGenerated ? { source: "ai" } : null),
       is_ai_generated: Boolean(isAiGenerated),
       status: "published",
     })
@@ -135,10 +124,7 @@ export const createPost = async ({
 };
 
 /** 게시글 수정 (본인 글만 — RLS가 막습니다) */
-export const updatePost = async (
-  postId,
-  { board, title, description, content, tags },
-) => {
+export const updatePost = async (postId, { board, title, description, content, tags }) => {
   const db = supabase();
   await requireUser(db);
 
@@ -184,9 +170,7 @@ export const createComment = async (postId, content, parentId = null) => {
       parent_id: parentId,
       content: content.trim(),
     })
-    .select(
-      "id, post_id, author_id, content, created_at, profiles ( nickname, avatar_url )",
-    )
+    .select("id, post_id, author_id, content, created_at, profiles ( nickname, avatar_url )")
     .single();
 
   if (error) throw error;
@@ -313,14 +297,9 @@ export const removeAvatar = async () => {
   const { data: files } = await db.storage.from("avatars").list(user.id);
 
   if (files?.length) {
-    await db.storage
-      .from("avatars")
-      .remove(files.map(f => `${user.id}/${f.name}`));
+    await db.storage.from("avatars").remove(files.map(f => `${user.id}/${f.name}`));
   }
 
-  const { error } = await db
-    .from("profiles")
-    .update({ avatar_url: null })
-    .eq("id", user.id);
+  const { error } = await db.from("profiles").update({ avatar_url: null }).eq("id", user.id);
   if (error) throw error;
 };
