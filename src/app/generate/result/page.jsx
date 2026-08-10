@@ -109,7 +109,7 @@ function ResultContent() {
     return (
       <Box sx={{ textAlign: "center", py: 12 }}>
         <Typography variant="h4" mb={2}>
-          결과를 찾을 수 없습니다
+          결과를 찾을 수 없습니다.
         </Typography>
         <Typography variant="body1" color="text.secondary" mb={4}>
           링크가 만료되었거나 접근 권한이 없는 결과입니다.
@@ -282,7 +282,7 @@ function ResultContent() {
               variant="primary"
               size="md"
               fullWidth
-              onClick={() => router.push("/mypage")}
+              onClick={() => router.push("/post/mypage")}
               leadingIcon="/assets/icons/mypage_icon.svg"
               sx={{ height: 52, fontSize: "0.95rem", mb: 1.5 }}
             >
@@ -292,7 +292,7 @@ function ResultContent() {
               variant="tertiary"
               size="md"
               fullWidth
-              onClick={() => router.push("/community")}
+              onClick={() => router.push("/post")}
               leadingIcon="/assets/icons/community_icon.svg"
               sx={{ height: 52, fontSize: "0.95rem", mb: 2.5 }}
             >
