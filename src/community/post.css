@@ -1463,16 +1463,10 @@
   box-shadow: 0 0 0 4px var(--primary-soft);
 }
 
-.community-scope .write-aiModal-followUp,
 .community-scope .write-aiModal-error {
   padding: 16px;
   border-radius: 16px;
   line-height: 24px;
-}
-
-.community-scope .write-aiModal-followUp {
-  background: var(--primary-soft);
-  color: var(--primary);
 }
 
 .community-scope .write-aiModal-error {
