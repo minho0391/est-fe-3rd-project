@@ -35,12 +35,15 @@ function LoadingContent() {
       });
     }, 300);
 
-    // ?forceError=true 로 접속하면 에러 화면 확인용으로 바로 실패 처리
     const raw = sessionStorage.getItem("generate-payload");
     const payload = raw ? JSON.parse(raw) : null;
 
+    // 개발 환경(development)에서만 ?forceError=true 조건 동작
+    const isDev = process.env.NODE_ENV === "development";
+    const isForcedError = isDev && searchParams.get("forceError") === "true";
+
     const run =
-      searchParams.get("forceError") === "true" || !payload
+      isForcedError || !payload
         ? Promise.reject(new Error(payload ? "강제 에러 테스트" : "생성 조건이 없습니다. 다시 시도해주세요."))
         : generateGuide(payload);
 
