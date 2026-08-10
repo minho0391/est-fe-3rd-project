@@ -11,7 +11,7 @@ import Box from "@mui/material/Box";
 import { useTheme } from "@mui/material/styles";
 
 import { styles } from "./_components/styles";
-import { mockGenerateGuide } from "@/lib/mockGenerateGuide";
+import { generateGuide } from "@/lib/generateApi";
 import LoadingView from "./_components/LoadingView";
 import ErrorView from "./_components/ErrorView";
 
@@ -29,18 +29,40 @@ function LoadingContent() {
 
     const progressTimer = setInterval(() => {
       setProgress(prev => {
+        // 실제 응답은 10~20초(최대 60초) 걸리므로 95%까지 천천히 채운다.
         if (prev >= 95) return prev;
-        return prev + (Math.random() * 3 + 2);
+        return prev + (Math.random() * 1.5 + 0.5);
       });
-    }, 100);
+    }, 300);
 
-    mockGenerateGuide(searchParams)
-      .then(() => {
+    // ?forceError=true 로 접속하면 에러 화면 확인용으로 바로 실패 처리
+    const raw = sessionStorage.getItem("generate-payload");
+    const payload = raw ? JSON.parse(raw) : null;
+
+    const run =
+      searchParams.get("forceError") === "true" || !payload
+        ? Promise.reject(new Error(payload ? "강제 에러 테스트" : "생성 조건이 없습니다. 다시 시도해주세요."))
+        : generateGuide(payload);
+
+    run
+      .then(data => {
         clearInterval(progressTimer);
         setProgress(100);
         setTimeout(() => {
-          router.push(`/generate/result?${searchParams.toString()}`);
-        }, 2000);
+          // "다른 주제 생성하기"(재생성)가 같은 조건으로 다시 호출할 수 있도록 보관
+          if (payload) sessionStorage.setItem("generate-last-payload", JSON.stringify(payload));
+
+          if (data.generationId) {
+            // 로그인 사용자: DB에 저장됨 → id로 결과 페이지 진입 (새로고침해도 안전)
+            sessionStorage.removeItem("generate-payload");
+            router.push(`/generate/result?id=${data.generationId}`);
+          } else {
+            // 비로그인 사용자: 저장 안 됨 → 세션에 결과를 그대로 담아 전달
+            sessionStorage.setItem("generate-result", JSON.stringify(data));
+            sessionStorage.removeItem("generate-payload");
+            router.push("/generate/result");
+          }
+        }, 1000);
       })
       .catch(() => {
         clearInterval(progressTimer);
