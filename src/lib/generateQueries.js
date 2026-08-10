@@ -1,8 +1,11 @@
 /**
  * 대화 생성 결과 조회 함수.
  *
- * /api/generate 가 저장한 generations / generation_items 를 읽습니다.
+ * supabase/functions/generate 가 저장한 generations / generation_items 를 읽습니다.
  * RLS 상 본인 생성물만 조회됩니다.
+ *
+ * 반환 형태는 generate 함수의 응답과 동일하게 맞춥니다:
+ * { source, saved, generationId, meta, results }
  */
 
 import { createClient } from "@/utils/supabase/client";
@@ -17,39 +20,63 @@ const toDateLabel = iso => {
   return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}`;
 };
 
-// DB 행 → /api/generate 응답과 같은 모양
+// generation_items 행 → generate 함수 응답의 results[] 항목과 같은 모양
 const mapItem = row => ({
   id: row.id,
   position: row.position,
   title: row.title,
   scripts: row.scripts ?? [],
   tips: row.tips ?? [],
+  extras: row.extras ?? {},
 });
+
+// options 테이블을 읽어 "코드 → 라벨" 조회 함수를 만든다.
+// (generate 함수의 labelOf 와 동일한 로직)
+const buildLabelOf = async db => {
+  const { data: options } = await db.from("options").select("category, code, label");
+  return (category, code) =>
+    options?.find(o => o.category === category && o.code === code)?.label ?? null;
+};
+
+// generations 행 + labelOf → meta ({ situation, format, level, mood })
+const buildMeta = (row, labelOf) => {
+  const cond = row.conditions ?? {};
+  return {
+    situation: labelOf("situation", cond.situation) ?? "모임",
+    format: labelOf("format", row.format_code) ?? row.format_code,
+    level: cond.level ?? 1,
+    mood: labelOf("mood", cond.mood),
+  };
+};
 
 /**
  * 생성 결과 단건 조회.
  *
  * 결과 페이지에서 /generate/result?id=xxx 로 진입했을 때 사용합니다.
- * 반환 형태가 /api/generate 응답과 같아서 화면 코드를 공유할 수 있습니다.
+ * 반환 형태가 generate 함수 응답과 같아서 화면 코드를 공유할 수 있습니다.
  *
- * @param {string} generationId uuid
+ * @param {string|number} generationId
  * @returns {Promise<object|null>} 없거나 권한이 없으면 null
  */
 export const getGenerationById = async generationId => {
   if (!generationId) return null;
 
-  const { data } = await supabase()
+  const db = supabase();
+
+  const { data } = await db
     .from("generations")
     .select(
       `
-      id, format_code, conditions, custom_input, status, source, created_at,
-      generation_items ( id, position, title, scripts, tips )
+      id, format_code, conditions, status, source, created_at,
+      generation_items ( id, position, title, scripts, tips, extras )
     `,
     )
     .eq("id", generationId)
     .single();
 
   if (!data) return null;
+
+  const labelOf = await buildLabelOf(db);
 
   const items = (data.generation_items ?? [])
     .slice()
@@ -58,10 +85,9 @@ export const getGenerationById = async generationId => {
 
   return {
     source: data.source ?? "ai",
+    saved: true,
     generationId: data.id,
-    conditions: data.conditions ?? {},
-    formatCode: data.format_code,
-    customInput: data.custom_input ?? "",
+    meta: buildMeta(data, labelOf),
     status: data.status,
     createdAt: toDateLabel(data.created_at),
     results: items,
@@ -87,8 +113,8 @@ export const getMyGenerations = async (limit = 10) => {
     .from("generations")
     .select(
       `
-      id, format_code, conditions, custom_input, created_at,
-      generation_items ( id, position, title, scripts, tips )
+      id, format_code, conditions, created_at,
+      generation_items ( id, position, title, scripts, tips, extras )
     `,
     )
     .eq("user_id", user.id)
@@ -96,11 +122,13 @@ export const getMyGenerations = async (limit = 10) => {
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  return (data ?? []).map(row => ({
+  if (!data?.length) return [];
+
+  const labelOf = await buildLabelOf(db);
+
+  return data.map(row => ({
     generationId: row.id,
-    formatCode: row.format_code,
-    conditions: row.conditions ?? {},
-    customInput: row.custom_input ?? "",
+    meta: buildMeta(row, labelOf),
     createdAt: toDateLabel(row.created_at),
     results: (row.generation_items ?? [])
       .slice()
@@ -113,12 +141,18 @@ export const getMyGenerations = async (limit = 10) => {
  * 생성 결과 중 하나를 보관함에 저장.
  *
  * 결과 페이지의 "가이드 저장하기" 버튼에서 호출합니다.
+ * generate 함수 응답의 results[].id (generation_items.id) 를 넘겨야 합니다.
+ * 비로그인 사용자는 id가 없으니(=null) 버튼을 숨기거나 로그인 유도로 처리하세요.
  *
- * @param {string} generationItemId 저장할 항목 id (results[].id)
+ * @param {number} generationItemId 저장할 항목 id (results[].id)
  * @param {string} [memo]
  * @returns {Promise<string>} saved_contents id
  */
 export const saveGenerationItem = async (generationItemId, memo = null) => {
+  if (!generationItemId) {
+    throw new Error("저장할 항목 id가 없습니다. (비로그인 상태로 생성된 결과일 수 있습니다)");
+  }
+
   const db = supabase();
 
   const {
@@ -130,7 +164,7 @@ export const saveGenerationItem = async (generationItemId, memo = null) => {
   // 저장할 항목과 그 생성 조건을 함께 읽습니다.
   const { data: item, error: itemError } = await db
     .from("generation_items")
-    .select("id, title, scripts, tips, generations ( format_code, conditions )")
+    .select("id, title, scripts, tips, extras, generations ( format_code, conditions )")
     .eq("id", generationItemId)
     .single();
 

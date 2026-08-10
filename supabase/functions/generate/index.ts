@@ -195,16 +195,26 @@ export default {
     }
 
     // 7-1. 생성 이력 저장 (로그인 사용자만, 실패해도 화면은 유지)
+    //      generationId / 결과별 item id를 함께 돌려줘야 프론트의
+    //      "가이드 저장하기"(saveGenerationItem)가 쓸 id를 가질 수 있다.
+    type SaveResult = {
+      saved: boolean;
+      generationId: number | null;
+      itemIds: (number | null)[];
+    };
+
     async function saveGeneration(params: {
       presetId: number | null;
       conditions: Record<string, unknown>;
       source: string;
       errorCode: string | null;
       results: ResultItem[];
-    }): Promise<boolean> {
+    }): Promise<SaveResult> {
+      const empty: SaveResult = { saved: false, generationId: null, itemIds: [] };
+
       try {
         const { data: { user } } = await userClient.auth.getUser();
-        if (!user) return false;
+        if (!user) return empty;
 
         const { data: gen, error: genError } = await userClient
           .from("generations")
@@ -224,10 +234,12 @@ export default {
 
         if (genError || !gen) {
           console.log("generations insert 실패:", genError);
-          return false;
+          return empty;
         }
 
-        if (params.results.length === 0) return true;
+        if (params.results.length === 0) {
+          return { saved: true, generationId: gen.id, itemIds: [] };
+        }
 
         const items = params.results.slice(0, 3).map((r, i) => ({
           generation_id: gen.id,
@@ -238,19 +250,25 @@ export default {
           extras: r.extras ?? {},
         }));
 
-        const { error: itemError } = await userClient
+        const { data: savedItems, error: itemError } = await userClient
           .from("generation_items")
-          .insert(items);
+          .insert(items)
+          .select("id, position")
+          .order("position");
 
         if (itemError) {
           console.log("generation_items insert 실패:", itemError);
-          return false;
+          return { saved: false, generationId: gen.id, itemIds: [] };
         }
 
-        return true;
+        return {
+          saved: true,
+          generationId: gen.id,
+          itemIds: (savedItems ?? []).map((row) => row.id),
+        };
       } catch (e) {
         console.log("saveGeneration 예외:", e);
-        return false;
+        return empty;
       }
     }
 
@@ -309,19 +327,21 @@ export default {
       // 폴백 응답 + 저장을 한 번에 처리
       const fallbackResponse = async (reason: string, extra = {}) => {
         const results = await getFallback();
-        const saved = await saveGeneration({
+        const { saved, generationId, itemIds } = await saveGeneration({
           presetId,
           conditions: snapshot,
           source: "fallback",
           errorCode: reason,
           results,
         });
+        const resultsWithId = results.map((r, i) => ({ ...r, id: itemIds[i] ?? null }));
         return jsonResponse({
           source: "fallback",
           reason,
           saved,
+          generationId,
           meta: { situation, format: formatLabel, level, mood },
-          results,
+          results: resultsWithId,
           ...extra,
         });
       };
@@ -406,19 +426,21 @@ export default {
       });
 
       // 17. 생성 이력 저장 후 결과 반환
-      const saved = await saveGeneration({
+      const { saved, generationId, itemIds } = await saveGeneration({
         presetId,
         conditions: snapshot,
         source: "ai",
         errorCode: null,
         results,
       });
+      const resultsWithId = results.map((r, i) => ({ ...r, id: itemIds[i] ?? null }));
 
       return jsonResponse({
         source: "ai",
         saved,
+        generationId,
         meta: { situation, format: formatLabel, level, mood },
-        results,
+        results: resultsWithId,
       });
     } catch (error) {
       // 18. 예상치 못한 오류 — 폴백으로 화면은 유지
