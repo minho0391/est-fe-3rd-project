@@ -15,7 +15,6 @@ import { fetchOptions } from "@/lib/generateOptions";
 // MUI Core Components
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import CardActionArea from "@mui/material/CardActionArea";
 import Avatar from "@mui/material/Avatar";
@@ -31,6 +30,8 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import { useTheme, alpha } from "@mui/material/styles";
 import { TextField } from "@mui/material";
+
+import { styles } from "./_components/styles";
 
 // 템플릿 카드 — id는 presets 테이블의 preset_code와 일치해야 합니다.
 const TEMPLATES = [
@@ -71,7 +72,7 @@ const LEVEL_OPTIONS = [
   { value: 3, label: "Lv.3 깊게" },
 ];
 
-// 탭 순서: 0 분위기, 1 관계, 2 대상 (DB에 없는 '나이' 축은 제거)
+// 탭 순서: 0 분위기, 1 관계, 2 대상
 const TABS = [
   { key: "mood", label: "원하는 대화 분위기" },
   { key: "relation", label: "관계" },
@@ -88,7 +89,7 @@ export default function GeneratePage() {
   const [options, setOptions] = useState(EMPTY_OPTIONS);
   const [optionsLoading, setOptionsLoading] = useState(true);
 
-  // 직접 입력 폼 상태 — 값은 전부 DB 코드(code)를 저장합니다.
+  // 직접 입력 폼 상태 — 값은 DB 코드(code) 또는 사용자 자유 작성 텍스트입니다.
   const [selectedSituation, setSelectedSituation] = useState("");
   const [selectedFormat, setSelectedFormat] = useState("");
   const [selectedMood, setSelectedMood] = useState("");
@@ -105,6 +106,7 @@ export default function GeneratePage() {
   const [modalFormat, setModalFormat] = useState("");
   const [modalLevel, setModalLevel] = useState(1);
 
+  // 옵션 데이터 로드
   useEffect(() => {
     let cancelled = false;
     fetchOptions()
@@ -117,6 +119,29 @@ export default function GeneratePage() {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  // 뒤로가기 또는 이전 생성 조건 복원 로직
+  useEffect(() => {
+    const rawPayload = sessionStorage.getItem("generate-payload") || sessionStorage.getItem("generate-last-payload");
+
+    if (rawPayload) {
+      try {
+        const payload = JSON.parse(rawPayload);
+        if (payload.format_code) setSelectedFormat(payload.format_code);
+        if (payload.level) setLevel(payload.level);
+
+        if (payload.conditions) {
+          if (payload.conditions.situation) setSelectedSituation(payload.conditions.situation);
+          if (payload.conditions.custom_input) setCustomInput(payload.conditions.custom_input); // 복원 추가
+          if (payload.conditions.mood) setSelectedMood(payload.conditions.mood);
+          if (payload.conditions.relation) setSelectedRelation(payload.conditions.relation);
+          if (payload.conditions.target) setSelectedTarget(payload.conditions.target);
+        }
+      } catch (err) {
+        console.error("저장된 폼 조건을 읽어오는 중 에러 발생:", err);
+      }
+    }
   }, []);
 
   const goToLoading = payload => {
@@ -156,20 +181,28 @@ export default function GeneratePage() {
     target: [selectedTarget, setSelectedTarget],
   };
 
+  // 현재 탭(분위기/관계/대상)에 해당하는 선택값/옵션을 계산
+  const currentTabKey = TABS[tabValue].key;
+  const [currentTabValue, setCurrentTabValue] = tabState[currentTabKey];
+  const currentTabOptions = options[currentTabKey];
+
   const handleGenerate = () => {
-    if (!selectedSituation) {
-      alert("상황을 선택해주세요.");
+    // 선택된 칩이 있거나 직접 입력(customInput) 값이 있는지 확인
+    if (!selectedSituation && !customInput.trim()) {
+      alert("상황을 선택하거나 직접 입력해주세요.");
       return;
     }
     if (!selectedFormat) {
       alert("형식을 선택해주세요.");
       return;
     }
+
     goToLoading({
       format_code: selectedFormat,
       level,
       conditions: {
-        situation: selectedSituation,
+        situation: selectedSituation || undefined,
+        custom_input: customInput || undefined, // 추후 custom_input 전달
         mood: selectedMood || undefined,
         relation: selectedRelation || undefined,
         target: selectedTarget || undefined,
@@ -177,14 +210,14 @@ export default function GeneratePage() {
     });
   };
 
-  const labelOf = (category, code) => options[category]?.find(o => o.code === code)?.label ?? "";
+  const labelOf = (category, code) => options[category]?.find(o => o.code === code)?.label ?? code;
 
   return (
     <>
       <Header />
       <Box sx={{ bgcolor: "background.default", minHeight: "100vh", py: 8, px: 2 }}>
         <Box sx={{ maxWidth: layout.maxWidth, mx: "auto", px: { xs: 2, md: `${layout.gutter}px` } }}>
-          <Box sx={{ textAlign: "center", mb: 6 }}>
+          <Box sx={styles.page}>
             <Typography variant="h2" color="text.primary" mb={1.5}>
               어떤 대화가 필요하신가요?
             </Typography>
@@ -194,89 +227,43 @@ export default function GeneratePage() {
           </Box>
 
           {/* 템플릿 카드 그리드 */}
-          <Grid container spacing={3} sx={{ mb: 6, justifyContent: "center", alignItems: "stretch" }}>
-            {TEMPLATES.map(tpl => {
-              return (
-                <Box
-                  key={tpl.id}
-                  sx={{
-                    width: { lg: "calc(25% - 72px)", sm: "calc(50% - 72px)", xs: "calc(100% - 72px)" },
-                    m: 1.5,
-                  }}
-                >
-                  <Card
-                    elevation={0}
-                    sx={{
-                      height: "100%",
-                      borderRadius: 3,
-                      bgcolor: "background.paper",
-                      border: "1px solid",
-                      borderColor: "divider",
-                      transition: "all 0.2s ease-in-out",
-                      "&:hover": {
-                        boxShadow: "0 8px 24px rgba(0,0,0,0.06)",
-                        transform: "translateY(-3px)",
-                      },
-                    }}
-                  >
-                    <CardActionArea
-                      onClick={() => handleCardClick(tpl)}
+          <Box sx={styles.templateGrid}>
+            {TEMPLATES.map(tpl => (
+              <Box key={tpl.id} sx={styles.templateCardWrap}>
+                <Card elevation={0} sx={styles.templateCard}>
+                  <CardActionArea onClick={() => handleCardClick(tpl)} sx={styles.templateCardAction}>
+                    <Avatar
                       sx={{
-                        height: "100%",
-                        p: 3,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "flex-start",
-                        justifyContent: "flex-start",
+                        ...styles.templateIcon,
+                        bgcolor: alpha(theme.palette[tpl.iconColor.split(".")[0]].main, 0.12),
+                        color: tpl.iconColor,
                       }}
                     >
-                      <Avatar
-                        sx={{
-                          bgcolor: alpha(theme.palette[tpl.iconColor.split(".")[0]].main, 0.12),
-                          color: tpl.iconColor,
-                          borderRadius: 2.5,
-                          mb: 2,
-                          width: 48,
-                          height: 48,
-                        }}
-                      >
-                        <Box component="img" src={tpl.icon} alt="" sx={{ width: 24, height: 24 }} />
-                      </Avatar>
-                      <Typography variant="h5" mb={1}>
-                        {tpl.title}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "keep-all" }}>
-                        {tpl.desc}
-                      </Typography>
-                    </CardActionArea>
-                  </Card>
-                </Box>
-              );
-            })}
-          </Grid>
+                      <Box component="img" src={tpl.icon} alt="" sx={styles.icon24} />
+                    </Avatar>
+                    <Typography variant="h5" mb={1}>
+                      {tpl.title}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "keep-all" }}>
+                      {tpl.desc}
+                    </Typography>
+                  </CardActionArea>
+                </Card>
+              </Box>
+            ))}
+          </Box>
 
           {/* 직접 입력 Form 섹션 */}
-          <Paper
-            elevation={0}
-            sx={{
-              maxWidth: 800,
-              mx: "auto",
-              p: { xs: 3, sm: 5 },
-              borderRadius: 4,
-              border: "1px solid",
-              borderColor: "divider",
-              bgcolor: "background.paper",
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, color: "primary.main", mb: 3 }}>
-              <Box component="img" src="/assets/icons/editnote_icon.svg" alt="" sx={{ width: 24, height: 24 }} />
+          <Paper elevation={0} sx={styles.formPaper}>
+            <Box sx={styles.formHeader}>
+              <Box component="img" src="/assets/icons/editnote_icon.svg" alt="" sx={styles.icon24} />
               <Typography variant="h4" color="primary.main">
                 직접 입력하여 생성하기
               </Typography>
             </Box>
 
             {/* 1. 상황 선택 (필수) */}
-            <Box sx={{ mb: 3 }}>
+            <Box sx={styles.fieldGroup}>
               <Typography variant="body2" fontWeight={600} color="text.primary" mb={1} component="div">
                 어떤 상황인가요?
               </Typography>
@@ -285,30 +272,24 @@ export default function GeneratePage() {
                 multiline
                 rows={4}
                 placeholder="예: 오랜만에 만난 초등학교 친구와 카페에서 어색하지 않게 대화하고 싶어요."
-                // value={situation}
-                // onChange={e => setSituation(e.target.value)}
-                sx={{
-                  mt: 3,
-                  mb: 3,
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2.5,
-                    backgroundColor: "grey.50",
-                    "& fieldset": { borderColor: "divider" },
-                    "&:hover fieldset": { borderColor: "primary.main" },
-                  },
-                }}
+                value={selectedSituation}
+                onChange={e => setSelectedSituation(e.target.value)}
+                sx={styles.textField}
               />
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                {options.situation.map(item => (
-                  <Chip
-                    key={item.code}
-                    label={item.label}
-                    onClick={() => setSelectedSituation(item.code)}
-                    variant={selectedSituation === item.code ? "filled" : "outlined"}
-                    color={selectedSituation === item.code ? "primary" : "default"}
-                    sx={{ borderRadius: 5, px: 1, py: 2 }}
-                  />
-                ))}
+              <Box sx={styles.chipRow}>
+                {options.situation.map(item => {
+                  const isSelected = selectedSituation === item.code || selectedSituation === item.label;
+                  return (
+                    <Chip
+                      key={item.code}
+                      label={item.label}
+                      onClick={() => setSelectedSituation(item.label)}
+                      variant={isSelected ? "filled" : "outlined"}
+                      color={isSelected ? "primary" : "default"}
+                      sx={styles.chip}
+                    />
+                  );
+                })}
                 {!optionsLoading && options.situation.length === 0 && (
                   <Typography variant="body2" color="text.secondary">
                     선택지를 불러오지 못했습니다.
@@ -318,11 +299,11 @@ export default function GeneratePage() {
             </Box>
 
             {/* 2. 형식 선택 (필수) */}
-            <Box sx={{ mb: 3 }}>
+            <Box sx={styles.fieldGroup}>
               <Typography variant="body2" fontWeight={600} color="text.primary" mb={1} component="div">
                 어떤 형식으로 만들까요?
               </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+              <Box sx={styles.chipRow}>
                 {options.format.map(item => (
                   <Chip
                     key={item.code}
@@ -330,7 +311,7 @@ export default function GeneratePage() {
                     onClick={() => setSelectedFormat(item.code)}
                     variant={selectedFormat === item.code ? "filled" : "outlined"}
                     color={selectedFormat === item.code ? "primary" : "default"}
-                    sx={{ mt: 1, borderRadius: 5, px: 1, py: 2 }}
+                    sx={styles.chip}
                   />
                 ))}
               </Box>
@@ -346,33 +327,29 @@ export default function GeneratePage() {
             </Box>
 
             {/* 4. 옵션 선택 버튼 */}
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2.5 }}>
-              {(() => {
-                const key = TABS[tabValue].key;
-                const [value, setValue] = tabState[key];
-                return options[key].map(item => (
-                  <Chip
-                    key={item.code}
-                    label={item.label}
-                    onClick={() => setValue(item.code)}
-                    variant={value === item.code ? "filled" : "outlined"}
-                    color={value === item.code ? "primary" : "default"}
-                    sx={{ borderRadius: 5, px: 1, py: 2 }}
-                  />
-                ));
-              })()}
+            <Box sx={{ ...styles.chipRow, mb: 2.5 }}>
+              {currentTabOptions.map(item => (
+                <Chip
+                  key={item.code}
+                  label={item.label}
+                  onClick={() => setCurrentTabValue(item.code)}
+                  variant={currentTabValue === item.code ? "filled" : "outlined"}
+                  color={currentTabValue === item.code ? "primary" : "default"}
+                  sx={styles.chip}
+                />
+              ))}
             </Box>
 
             {/* 5. 선택된 태그 디스플레이 영역 */}
             {(selectedMood || selectedRelation || selectedTarget) && (
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 3 }}>
+              <Box sx={{ ...styles.chipRow, mb: 3 }}>
                 {selectedMood && (
                   <Chip
                     label={labelOf("mood", selectedMood)}
                     onDelete={() => removeTag("mood")}
                     color="primary"
                     variant="outlined"
-                    sx={{ borderRadius: 5, bgcolor: theme.palette.momentalk.presetCard, fontWeight: 600 }}
+                    sx={{ ...styles.selectedTag, bgcolor: theme.palette.momentalk.presetCard }}
                   />
                 )}
                 {selectedRelation && (
@@ -381,7 +358,7 @@ export default function GeneratePage() {
                     onDelete={() => removeTag("relation")}
                     color="primary"
                     variant="outlined"
-                    sx={{ borderRadius: 5, bgcolor: theme.palette.momentalk.presetCard, fontWeight: 600 }}
+                    sx={{ ...styles.selectedTag, bgcolor: theme.palette.momentalk.presetCard }}
                   />
                 )}
                 {selectedTarget && (
@@ -390,18 +367,18 @@ export default function GeneratePage() {
                     onDelete={() => removeTag("target")}
                     color="primary"
                     variant="outlined"
-                    sx={{ borderRadius: 5, bgcolor: theme.palette.momentalk.presetCard, fontWeight: 600 }}
+                    sx={{ ...styles.selectedTag, bgcolor: theme.palette.momentalk.presetCard }}
                   />
                 )}
               </Box>
             )}
 
             {/* 6. 레벨(대화 깊이) 선택 */}
-            <Box sx={{ mb: 3.5 }}>
+            <Box sx={styles.fieldGroup}>
               <Typography variant="body2" fontWeight={600} color="text.primary" mb={1} component="div">
                 대화 깊이
               </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+              <Box sx={styles.chipRow}>
                 {LEVEL_OPTIONS.map(lv => (
                   <Chip
                     key={lv.value}
@@ -409,42 +386,29 @@ export default function GeneratePage() {
                     onClick={() => setLevel(lv.value)}
                     variant={level === lv.value ? "filled" : "outlined"}
                     color={level === lv.value ? "primary" : "default"}
-                    sx={{ borderRadius: 5, px: 1, py: 2 }}
+                    sx={styles.chip}
                   />
                 ))}
               </Box>
             </Box>
 
             {/* 7. 안내 메시지 박스 */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: 2.5,
-                mb: 3.5,
-                borderRadius: 3,
-                bgcolor: theme.palette.momentalk.typeCard,
-                display: "flex",
-                alignItems: "center",
-                gap: 2,
-              }}
-            >
-              <Avatar sx={{ bgcolor: "background.paper", color: "primary.main", width: 40, height: 40 }}>
-                <Box component="img" src="/assets/icons/smarttoy_icon.svg" alt="" sx={{ width: 24, height: 24 }} />
+            <Paper elevation={0} sx={{ ...styles.infoBox, bgcolor: theme.palette.momentalk.typeCard }}>
+              <Avatar sx={styles.infoAvatar}>
+                <Box component="img" src="/assets/icons/smarttoy_icon.svg" alt="" sx={styles.icon24} />
               </Avatar>
               <Typography variant="body2" color="text.primary">
                 AI가 당신의 상황을 분석하여 최적의 대화 가이드를 구성할 준비를 마쳤습니다.
               </Typography>
             </Paper>
 
-            {/* 8. 생성 버튼 (스타일 가이드 Button 컴포넌트) */}
+            {/* 8. 생성 버튼 */}
             <Button
               variant="primary"
               size="md"
               fullWidth
               onClick={handleGenerate}
-              trailingIcon={
-                <Box component="img" src="/assets/icons/bolt_icon.svg" alt="" sx={{ width: 24, height: 24 }} />
-              }
+              trailingIcon={<Box component="img" src="/assets/icons/bolt_icon.svg" alt="" sx={styles.icon24} />}
               sx={{ fontSize: "1rem" }}
             >
               AI 대화 생성하기
@@ -453,25 +417,11 @@ export default function GeneratePage() {
 
           {/* 템플릿 클릭 시 형식/레벨 선택 모달 */}
           <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-            <Box
-              sx={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                width: { xs: "90%", sm: 420 },
-                bgcolor: "background.paper",
-                borderRadius: 4,
-                boxShadow: 24,
-                p: 3.5,
-                border: "1px solid",
-                borderColor: theme.palette.momentalk.modalBorder,
-              }}
-            >
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+            <Box sx={{ ...styles.modalBox, borderColor: theme.palette.momentalk.modalBorder }}>
+              <Box sx={styles.modalHeader}>
                 <Typography variant="h5">[{activeTemplate?.title}] 형식 선택</Typography>
                 <IconButton size="small" onClick={() => setIsModalOpen(false)}>
-                  <Box component="img" src="/assets/icons/close_icon.svg" alt="" sx={{ width: 24, height: 24 }} />
+                  <Box component="img" src="/assets/icons/close_icon.svg" alt="" sx={styles.icon24} />
                 </IconButton>
               </Box>
 
@@ -487,11 +437,9 @@ export default function GeneratePage() {
                       <ListItemButton
                         onClick={() => setModalFormat(item.code)}
                         sx={{
-                          borderRadius: 2,
-                          border: "1px solid",
+                          ...styles.modalListItem,
                           borderColor: isSelected ? "primary.main" : "divider",
                           bgcolor: isSelected ? theme.palette.momentalk.presetCard : "transparent",
-                          py: 1.5,
                           "&:hover": {
                             borderColor: "primary.main",
                             bgcolor: isSelected ? theme.palette.momentalk.presetCard : "grey.50",
@@ -509,12 +457,7 @@ export default function GeneratePage() {
                           }}
                         />
                         {isSelected && (
-                          <Box
-                            component="img"
-                            src="/assets/icons/check_icon.svg"
-                            alt=""
-                            sx={{ width: 24, height: 24 }}
-                          />
+                          <Box component="img" src="/assets/icons/check_icon.svg" alt="" sx={styles.icon24} />
                         )}
                       </ListItemButton>
                     </ListItem>
@@ -526,7 +469,7 @@ export default function GeneratePage() {
               <Typography variant="body2" fontWeight={600} color="text.primary" mb={1}>
                 대화 깊이
               </Typography>
-              <Box sx={{ display: "flex", gap: 1, mb: 3 }}>
+              <Box sx={{ ...styles.chipRow, mb: 3 }}>
                 {LEVEL_OPTIONS.map(lv => (
                   <Chip
                     key={lv.value}
@@ -534,13 +477,13 @@ export default function GeneratePage() {
                     onClick={() => setModalLevel(lv.value)}
                     variant={modalLevel === lv.value ? "filled" : "outlined"}
                     color={modalLevel === lv.value ? "primary" : "default"}
-                    sx={{ borderRadius: 5 }}
+                    sx={styles.chip}
                   />
                 ))}
               </Box>
 
-              {/* 하단 버튼 (이전 / 전송) — 스타일 가이드 Button 컴포넌트 */}
-              <Box sx={{ display: "flex", gap: 1.5 }}>
+              {/* 하단 버튼 (이전 / 전송) */}
+              <Box sx={styles.modalActions}>
                 <Button variant="tertiary" size="modal" fullWidth onClick={() => setIsModalOpen(false)}>
                   이전
                 </Button>
