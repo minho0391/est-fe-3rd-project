@@ -117,6 +117,7 @@ export const createPost = async ({
       description: description.trim() || null,
       content_html: content,
       content_text: toPlainText(content),
+      is_ai_generated: isAiGenerated,
       saved_content_id: savedContentId,
       shared_content:
         sharedContent ?? (isAiGenerated ? { source: "ai" } : null),
