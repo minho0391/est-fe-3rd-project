@@ -38,13 +38,18 @@ const toDescription = (text, max = 60) => {
 };
 
 /**
- * posts 테이블에서 직접 보장되는 컬럼만 조회합니다.
- * 관계 테이블은 별도 조회하여 FK constraint 이름에 의존하지 않도록 합니다.
+ * 게시글 목록에 필요한 관계를 PostgREST embed로 한 번에 조회합니다.
+ * 목록 한 번을 그릴 때 posts / boards / profiles / post_tags / tags / post_likes를
+ * 각각 왕복하지 않도록 기존 조인 조회 방식으로 유지합니다.
  */
 const POST_SELECT = `
   id, board_id, author_id, title, description,
-  content_html, content_text, status,
-  view_count, like_count, comment_count, created_at
+  content_html, content_text, status, is_ai_generated,
+  view_count, like_count, comment_count, created_at,
+  boards ( id, code, name, is_notice ),
+  profiles ( id, nickname, role, avatar_url ),
+  post_tags ( tags ( id, name ) ),
+  post_likes ( user_id )
 `;
 
 const throwQueryError = (context, error) => {
@@ -59,127 +64,57 @@ const throwQueryError = (context, error) => {
   throw wrapped;
 };
 
-// 현재 사용자가 좋아요한 글 id 집합
-const fetchLikedIds = async (postIds = []) => {
-  const db = supabase();
-  const {
-    data: { user },
-    error: authError,
-  } = await db.auth.getUser();
+const getSingleRelation = relation =>
+  Array.isArray(relation) ? relation[0] : relation;
 
-  throwQueryError("로그인 세션 확인 실패", authError);
+/** Supabase 행을 기존 커뮤니티 UI 데이터 형태로 변환합니다. */
+const mapPost = (row, currentUserId = null) => {
+  const board = getSingleRelation(row.boards);
+  const profile = getSingleRelation(row.profiles);
+  const tags = (row.post_tags ?? [])
+    .map(link => getSingleRelation(link.tags)?.name)
+    .filter(Boolean);
 
-  if (!user || postIds.length === 0) return new Set();
-
-  const { data, error } = await db
-    .from("post_likes")
-    .select("post_id")
-    .eq("user_id", user.id)
-    .in("post_id", postIds);
-
-  throwQueryError("좋아요 정보 조회 실패", error);
-
-  return new Set((data ?? []).map(r => r.post_id));
+  return {
+    id: row.id,
+    isNotice: board?.is_notice === true,
+    board: board?.name ?? "",
+    title: row.title,
+    description: row.description ?? toDescription(row.content_text),
+    content: row.content_html,
+    authorId: row.author_id,
+    author: profile?.nickname ?? "탈퇴한 사용자",
+    authorRole: profile?.role === "admin" ? "관리자" : "정회원",
+    authorAvatarUrl: profile?.avatar_url ?? "",
+    createdAt: toDateLabel(row.created_at),
+    views: row.view_count ?? 0,
+    likes: row.like_count ?? 0,
+    commentsCount: row.comment_count ?? 0,
+    tags,
+    likedByCurrentUser:
+      Boolean(currentUserId) &&
+      (row.post_likes ?? []).some(like => like.user_id === currentUserId),
+    isAiGenerated: row.is_ai_generated === true,
+  };
 };
 
 /**
- * posts 기본 행에 boards / profiles / post_tags 정보를 별도 조회하여 합칩니다.
- * 이렇게 하면 PostgREST의 관계 constraint 이름이 달라도 게시글 목록 조회가 깨지지 않습니다.
+ * 좋아요 여부 표시는 보안 판정이 아니라 현재 UI 상태용이므로 로컬 세션을 사용합니다.
+ * 게시글/관계 데이터 자체는 POST_SELECT 한 번의 조회로 가져옵니다.
  */
-const hydratePosts = async rows => {
+const mapPosts = async rows => {
   if (!rows?.length) return [];
 
   const db = supabase();
-  const boardIds = [...new Set(rows.map(row => row.board_id).filter(Boolean))];
-  const authorIds = [
-    ...new Set(rows.map(row => row.author_id).filter(Boolean)),
-  ];
-  const postIds = rows.map(row => row.id);
+  const {
+    data: { session },
+  } = await db.auth.getSession();
+  const currentUserId = session?.user?.id ?? null;
 
-  const [
-    { data: boards, error: boardsError },
-    { data: profiles, error: profilesError },
-    { data: postTags, error: postTagsError },
-    likedIds,
-  ] = await Promise.all([
-    boardIds.length
-      ? db.from("boards").select("id, code, name").in("id", boardIds)
-      : Promise.resolve({ data: [], error: null }),
-    authorIds.length
-      ? db
-          .from("profiles")
-          .select("id, nickname, role, avatar_url")
-          .in("id", authorIds)
-      : Promise.resolve({ data: [], error: null }),
-    postIds.length
-      ? db.from("post_tags").select("post_id, tag_id").in("post_id", postIds)
-      : Promise.resolve({ data: [], error: null }),
-    fetchLikedIds(postIds),
-  ]);
-
-  throwQueryError("게시판 정보 조회 실패", boardsError);
-  throwQueryError("작성자 프로필 조회 실패", profilesError);
-  throwQueryError("게시글 태그 연결 조회 실패", postTagsError);
-
-  const tagIds = [
-    ...new Set((postTags ?? []).map(row => row.tag_id).filter(Boolean)),
-  ];
-
-  let tags = [];
-  if (tagIds.length > 0) {
-    const { data, error } = await db
-      .from("tags")
-      .select("id, name")
-      .in("id", tagIds);
-
-    throwQueryError("태그 정보 조회 실패", error);
-    tags = data ?? [];
-  }
-
-  const boardMap = new Map((boards ?? []).map(row => [row.id, row]));
-  const profileMap = new Map((profiles ?? []).map(row => [row.id, row]));
-  const tagMap = new Map(tags.map(row => [row.id, row.name]));
-  const tagsByPost = new Map();
-
-  for (const link of postTags ?? []) {
-    const tagName = tagMap.get(link.tag_id);
-    if (!tagName) continue;
-
-    const current = tagsByPost.get(link.post_id) ?? [];
-    current.push(tagName);
-    tagsByPost.set(link.post_id, current);
-  }
-
-  return rows.map(row => {
-    const board = boardMap.get(row.board_id);
-    const profile = profileMap.get(row.author_id);
-    const boardName = board?.name ?? "";
-
-    return {
-      id: row.id,
-      isNotice:
-        boardName === "공지사항" ||
-        boardName === "공지" ||
-        board?.code === "notice",
-      board: boardName,
-      title: row.title,
-      description: row.description ?? toDescription(row.content_text),
-      content: row.content_html,
-      authorId: row.author_id,
-      author: profile?.nickname ?? "탈퇴한 사용자",
-      authorRole: profile?.role === "admin" ? "관리자" : "정회원",
-      authorAvatarUrl: profile?.avatar_url ?? "",
-      createdAt: toDateLabel(row.created_at),
-      views: row.view_count ?? 0,
-      likes: row.like_count ?? 0,
-      commentsCount: row.comment_count ?? 0,
-      tags: tagsByPost.get(row.id) ?? [],
-      likedByCurrentUser: likedIds.has(row.id),
-    };
-  });
+  return rows.map(row => mapPost(row, currentUserId));
 };
 
-const withLikes = async rows => hydratePosts(rows);
+const withLikes = async rows => mapPosts(rows);
 
 /**
  * 목데이터와 동일한 최신순 비교 함수.
@@ -410,7 +345,7 @@ export const getCurrentUserProfile = async () => {
 export const getCommunityBoards = async () => {
   const { data, error } = await supabase()
     .from("boards")
-    .select("id, code, name")
+    .select("id, code, name, is_notice")
     .order("sort_order");
 
   throwQueryError("게시판 목록 조회 실패", error);
