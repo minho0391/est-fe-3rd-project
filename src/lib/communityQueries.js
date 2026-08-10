@@ -47,7 +47,7 @@ const POST_SELECT = `
   content_html, content_text, status, is_ai_generated,
   view_count, like_count, comment_count, created_at,
   boards ( id, code, name, is_notice ),
-  profiles ( id, nickname, role, avatar_url ),
+  profiles:profiles!posts_author_id_fkey ( id, nickname, role, avatar_url ),
   post_tags ( tags ( id, name ) ),
   post_likes ( user_id )
 `;
