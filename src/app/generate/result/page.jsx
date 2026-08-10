@@ -144,7 +144,7 @@ function ResultContent() {
           mb: 1.5,
         }}
       >
-        <Box component="img" src="/assets/icons/refresh_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
+        <Box component="img" src="/assets/icons/twinkle_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
         AI 분석 결과
       </Box>
 
@@ -198,7 +198,7 @@ function ResultContent() {
             size="md"
             onClick={handleRegenerate}
             leadingIcon={
-              <Box component="img" src="/assets/icons/refresh_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
+              <Box component="img" src="/assets/icons/result_re_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
             }
             sx={{ height: 48, fontSize: "0.9rem" }}
           >
@@ -211,9 +211,9 @@ function ResultContent() {
             disabled={saveState === "saving" || saveState === "saved"}
             leadingIcon={
               saveState === "saved" ? (
-                <Box component="img" src="/assets/icons/refresh_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
+                <Box component="img" src="/assets/icons/bookmark.svg" alt="" sx={{ width: 16, height: 16 }} />
               ) : (
-                <Box component="img" src="/assets/icons/refresh_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
+                <Box component="img" src="/assets/icons/bookmark.svg" alt="" sx={{ width: 16, height: 16 }} />
               )
             }
             sx={{ height: 48, fontSize: "0.9rem" }}
@@ -245,7 +245,7 @@ function ScriptsAndTips({ item, theme, tipsColumns = false }) {
             mb: 1,
           }}
         >
-          <Box component="img" src="/assets/icons/refresh_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
+          <Box component="img" src="/assets/icons/desc_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
           실제 추천 대화문
         </Box>
         {(item.scripts ?? []).map((script, i) => (
@@ -284,7 +284,7 @@ function ScriptsAndTips({ item, theme, tipsColumns = false }) {
               mb: 1.5,
             }}
           >
-            <Box component="img" src="/assets/icons/refresh_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
+            <Box component="img" src="/assets/icons/tip_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
             상황별 팁
           </Box>
           <Box
@@ -345,7 +345,7 @@ function TopicCard({ index, item, theme }) {
             height: 40,
           }}
         >
-          <Box component="img" src="/assets/icons/refresh_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
+          <Box component="img" src="/assets/icons/chat_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
         </Avatar>
         <Box>
           <Typography
@@ -399,7 +399,7 @@ function HighlightTopicCard({ item, theme }) {
           variant="rounded"
           sx={{ bgcolor: "rgba(255,255,255,0.15)", color: "#fff", borderRadius: 2, width: 44, height: 44, mb: 2 }}
         >
-          <Box component="img" src="/assets/icons/refresh_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
+          <Box component="img" src="/assets/icons/topic3_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
         </Avatar>
         <Typography variant="overline" fontWeight={700} sx={{ opacity: 0.85, letterSpacing: 0.5 }}>
           TOPIC 3
@@ -423,7 +423,7 @@ function HighlightTopicCard({ item, theme }) {
               mb: 1.5,
             }}
           >
-            <Box component="img" src="/assets/icons/refresh_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
+            <Box component="img" src="/assets/icons/desc_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
             실제 추천 대화문
           </Box>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
@@ -455,7 +455,7 @@ function HighlightTopicCard({ item, theme }) {
                 mb: 1.5,
               }}
             >
-              <Box component="img" src="/assets/icons/refresh_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
+              <Box component="img" src="/assets/icons/tip_icon.svg" alt="" sx={{ width: 16, height: 16 }} />
               상황별 팁
             </Box>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
