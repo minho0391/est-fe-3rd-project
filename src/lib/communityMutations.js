@@ -242,6 +242,34 @@ export const deleteSavedContent = async id => {
   if (error) throw error;
 };
 
+/** 회원 프로필 정보 수정 */
+export const updateCurrentUserProfile = async ({ nickname }) => {
+  const db = supabase();
+  const user = await requireUser(db);
+  const nextNickname = String(nickname ?? "").trim();
+
+  if (nextNickname.length < 2 || nextNickname.length > 20) {
+    throw new Error("닉네임은 2자 이상 20자 이하로 입력해 주세요.");
+  }
+
+  const { data, error } = await db
+    .from("profiles")
+    .update({ nickname: nextNickname })
+    .eq("id", user.id)
+    .select("id, nickname, avatar_url, role, created_at")
+    .single();
+
+  if (error) throw error;
+
+  // 헤더/다른 화면에서 auth metadata를 사용하는 경우에도 이름이 맞도록 동기화합니다.
+  const { error: authError } = await db.auth.updateUser({
+    data: { ...user.user_metadata, nickname: nextNickname },
+  });
+  if (authError) console.warn("인증 메타데이터 닉네임 동기화 실패:", authError);
+
+  return data;
+};
+
 /**
  * 프로필 사진 업로드.
  *

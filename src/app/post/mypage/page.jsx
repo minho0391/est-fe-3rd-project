@@ -4,8 +4,9 @@
 import "@/community/common.css";
 import "@/community/mypage.css";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   AccountCircleIcon,
   BookmarkBorderIcon,
@@ -28,6 +29,12 @@ import {
   getLikedPostsByCurrentUser,
   getPostsByAuthorId,
 } from "@/lib/communityQueries";
+import {
+  removeAvatar,
+  updateCurrentUserProfile,
+  uploadAvatar,
+} from "@/lib/communityMutations";
+import { signOut } from "@/utils/supabase/auth";
 
 const formatCount = value => {
   const number = Number(value ?? 0);
@@ -41,6 +48,8 @@ const formatCount = value => {
 };
 
 export default function MyPage() {
+  const router = useRouter();
+  const avatarInputRef = useRef(null);
   const [activeTab, setActiveTab] = useState("myPosts");
   const [sortKey, setSortKey] = useState("all");
   const [userProfile, setUserProfile] = useState(null);
@@ -49,6 +58,28 @@ export default function MyPage() {
   const [likedPosts, setLikedPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
+  const [editNickname, setEditNickname] = useState("");
+  const [editAvatarFile, setEditAvatarFile] = useState(null);
+  const [editAvatarPreviewUrl, setEditAvatarPreviewUrl] = useState("");
+  const [removeCurrentAvatar, setRemoveCurrentAvatar] = useState(false);
+  const [profileActionError, setProfileActionError] = useState("");
+  const [isProfileSaving, setIsProfileSaving] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  useEffect(() => {
+    if (!editAvatarFile) {
+      setEditAvatarPreviewUrl("");
+      return undefined;
+    }
+
+    const objectUrl = URL.createObjectURL(editAvatarFile);
+    setEditAvatarPreviewUrl(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [editAvatarFile]);
 
   useEffect(() => {
     let isMounted = true;
@@ -102,6 +133,75 @@ export default function MyPage() {
       isMounted = false;
     };
   }, []);
+
+  const handleSignOut = async () => {
+    if (isSigningOut) return;
+
+    try {
+      setIsSigningOut(true);
+      await signOut();
+      router.replace("/");
+      router.refresh();
+    } catch (error) {
+      console.error("로그아웃 실패", error);
+      setLoadError("로그아웃에 실패했습니다. 다시 시도해 주세요.");
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
+
+  const openProfileEditor = () => {
+    setEditNickname(userProfile?.name ?? "");
+    setEditAvatarFile(null);
+    setRemoveCurrentAvatar(false);
+    setProfileActionError("");
+    setIsProfileEditorOpen(true);
+  };
+
+  const closeProfileEditor = () => {
+    if (isProfileSaving) return;
+    setIsProfileEditorOpen(false);
+    setEditAvatarFile(null);
+    setRemoveCurrentAvatar(false);
+    setProfileActionError("");
+    if (avatarInputRef.current) avatarInputRef.current.value = "";
+  };
+
+  const handleProfileSave = async event => {
+    event.preventDefault();
+    if (isProfileSaving) return;
+
+    try {
+      setIsProfileSaving(true);
+      setProfileActionError("");
+
+      let avatarUrl = userProfile?.avatarUrl ?? "";
+
+      if (removeCurrentAvatar) {
+        await removeAvatar();
+        avatarUrl = "";
+      } else if (editAvatarFile) {
+        avatarUrl = await uploadAvatar(editAvatarFile);
+      }
+
+      await updateCurrentUserProfile({ nickname: editNickname });
+
+      const refreshed = await getCurrentUserProfile();
+      if (refreshed) {
+        setUserProfile({ ...refreshed, avatarUrl });
+      }
+
+      setIsProfileEditorOpen(false);
+      router.refresh();
+    } catch (error) {
+      console.error("회원정보 수정 실패", error);
+      setProfileActionError(
+        error?.message || "회원정보 수정에 실패했습니다. 다시 시도해 주세요.",
+      );
+    } finally {
+      setIsProfileSaving(false);
+    }
+  };
 
   const totalViews = myPosts.reduce(
     (sum, post) => sum + Number(post.views ?? 0),
@@ -261,7 +361,15 @@ export default function MyPage() {
             <div className="mypage-profileInfo">
               <div className="mypage-profileIdentity">
                 <div className="mypage-avatar">
-                  <AccountCircleIcon aria-hidden="true" />
+                  {userProfile.avatarUrl ? (
+                    <img
+                      src={userProfile.avatarUrl}
+                      alt={`${userProfile.name} 프로필`}
+                      className="mypage-avatarImage"
+                    />
+                  ) : (
+                    <AccountCircleIcon aria-hidden="true" />
+                  )}
                 </div>
 
                 <div className="mypage-profileText">
@@ -339,14 +447,23 @@ export default function MyPage() {
               <span>댓글</span>
             </button>
 
-            <button type="button" className="mypage-menuItem">
+            <button
+              type="button"
+              className="mypage-menuItem"
+              onClick={openProfileEditor}
+            >
               <ManageAccountsOutlinedIcon aria-hidden="true" fontSize="small" />
               <span>회원정보 수정</span>
             </button>
 
-            <button type="button" className="mypage-menuItem mypage-menuLogout">
+            <button
+              type="button"
+              className="mypage-menuItem mypage-menuLogout"
+              onClick={handleSignOut}
+              disabled={isSigningOut}
+            >
               <LogoutIcon aria-hidden="true" fontSize="small" />
-              <span>로그아웃</span>
+              <span>{isSigningOut ? "로그아웃 중..." : "로그아웃"}</span>
             </button>
           </nav>
         </aside>
@@ -467,6 +584,144 @@ export default function MyPage() {
           </section>
         </section>
       </div>
+
+      {isProfileEditorOpen && (
+        <div
+          className="mypage-modalBackdrop"
+          role="presentation"
+          onMouseDown={event => {
+            if (event.target === event.currentTarget) closeProfileEditor();
+          }}
+        >
+          <section
+            className="mypage-profileModal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mypage-profile-editor-title"
+          >
+            <div className="mypage-profileModalHeader">
+              <div>
+                <p className="mypage-listEyebrow">MY PROFILE</p>
+                <h2
+                  id="mypage-profile-editor-title"
+                  className="mypage-profileModalTitle"
+                >
+                  회원정보 수정
+                </h2>
+              </div>
+              <button
+                type="button"
+                className="mypage-modalClose"
+                onClick={closeProfileEditor}
+                aria-label="회원정보 수정 닫기"
+              >
+                ×
+              </button>
+            </div>
+
+            <form className="mypage-profileForm" onSubmit={handleProfileSave}>
+              <div className="mypage-profileEditAvatarRow">
+                <div className="mypage-avatar mypage-editAvatar">
+                  {!removeCurrentAvatar && editAvatarPreviewUrl ? (
+                    <img
+                      src={editAvatarPreviewUrl}
+                      alt="선택한 프로필 미리보기"
+                      className="mypage-avatarImage"
+                    />
+                  ) : !removeCurrentAvatar && userProfile.avatarUrl ? (
+                    <img
+                      src={userProfile.avatarUrl}
+                      alt="현재 프로필"
+                      className="mypage-avatarImage"
+                    />
+                  ) : (
+                    <AccountCircleIcon aria-hidden="true" />
+                  )}
+                </div>
+                <div className="mypage-avatarActions">
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="mypage-fileInput"
+                    onChange={event => {
+                      const file = event.target.files?.[0] ?? null;
+                      setEditAvatarFile(file);
+                      if (file) setRemoveCurrentAvatar(false);
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="mypage-secondaryButton"
+                    onClick={() => avatarInputRef.current?.click()}
+                  >
+                    사진 변경
+                  </button>
+                  {userProfile.avatarUrl && (
+                    <button
+                      type="button"
+                      className="mypage-textDangerButton"
+                      onClick={() => {
+                        setRemoveCurrentAvatar(true);
+                        setEditAvatarFile(null);
+                        if (avatarInputRef.current)
+                          avatarInputRef.current.value = "";
+                      }}
+                    >
+                      사진 삭제
+                    </button>
+                  )}
+                  <span className="mypage-profileHelp">
+                    이미지 파일, 최대 2MB
+                  </span>
+                </div>
+              </div>
+
+              <label className="mypage-profileField">
+                <span>닉네임</span>
+                <input
+                  type="text"
+                  value={editNickname}
+                  onChange={event => setEditNickname(event.target.value)}
+                  minLength={2}
+                  maxLength={20}
+                  required
+                />
+              </label>
+
+              <label className="mypage-profileField">
+                <span>이메일</span>
+                <input type="email" value={userProfile.email ?? ""} disabled />
+                <small>이메일은 현재 화면에서 변경할 수 없습니다.</small>
+              </label>
+
+              {profileActionError && (
+                <p className="mypage-profileError" role="alert">
+                  {profileActionError}
+                </p>
+              )}
+
+              <div className="mypage-profileModalActions">
+                <button
+                  type="button"
+                  className="mypage-secondaryButton"
+                  onClick={closeProfileEditor}
+                  disabled={isProfileSaving}
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  className="mypage-primaryButton"
+                  disabled={isProfileSaving}
+                >
+                  {isProfileSaving ? "저장 중..." : "저장"}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
