@@ -34,9 +34,8 @@ function ResultContent() {
   const [data, setData] = useState(null);
   const [saveState, setSaveState] = useState("idle"); // 'idle' | 'saving' | 'saved' | 'error'
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
-  //모달 창 확인이 필요할 시 임시로 false >> true로 변경 후 확인
 
-  // 로그인 여부는 결과 데이터 형태(id 유무)로 추측하지 않고 auth 상태로 직접 판별한다.
+  // 로그인 여부는 auth 상태로 직접 판별
   const [user, setUser] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
@@ -89,7 +88,6 @@ function ResultContent() {
     };
   }, [id]);
 
-  // (sign-in 페이지에서 redirect 파라미터를 읽어 로그인 성공 시 해당 경로로 이동시켜야 함)
   const goToSignIn = () => {
     const query = searchParams.toString();
     const redirectTarget = query ? `${pathname}?${query}` : pathname;
@@ -155,7 +153,16 @@ function ResultContent() {
   const topics = results.slice(0, 2);
   const highlight = results[2] ?? null;
 
-  const title = meta ? `${meta.situation} - ${meta.format} 가이드 (Level ${meta.level})` : "대화 가이드";
+  // [수정 포인트] meta.situation이 없을 경우 meta.conditions?.situation 또는 기본값 탐색
+  const situationText = meta?.situation || meta?.conditions?.situation || "맞춤 대화";
+
+  const formatText = meta?.format || "맞춤";
+  const levelText = meta?.level ? `Level ${meta.level}` : "";
+
+  // 최종 타이틀 조립 (상황 - 형식 가이드 (Level N))
+  const title = meta
+    ? `${situationText} - ${formatText} 가이드 ${levelText ? `(${levelText})` : ""}`.trim()
+    : "대화 가이드";
 
   return (
     <Box sx={styles.page}>
@@ -181,7 +188,7 @@ function ResultContent() {
         </Box>
       )}
 
-      {/* Topic 3 (강조 카드) — 폴백 등으로 결과가 2개 이하면 표시하지 않음 */}
+      {/* Topic 3 (강조 카드) */}
       {highlight && <HighlightTopicCard item={highlight} theme={theme} />}
 
       {/* 하단 CTA */}
@@ -222,7 +229,6 @@ function ResultContent() {
       {/* 저장 완료 모달 */}
       <Modal open={isSaveModalOpen} onClose={() => setIsSaveModalOpen(false)}>
         <Box sx={styles.modalBox}>
-          {/* 상단 그라데이션 배너 + 계정 아이콘 (배너 정중앙 배치) */}
           <Box
             sx={{
               ...styles.modalBanner,
@@ -235,7 +241,6 @@ function ResultContent() {
               </Avatar>
             </Box>
           </Box>
-          {/* 본문 */}
           <Box sx={styles.modalBody}>
             <Typography variant="h4" color="text.primary" mb={2}>
               대화 가이드 저장 완료!
@@ -297,7 +302,6 @@ function ScriptsAndTips({ item, theme, tipsColumns = false }) {
           </Typography>
         ))}
 
-        {/* 퀴즈 형식(extras.answer)일 때만 정답 표시 */}
         {answer && (
           <Box sx={{ mt: 1.5 }}>
             {showAnswer ? (
@@ -313,7 +317,6 @@ function ScriptsAndTips({ item, theme, tipsColumns = false }) {
         )}
       </Box>
 
-      {/* tips는 형식에 따라 빈 배열([])로 올 수 있음(예: 벌칙) — 그때는 섹션 자체를 숨김 */}
       {tips.length > 0 && (
         <>
           <Box sx={styles.tipLabel}>
@@ -382,7 +385,6 @@ function HighlightTopicCard({ item, theme }) {
 
   return (
     <Paper elevation={0} sx={styles.highlightCard}>
-      {/* 좌측 강조 패널 */}
       <Box sx={{ ...styles.highlightLeft, bgcolor: "primary.main" }}>
         <Avatar variant="rounded" sx={styles.highlightAvatar}>
           <Box component="img" src="/assets/icons/topic3_icon.svg" alt="" sx={styles.icon16} />
@@ -395,7 +397,6 @@ function HighlightTopicCard({ item, theme }) {
         </Typography>
       </Box>
 
-      {/* 우측 콘텐츠 */}
       <Box sx={styles.highlightRight}>
         <Box sx={styles.highlightColumn}>
           <Box sx={styles.highlightSectionLabel}>

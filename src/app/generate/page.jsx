@@ -1,5 +1,3 @@
-// 사이트 주소 : http://localhost:3000/generate
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -91,6 +89,7 @@ export default function GeneratePage() {
 
   // 직접 입력 폼 상태 — 값은 DB 코드(code) 또는 사용자 자유 작성 텍스트입니다.
   const [selectedSituation, setSelectedSituation] = useState("");
+  const [customInput, setCustomInput] = useState(""); // 추가: 자유 입력 상태
   const [selectedFormat, setSelectedFormat] = useState("");
   const [selectedMood, setSelectedMood] = useState("");
   const [selectedRelation, setSelectedRelation] = useState("");
@@ -186,9 +185,13 @@ export default function GeneratePage() {
   const [currentTabValue, setCurrentTabValue] = tabState[currentTabKey];
   const currentTabOptions = options[currentTabKey];
 
+  const labelOf = (category, code) => options[category]?.find(o => o.code === code)?.label ?? code;
+
   const handleGenerate = () => {
-    // 선택된 칩이 있거나 직접 입력(customInput) 값이 있는지 확인
-    if (!selectedSituation && !customInput.trim()) {
+    const trimmedCustom = customInput.trim();
+
+    // 둘 다 비어있을 때만 경고
+    if (!selectedSituation && !trimmedCustom) {
       alert("상황을 선택하거나 직접 입력해주세요.");
       return;
     }
@@ -197,20 +200,28 @@ export default function GeneratePage() {
       return;
     }
 
+    // 1. 둘 다 있을 경우: "[선택상황] (상세 내용)" 형태로 통합
+    // 2. 하나만 있을 경우: 해당 값 채택
+    let finalSituation = "";
+    if (selectedSituation && trimmedCustom) {
+      const situationLabel = labelOf("situation", selectedSituation) || selectedSituation;
+      finalSituation = `${situationLabel} (${trimmedCustom})`;
+    } else {
+      finalSituation = selectedSituation || trimmedCustom;
+    }
+
     goToLoading({
       format_code: selectedFormat,
       level,
       conditions: {
-        situation: selectedSituation || undefined,
-        custom_input: customInput || undefined, // 추후 custom_input 전달
+        situation: finalSituation, // 통합된 situation 값 전달
+        custom_input: trimmedCustom || undefined, // 원본 입력값 보존
         mood: selectedMood || undefined,
         relation: selectedRelation || undefined,
         target: selectedTarget || undefined,
       },
     });
   };
-
-  const labelOf = (category, code) => options[category]?.find(o => o.code === code)?.label ?? code;
 
   return (
     <>
@@ -272,8 +283,8 @@ export default function GeneratePage() {
                 multiline
                 rows={4}
                 placeholder="예: 오랜만에 만난 초등학교 친구와 카페에서 어색하지 않게 대화하고 싶어요."
-                value={selectedSituation}
-                onChange={e => setSelectedSituation(e.target.value)}
+                value={customInput}
+                onChange={e => setCustomInput(e.target.value)}
                 sx={styles.textField}
               />
               <Box sx={styles.chipRow}>
@@ -283,7 +294,7 @@ export default function GeneratePage() {
                     <Chip
                       key={item.code}
                       label={item.label}
-                      onClick={() => setSelectedSituation(item.label)}
+                      onClick={() => setSelectedSituation(prev => (prev === item.label ? "" : item.label))}
                       variant={isSelected ? "filled" : "outlined"}
                       color={isSelected ? "primary" : "default"}
                       sx={styles.chip}
