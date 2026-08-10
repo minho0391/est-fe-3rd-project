@@ -35,7 +35,7 @@ import { TextField } from "@mui/material";
 // 템플릿 카드 — id는 presets 테이블의 preset_code와 일치해야 합니다.
 const TEMPLATES = [
   {
-    id: "dating",
+    id: "blind_date",
     title: "소개팅",
     desc: "설레는 첫 만남, 어색함을 깨줄 센스 있는 질문 리스트",
     icon: "/assets/icons/favorite_icon.svg",
