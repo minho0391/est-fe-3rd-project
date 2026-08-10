@@ -30,7 +30,16 @@ export async function generateGuide(payload) {
   });
 
   if (error) {
-    throw new Error(error.message ?? "대화 가이드 생성에 실패했습니다.");
+    // FunctionsHttpError의 error.message는 보통 의미 없는 문자열이고,
+    // 실제 실패 사유는 error.context(Response)의 body 안에 JSON으로 들어있다.
+    let detail = null;
+    try {
+      detail = await error.context?.json();
+    } catch {
+      /* body가 JSON이 아닐 수도 있음 */
+    }
+    console.error("generateGuide 실패:", { payload, status: error.context?.status, detail, error });
+    throw new Error(detail?.error ?? detail?.message ?? error.message ?? "대화 가이드 생성에 실패했습니다.");
   }
 
   return data;
