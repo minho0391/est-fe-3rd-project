@@ -4,7 +4,7 @@
 import "@/community/common.css";
 import "@/community/mypage.css";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   AccountCircleIcon,
@@ -27,7 +27,7 @@ import {
   getCurrentUserProfile,
   getLikedPostsByCurrentUser,
   getPostsByAuthorId,
-} from "@/data/communityPosts";
+} from "@/lib/communityQueries";
 
 const formatCount = value => {
   const number = Number(value ?? 0);
@@ -43,11 +43,65 @@ const formatCount = value => {
 export default function MyPage() {
   const [activeTab, setActiveTab] = useState("myPosts");
   const [sortKey, setSortKey] = useState("all");
+  const [userProfile, setUserProfile] = useState(null);
+  const [myPosts, setMyPosts] = useState([]);
+  const [myComments, setMyComments] = useState([]);
+  const [likedPosts, setLikedPosts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
-  const userProfile = getCurrentUserProfile();
-  const myPosts = getPostsByAuthorId(userProfile.id);
-  const myComments = getCommentsByAuthorId(userProfile.id);
-  const likedPosts = getLikedPostsByCurrentUser();
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadMyPageData = async () => {
+      try {
+        setIsLoading(true);
+        setLoadError("");
+
+        const me = await getCurrentUserProfile();
+
+        if (!isMounted) return;
+
+        if (!me) {
+          setUserProfile(null);
+          setMyPosts([]);
+          setMyComments([]);
+          setLikedPosts([]);
+          setLoadError("로그인이 필요합니다.");
+          return;
+        }
+
+        const [posts, comments, liked] = await Promise.all([
+          getPostsByAuthorId(me.id),
+          getCommentsByAuthorId(me.id),
+          getLikedPostsByCurrentUser(),
+        ]);
+
+        if (!isMounted) return;
+
+        setUserProfile(me);
+        setMyPosts(posts);
+        setMyComments(comments);
+        setLikedPosts(liked);
+      } catch (error) {
+        console.error("마이페이지 데이터를 불러오지 못했습니다.", error);
+
+        if (isMounted) {
+          setLoadError("마이페이지 데이터를 불러오지 못했습니다.");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadMyPageData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const totalViews = myPosts.reduce(
     (sum, post) => sum + Number(post.views ?? 0),
@@ -177,30 +231,54 @@ export default function MyPage() {
     </div>
   );
 
+  if (isLoading) {
+    return (
+      <main className="community-scope community-page mypage-page">
+        <div className="mypage-container">
+          <p className="mypage-emptyText">마이페이지를 불러오는 중입니다.</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!userProfile) {
+    return (
+      <main className="community-scope community-page mypage-page">
+        <div className="mypage-container">
+          <p className="mypage-emptyText">
+            {loadError || "로그인이 필요합니다."}
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="community-scope community-page mypage-page">
       <div className="mypage-container">
         <aside className="mypage-leftColumn" aria-label="마이페이지 메뉴">
           <section className="mypage-profileCard">
             <div className="mypage-profileInfo">
-              <div className="mypage-avatar">
-                <AccountCircleIcon aria-hidden="true" />
-              </div>
-
-              <div className="mypage-profileText">
-                <div className="mypage-profileNameRow">
-                  <strong className="mypage-profileName">
-                    {userProfile.name || "Name"}
-                  </strong>
-                  <span className="mypage-roleBadge">
-                    {userProfile.role || "정회원"}
-                  </span>
+              <div className="mypage-profileIdentity">
+                <div className="mypage-avatar">
+                  <AccountCircleIcon aria-hidden="true" />
                 </div>
 
-                <span className="mypage-userEmail">{userProfile.email}</span>
-                <span className="mypage-joinDate">
-                  가입일: {userProfile.joinDate}
-                </span>
+                <div className="mypage-profileText">
+                  <div className="mypage-profileNameRow">
+                    <strong className="mypage-profileName">
+                      {userProfile.name || "Name"}
+                    </strong>
+                    <span className="mypage-roleBadge">
+                      {userProfile.role || "정회원"}
+                    </span>
+                  </div>
+
+                  <span className="mypage-userEmail">{userProfile.email}</span>
+                  <span className="mypage-joinDate">
+                    가입일: {userProfile.joinDate}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -278,36 +356,52 @@ export default function MyPage() {
 
           <div className="mypage-summaryGrid">
             <article className="mypage-summaryCard">
-              <strong>조회수</strong>
-              <span>
-                <RemoveRedEyeIcon aria-hidden="true" fontSize="small" />
-                {formatCount(totalViews)}
-              </span>
+              <div className="mypage-summaryIcon">
+                <RemoveRedEyeIcon aria-hidden="true" />
+              </div>
+              <div className="mypage-summaryText">
+                <span className="mypage-summaryLabel">조회수</span>
+                <strong className="mypage-summaryValue">
+                  {formatCount(totalViews)}
+                </strong>
+              </div>
             </article>
 
             <article className="mypage-summaryCard">
-              <strong>좋아요</strong>
-              <span>
-                <FavoriteBorderIcon aria-hidden="true" fontSize="small" />
-                {formatCount(totalLikes)}
-              </span>
+              <div className="mypage-summaryIcon mypage-summaryIconLike">
+                <FavoriteBorderIcon aria-hidden="true" />
+              </div>
+              <div className="mypage-summaryText">
+                <span className="mypage-summaryLabel">좋아요</span>
+                <strong className="mypage-summaryValue">
+                  {formatCount(totalLikes)}
+                </strong>
+              </div>
             </article>
 
             <article className="mypage-summaryCard">
-              <strong>댓글</strong>
-              <span>
-                <ChatBubbleOutlineOutlined
-                  aria-hidden="true"
-                  fontSize="small"
-                />
-                {formatCount(myComments.length)}
-              </span>
+              <div className="mypage-summaryIcon mypage-summaryIconComment">
+                <ChatBubbleOutlineOutlined aria-hidden="true" />
+              </div>
+              <div className="mypage-summaryText">
+                <span className="mypage-summaryLabel">댓글</span>
+                <strong className="mypage-summaryValue">
+                  {formatCount(myComments.length)}
+                </strong>
+              </div>
             </article>
           </div>
 
           <section className="mypage-contentSection">
             {activeTab === "myPosts" && (
               <>
+                <div className="mypage-listHeader">
+                  <div>
+                    <p className="mypage-listEyebrow">MY COMMUNITY</p>
+                    <h2 className="mypage-listTitle">내가 작성한 글</h2>
+                  </div>
+                </div>
+
                 <div className="mypage-filterBar">
                   <div
                     className="mypage-filterTabs"

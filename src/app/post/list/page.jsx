@@ -4,22 +4,55 @@
 import "@/community/common.css";
 import "@/community/post.css";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import TopThree from "@/components/post/list/TopThree";
 import PostFilter from "@/components/post/list/PostFilter";
 import PostItem from "@/components/post/list/PostItem";
 import {
-  communityPosts,
   compareCommunityPostCreatedAtDesc,
-} from "@/data/communityPosts";
-
-const posts = communityPosts;
+  getCommunityPosts,
+} from "@/lib/communityQueries";
 
 export default function PostListPage() {
+  const [posts, setPosts] = useState([]);
   const [sort, setSort] = useState("latest");
-
   const [query, setQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadPosts = async () => {
+      try {
+        setIsLoading(true);
+        setLoadError("");
+
+        const rows = await getCommunityPosts();
+
+        if (isMounted) {
+          setPosts(rows);
+        }
+      } catch (error) {
+        console.error("게시글 목록을 불러오지 못했습니다.", error);
+
+        if (isMounted) {
+          setLoadError("게시글 목록을 불러오지 못했습니다.");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadPosts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const visiblePosts = useMemo(() => {
     const filtered = posts.filter(post =>
@@ -41,7 +74,7 @@ export default function PostListPage() {
       });
 
     return [...noticePosts, ...normalPosts];
-  }, [query, sort]);
+  }, [posts, query, sort]);
 
   return (
     <main className="community-scope community-page post-list-page">
@@ -101,11 +134,41 @@ export default function PostListPage() {
             </div>
           </div>
 
-          <div className="community-post-stack">
-            {visiblePosts.map(post => (
-              <PostItem key={post.id} post={post} />
-            ))}
-          </div>
+          {isLoading && (
+            <p className="community-listState">게시글을 불러오는 중입니다.</p>
+          )}
+
+          {!isLoading && loadError && (
+            <p className="community-listState community-listStateError">
+              {loadError}
+            </p>
+          )}
+
+          {!isLoading && !loadError && (
+            <>
+              <div className="community-listHeader" aria-hidden="true">
+                <span>분류</span>
+                <span>제목</span>
+                <span>작성자</span>
+                <span>작성일</span>
+                <span>조회수</span>
+                <span>좋아요</span>
+                <span>댓글</span>
+              </div>
+
+              <div className="community-post-stack community-tableLikeStack">
+                {visiblePosts.length > 0 ? (
+                  visiblePosts.map(post => (
+                    <PostItem key={post.id} post={post} />
+                  ))
+                ) : (
+                  <p className="community-listState">
+                    등록된 게시글이 없습니다.
+                  </p>
+                )}
+              </div>
+            </>
+          )}
 
           <nav className="post-list-pagination" aria-label="게시글 페이지 이동">
             <button

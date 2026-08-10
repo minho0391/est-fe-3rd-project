@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
+import AuthMenu from "@/components/layout/AuthMenu";
 import { layout } from "@/lib/layout";
 
 const iconButtonSx = {
@@ -14,7 +15,7 @@ const iconButtonSx = {
   "&:hover": { bgcolor: "momentalk.typeCard" },
 };
 
-export default function GameHeader({ title, onBack, onHelp, onSettings }) {
+export default function GameHeader({ title, onBack }) {
   const router = useRouter();
 
   const handleBack = onBack ?? (() => router.back());
@@ -51,14 +52,8 @@ export default function GameHeader({ title, onBack, onHelp, onSettings }) {
           </Typography>
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <IconButton onClick={onHelp} aria-label="도움말" sx={iconButtonSx}>
-            <Box component="img" src="/header-help.svg" alt="" sx={{ width: 20, height: 20 }} />
-          </IconButton>
-          <IconButton onClick={onSettings} aria-label="설정" sx={iconButtonSx}>
-            <Box component="img" src="/header-settings.svg" alt="" sx={{ width: 20, height: 20 }} />
-          </IconButton>
-        </Box>
+        {/* 도움말·설정 아이콘은 동작이 없어 인증 블록으로 교체했습니다. */}
+        <AuthMenu />
       </Box>
     </Box>
   );

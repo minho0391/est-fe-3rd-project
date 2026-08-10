@@ -2,6 +2,7 @@
 -- Momentalk - Supabase 스키마 스냅샷
 --
 -- 작성일: 2026-08-09
+-- 최종 수정: 2026-08-10 (posts.is_ai_generated 추가)
 --
 -- 이 파일은 "현재 DB가 이렇게 생겼다"를 기록한 문서입니다.
 -- 실행용 마이그레이션이 아니므로 그대로 돌리면 순서·의존성 문제로 실패합니다.
@@ -172,7 +173,7 @@ CREATE TABLE public.posts (
   content_html text NOT NULL,                        -- Quill 에디터 HTML
   content_text text NOT NULL DEFAULT ''::text,       -- 태그 제거한 순수 텍스트
   saved_content_id uuid,                             -- 보관함 콘텐츠 첨부
-  shared_content jsonb,                              -- AI 생성 여부 등 스냅샷
+  shared_content jsonb,                              -- 첨부한 보관함 콘텐츠 스냅샷
   status text NOT NULL DEFAULT 'published'::text,
   is_pinned boolean DEFAULT false,
   allow_comments boolean DEFAULT true,
@@ -182,6 +183,7 @@ CREATE TABLE public.posts (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   description text,                                  -- 목록용 추가 설명
+  is_ai_generated boolean NOT NULL DEFAULT false,    -- AI 로 초안을 생성한 글 (상세에 뱃지 표시)
   CONSTRAINT posts_pkey PRIMARY KEY (id),
   CONSTRAINT posts_board_id_fkey FOREIGN KEY (board_id)
     REFERENCES public.boards(id),

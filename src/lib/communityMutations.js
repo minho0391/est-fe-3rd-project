@@ -110,6 +110,7 @@ export const createPost = async ({
       content_text: toPlainText(content),
       saved_content_id: savedContentId,
       shared_content: sharedContent ?? (isAiGenerated ? { source: "ai" } : null),
+      is_ai_generated: Boolean(isAiGenerated),
       status: "published",
     })
     .select("id")

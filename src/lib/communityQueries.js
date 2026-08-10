@@ -37,64 +37,130 @@ const toDescription = (text, max = 60) => {
   return s.length > max ? `${s.slice(0, max)}…` : s;
 };
 
+/**
+ * 게시글 목록에 필요한 관계를 PostgREST embed로 한 번에 조회합니다.
+ * 목록 한 번을 그릴 때 posts / boards / profiles / post_tags / tags / post_likes를
+ * 각각 왕복하지 않도록 기존 조인 조회 방식으로 유지합니다.
+ */
 const POST_SELECT = `
-  id, title, description, content_html, content_text, author_id,
+  id, board_id, author_id, title, description,
+  content_html, content_text, status, is_ai_generated,
   view_count, like_count, comment_count, created_at,
-  boards ( name, is_notice ),
-  profiles!posts_author_id_fkey ( nickname, role, avatar_url ),
-  post_tags ( tags ( name ) )
+  boards ( id, code, name, is_notice ),
+  profiles:profiles!posts_author_id_fkey ( id, nickname, role, avatar_url ),
+  post_tags ( tags ( id, name ) ),
+  post_likes ( user_id )
 `;
 
-// DB 행 → 목데이터와 같은 모양
-const mapPost = (row, likedIds = new Set()) => ({
-  id: row.id,
-  isNotice: row.boards?.is_notice ?? false,
-  board: row.boards?.name ?? "",
-  title: row.title,
-  description: row.description ?? toDescription(row.content_text),
-  content: row.content_html,
-  authorId: row.author_id,
-  author: row.profiles?.nickname ?? "탈퇴한 사용자",
-  authorRole: row.profiles?.role === "admin" ? "관리자" : "정회원",
-  authorAvatarUrl: row.profiles?.avatar_url ?? "",
-  createdAt: toDateLabel(row.created_at),
-  views: row.view_count ?? 0,
-  likes: row.like_count ?? 0,
-  commentsCount: row.comment_count ?? 0,
-  tags: (row.post_tags ?? []).map(pt => pt.tags?.name).filter(Boolean),
-  likedByCurrentUser: likedIds.has(row.id),
-});
+const throwQueryError = (context, error) => {
+  if (!error) return;
 
-// 현재 사용자가 좋아요한 글 id 집합
-const fetchLikedIds = async (postIds = []) => {
-  const db = supabase();
-  const {
-    data: { user },
-  } = await db.auth.getUser();
-  if (!user || postIds.length === 0) return new Set();
+  const message = [context, error.message, error.details, error.hint]
+    .filter(Boolean)
+    .join(" | ");
 
-  const { data } = await db
-    .from("post_likes")
-    .select("post_id")
-    .eq("user_id", user.id)
-    .in("post_id", postIds);
-
-  return new Set((data ?? []).map(r => r.post_id));
+  const wrapped = new Error(message);
+  wrapped.cause = error;
+  throw wrapped;
 };
 
-const withLikes = async rows => {
-  const likedIds = await fetchLikedIds(rows.map(r => r.id));
-  return rows.map(r => mapPost(r, likedIds));
+const getSingleRelation = relation =>
+  Array.isArray(relation) ? relation[0] : relation;
+
+/** Supabase 행을 기존 커뮤니티 UI 데이터 형태로 변환합니다. */
+const mapPost = (row, currentUserId = null) => {
+  const board = getSingleRelation(row.boards);
+  const profile = getSingleRelation(row.profiles);
+  const tags = (row.post_tags ?? [])
+    .map(link => getSingleRelation(link.tags)?.name)
+    .filter(Boolean);
+
+  return {
+    id: row.id,
+    isNotice: board?.is_notice === true,
+    board: board?.name ?? "",
+    title: row.title,
+    description: row.description ?? toDescription(row.content_text),
+    content: row.content_html,
+    authorId: row.author_id,
+    author: profile?.nickname ?? "탈퇴한 사용자",
+    authorRole: profile?.role === "admin" ? "관리자" : "정회원",
+    authorAvatarUrl: profile?.avatar_url ?? "",
+    createdAt: toDateLabel(row.created_at),
+    views: row.view_count ?? 0,
+    likes: row.like_count ?? 0,
+    commentsCount: row.comment_count ?? 0,
+    tags,
+    likedByCurrentUser:
+      Boolean(currentUserId) &&
+      (row.post_likes ?? []).some(like => like.user_id === currentUserId),
+    isAiGenerated: row.is_ai_generated === true,
+  };
+};
+
+/**
+ * 좋아요 여부 표시는 보안 판정이 아니라 현재 UI 상태용이므로 로컬 세션을 사용합니다.
+ * 게시글/관계 데이터 자체는 POST_SELECT 한 번의 조회로 가져옵니다.
+ */
+const mapPosts = async rows => {
+  if (!rows?.length) return [];
+
+  const db = supabase();
+  const {
+    data: { session },
+  } = await db.auth.getSession();
+  const currentUserId = session?.user?.id ?? null;
+
+  return rows.map(row => mapPost(row, currentUserId));
+};
+
+const withLikes = async rows => mapPosts(rows);
+
+/**
+ * 목데이터와 동일한 최신순 비교 함수.
+ * createdAt은 mapPost()에서 "YYYY.MM.DD" 형태로 정규화됩니다.
+ */
+export const compareCommunityPostCreatedAtDesc = (a, b) => {
+  const toTimestamp = value => {
+    const normalized = String(value ?? "")
+      .trim()
+      .replace(/\.+$/, "")
+      .replaceAll(".", "-");
+    const timestamp = Date.parse(normalized);
+
+    return Number.isNaN(timestamp) ? 0 : timestamp;
+  };
+
+  const dateDifference = toTimestamp(b?.createdAt) - toTimestamp(a?.createdAt);
+
+  return (
+    dateDifference || String(b?.id ?? "").localeCompare(String(a?.id ?? ""))
+  );
+};
+
+/** 공지 포함 전체 게시글 (최신순) */
+export const getCommunityPosts = async () => {
+  const { data, error } = await supabase()
+    .from("posts")
+    .select(POST_SELECT)
+    .eq("status", "published")
+    .order("created_at", { ascending: false });
+
+  throwQueryError("전체 게시글 조회 실패", error);
+
+  return withLikes(data ?? []);
 };
 
 /** 게시글 단건 */
 export const getCommunityPostById = async id => {
-  const { data } = await supabase()
+  const { data, error } = await supabase()
     .from("posts")
     .select(POST_SELECT)
     .eq("id", id)
     .eq("status", "published")
-    .single();
+    .maybeSingle();
+
+  throwQueryError("게시글 상세 조회 실패", error);
 
   if (!data) return undefined;
   const [post] = await withLikes([data]);
@@ -103,14 +169,16 @@ export const getCommunityPostById = async id => {
 
 /** 공지를 제외한 전체 글 (최신순) */
 export const getRankablePosts = async () => {
-  const { data } = await supabase()
+  const { data, error } = await supabase()
     .from("posts")
     .select(POST_SELECT)
     .eq("status", "published")
     .order("created_at", { ascending: false });
 
-  const rows = (data ?? []).filter(r => !r.boards?.is_notice);
-  return withLikes(rows);
+  throwQueryError("랭킹 게시글 조회 실패", error);
+
+  const rows = await withLikes(data ?? []);
+  return rows.filter(post => !post.isNotice);
 };
 
 /** 최신글 */
@@ -121,25 +189,31 @@ export const getLatestCommunityPosts = async (limit = 3) => {
 
 /** 인기글 (좋아요순) */
 export const getPopularCommunityPosts = async (limit = 3) => {
-  const { data } = await supabase()
+  const { data, error } = await supabase()
     .from("posts")
     .select(POST_SELECT)
     .eq("status", "published")
     .order("like_count", { ascending: false })
     .limit(limit + 5);
 
-  const rows = (data ?? []).filter(r => !r.boards?.is_notice).slice(0, limit);
-  return withLikes(rows);
+  throwQueryError("인기 게시글 조회 실패", error);
+
+  const rows = await withLikes(data ?? []);
+  return rows.filter(post => !post.isNotice).slice(0, limit);
 };
 
 /** 게시글의 댓글 */
 export const getCommentsByPostId = async postId => {
-  const { data } = await supabase()
+  const { data, error } = await supabase()
     .from("comments")
-    .select("id, post_id, author_id, content, created_at, profiles ( nickname, avatar_url )")
+    .select(
+      "id, post_id, author_id, content, created_at, profiles ( nickname, avatar_url )",
+    )
     .eq("post_id", postId)
     .is("deleted_at", null)
     .order("created_at", { ascending: true });
+
+  throwQueryError("댓글 조회 실패", error);
 
   return (data ?? []).map(c => ({
     id: c.id,
@@ -154,15 +228,17 @@ export const getCommentsByPostId = async postId => {
 
 /** 특정 작성자의 글 */
 export const getPostsByAuthorId = async authorId => {
-  const { data } = await supabase()
+  const { data, error } = await supabase()
     .from("posts")
     .select(POST_SELECT)
     .eq("author_id", authorId)
     .eq("status", "published")
     .order("created_at", { ascending: false });
 
-  const rows = (data ?? []).filter(r => !r.boards?.is_notice);
-  return withLikes(rows);
+  throwQueryError("작성 게시글 조회 실패", error);
+
+  const rows = await withLikes(data ?? []);
+  return rows.filter(post => !post.isNotice);
 };
 
 /** 현재 사용자가 좋아요한 글 */
@@ -170,32 +246,45 @@ export const getLikedPostsByCurrentUser = async () => {
   const db = supabase();
   const {
     data: { user },
+    error: authError,
   } = await db.auth.getUser();
+
+  throwQueryError("로그인 세션 확인 실패", authError);
+
   if (!user) return [];
 
-  const { data: likes } = await db.from("post_likes").select("post_id").eq("user_id", user.id);
+  const { data: likes, error: likesError } = await db
+    .from("post_likes")
+    .select("post_id")
+    .eq("user_id", user.id);
+
+  throwQueryError("좋아요 게시글 목록 조회 실패", likesError);
 
   const ids = (likes ?? []).map(l => l.post_id);
   if (ids.length === 0) return [];
 
-  const { data } = await db
+  const { data, error } = await db
     .from("posts")
     .select(POST_SELECT)
     .in("id", ids)
     .eq("status", "published")
     .order("created_at", { ascending: false });
 
-  const rows = (data ?? []).filter(r => !r.boards?.is_notice);
-  return withLikes(rows);
+  throwQueryError("좋아요 게시글 상세 조회 실패", error);
+
+  const rows = await withLikes(data ?? []);
+  return rows.filter(post => !post.isNotice);
 };
 
 /** 특정 작성자의 댓글 */
 export const getCommentsByAuthorId = async authorId => {
-  const { data } = await supabase()
+  const { data, error } = await supabase()
     .from("comments")
     .select("id, post_id, author_id, content, created_at")
     .eq("author_id", authorId)
     .is("deleted_at", null);
+
+  throwQueryError("작성 댓글 조회 실패", error);
 
   return (data ?? []).map(c => ({
     id: c.id,
@@ -254,10 +343,12 @@ export const getCurrentUserProfile = async () => {
 
 /** 게시판 목록 (목데이터의 communityBoards 대체) */
 export const getCommunityBoards = async () => {
-  const { data } = await supabase()
+  const { data, error } = await supabase()
     .from("boards")
     .select("id, code, name, is_notice")
     .order("sort_order");
+
+  throwQueryError("게시판 목록 조회 실패", error);
 
   return data ?? [];
 };
@@ -272,7 +363,9 @@ export const getSavedContents = async () => {
 
   const { data } = await db
     .from("saved_contents")
-    .select("id, format_code, title, scripts, tips, extras, conditions, memo, created_at")
+    .select(
+      "id, format_code, title, scripts, tips, extras, conditions, memo, created_at",
+    )
     .order("created_at", { ascending: false });
 
   return (data ?? []).map(s => ({
