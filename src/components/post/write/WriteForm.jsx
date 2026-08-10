@@ -10,7 +10,7 @@ import AiContentModal from "./AiContentModal";
 import ContentFetcherModal from "./ContentFetcherModal";
 import Button from "@/components/ui/Button";
 import { CloseIcon, InfoOutlinedIcon } from "@/images/icons";
-import { communityBoards } from "@/data/communityPosts";
+import { getCommunityBoards } from "@/lib/communityQueries";
 
 // React Quill SSR 이슈 방지를 위한 Dynamic Import
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -58,6 +58,8 @@ export default function WriteForm() {
   const router = useRouter();
   const editorWrapperRef = useRef(null);
   const [board, setBoard] = useState("자유게시판");
+  const [boards, setBoards] = useState([]);
+  const [boardsError, setBoardsError] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState(""); // 추가 설명 State
   const [content, setContent] = useState("");
@@ -70,6 +72,41 @@ export default function WriteForm() {
 
   const showEditorPlaceholder =
     !isEditorFocused && isQuillContentEmpty(content);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadBoards = async () => {
+      try {
+        setBoardsError("");
+        const rows = await getCommunityBoards();
+
+        if (!isMounted) return;
+
+        setBoards(rows);
+
+        const hasCurrentBoard = rows.some(item => item.name === board);
+        if (!hasCurrentBoard && rows.length > 0) {
+          const defaultBoard =
+            rows.find(item => item.name === "자유게시판")?.name ?? rows[0].name;
+          setBoard(defaultBoard);
+        }
+      } catch (error) {
+        console.error("게시판 목록을 불러오지 못했습니다.", error);
+
+        if (isMounted) {
+          setBoards([]);
+          setBoardsError("게시판 목록을 불러오지 못했습니다.");
+        }
+      }
+    };
+
+    loadBoards();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const wrapper = editorWrapperRef.current;
@@ -219,12 +256,18 @@ export default function WriteForm() {
               onChange={e => setBoard(e.target.value)}
               className="write-select"
             >
-              {communityBoards.map(boardName => (
-                <option key={boardName} value={boardName}>
-                  {boardName}
+              {boards.map(boardItem => (
+                <option key={boardItem.id} value={boardItem.name}>
+                  {boardItem.name}
                 </option>
               ))}
             </select>
+
+            {boardsError && (
+              <p className="write-boardError" role="alert">
+                {boardsError}
+              </p>
+            )}
           </div>
 
           {/* 제목 */}

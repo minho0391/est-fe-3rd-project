@@ -227,7 +227,7 @@ export const savedCommunityContents = [
   },
 ];
 
-export const communityBoards = ["자유게시판", "Q&A", "정보공유"];
+export const communityBoards = ["공지사항", "자유게시판", "Q&A", "정보공유"];
 
 export const compareCommunityPostCreatedAtDesc = (a, b) => {
   const toTimestamp = value => {

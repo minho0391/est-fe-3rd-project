@@ -31,7 +31,7 @@ export default function PostItem({ post, compact = false }) {
       href={`/post/${id}`}
       className={`post-item-itemCard ${isNotice ? "post-item-noticeCard" : ""} ${compact ? "post-item-compact" : ""}`}
     >
-      <div className="post-item-headerRow">
+      <div className="post-item-categoryCell">
         <span
           className={
             isNotice ? "post-item-noticeBadge" : "post-item-boardBadge"
@@ -39,45 +39,47 @@ export default function PostItem({ post, compact = false }) {
         >
           {isNotice ? "공지" : board}
         </span>
-
-        <span className="post-item-date">{createdAt}</span>
       </div>
 
-      <div className="post-item-contentGroup">
+      <div className="post-item-titleCell">
         <h3 className="post-item-title">
           {isNotice && <span className="post-item-noticeText">[공지] </span>}
-
           {title}
         </h3>
 
         {description && <p className="post-item-description">{description}</p>}
       </div>
 
-      <div className="post-item-footerRow">
+      <div className="post-item-authorCell">
         <span className="post-item-author">{author}</span>
+      </div>
 
-        <div className="post-item-statsGroup">
-          <span className="post-item-statItem">
-            <RemoveRedEyeIcon
-              className="post-item-statIcon"
-              aria-hidden="true"
-            />
-            조회수 {views}
-          </span>
+      <div className="post-item-dateCell">
+        <span className="post-item-date">{createdAt}</span>
+      </div>
 
-          <span className="post-item-statItem">
-            <FavoriteIcon className="post-item-statIcon" aria-hidden="true" />
-            좋아요 {likes}
-          </span>
+      <div className="post-item-statCell post-item-viewCell">
+        <span className="post-item-statItem">
+          <RemoveRedEyeIcon className="post-item-statIcon" aria-hidden="true" />
+          <span>조회수 {views}</span>
+        </span>
+      </div>
 
-          <span className="post-item-statItem">
-            <ChatBubbleOutlineOutlined
-              className="post-item-statIcon"
-              aria-hidden="true"
-            />
-            댓글 {commentsCount}
-          </span>
-        </div>
+      <div className="post-item-statCell post-item-likeCell">
+        <span className="post-item-statItem">
+          <FavoriteIcon className="post-item-statIcon" aria-hidden="true" />
+          <span>좋아요 {likes}</span>
+        </span>
+      </div>
+
+      <div className="post-item-statCell post-item-commentCell">
+        <span className="post-item-statItem">
+          <ChatBubbleOutlineOutlined
+            className="post-item-statIcon"
+            aria-hidden="true"
+          />
+          <span>댓글 {commentsCount}</span>
+        </span>
       </div>
     </Link>
   );
