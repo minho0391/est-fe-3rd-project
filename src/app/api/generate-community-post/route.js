@@ -1,27 +1,23 @@
-import { NextResponse } from "next/server";
+import { ALAN_TASK, generateAlanContent, toAlanResponse } from "@/lib/alan";
 
 export async function POST(request) {
   try {
     const { title, description, keywords = [] } = await request.json();
 
-    // TODO:
-    // 실제 AI 호출 로직을 연결하세요.
-    // communityQueries.js / communityMutations.js는 그대로 사용할 수 있습니다.
+    const generated = await generateAlanContent(ALAN_TASK.COMMUNITY_POST, {
+      title,
+      description,
+      keywords,
+    });
 
-    return NextResponse.json({
+    return Response.json({
       source: "ai",
-      title: title ?? "",
-      description: description ?? "",
-      content: "",
-      tags: Array.isArray(keywords) ? keywords : [],
+      title: generated.title,
+      description: generated.description,
+      content: generated.content,
+      tags: generated.tags,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        source: "failed",
-        error: "AI 콘텐츠 생성에 실패했습니다.",
-      },
-      { status: 500 },
-    );
+    return toAlanResponse(error);
   }
 }
