@@ -11,6 +11,31 @@ const parseKeywords = value =>
     .map(keyword => keyword.trim())
     .filter(Boolean);
 
+const escapeHtml = value =>
+  value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+// Alan의 평문 본문을 Quill에서 문단이 유지되는 HTML로 변환합니다.
+const toQuillHtml = value => {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+
+  // 이미 HTML로 반환된 경우에는 중복 변환하지 않습니다.
+  if (/<[a-z][\s\S]*>/i.test(text)) return text;
+
+  return text
+    .replace(/\r\n?/g, "\n")
+    .split(/\n{2,}/)
+    .map(
+      paragraph => `<p>${escapeHtml(paragraph).replaceAll("\n", "<br>")}</p>`,
+    )
+    .join("");
+};
+
 export default function AiContentModal({
   open,
   initialTitle = "",
@@ -22,7 +47,6 @@ export default function AiContentModal({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [keywords, setKeywords] = useState("");
-  const [followUpPrompt, setFollowUpPrompt] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -32,7 +56,6 @@ export default function AiContentModal({
     setTitle(initialTitle);
     setDescription(initialDescription);
     setKeywords(initialKeywords.join(", "));
-    setFollowUpPrompt("");
     setErrorMessage("");
   }, [open, initialTitle, initialDescription, initialKeywords]);
 
@@ -60,7 +83,6 @@ export default function AiContentModal({
   const handleGenerate = async () => {
     setIsLoading(true);
     setErrorMessage("");
-    setFollowUpPrompt("");
 
     try {
       const parsedKeywords = parseKeywords(keywords);
@@ -83,17 +105,10 @@ export default function AiContentModal({
         throw new Error(data?.error ?? "AI 생성에 실패했습니다.");
       }
 
-      if (data?.needsMoreInformation) {
-        setFollowUpPrompt(
-          data.followUpPrompt ?? "조금 더 자세한 정보를 입력해 주세요.",
-        );
-        return;
-      }
-
       onApply({
         title: data?.title ?? "",
         description: data?.description ?? "",
-        content: data?.content ?? "",
+        content: toQuillHtml(data?.content),
         tags: Array.isArray(data?.tags) ? data.tags : [],
         isAiGenerated: true,
       });
@@ -174,12 +189,6 @@ export default function AiContentModal({
               placeholder="여행, 제주, 추천"
             />
           </label>
-
-          {followUpPrompt && (
-            <div className="write-aiModal-followUp" role="status">
-              {followUpPrompt}
-            </div>
-          )}
 
           {errorMessage && (
             <div className="write-aiModal-error" role="alert">
