@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -10,6 +10,7 @@ import Footer from "@/components/layout/Footer";
 // 스타일 가이드
 import { layout } from "@/lib/layout";
 import Button from "@/components/ui/Button";
+import { fetchOptions } from "@/lib/generateOptions";
 
 // MUI Core Components
 import Box from "@mui/material/Box";
@@ -18,7 +19,6 @@ import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import CardActionArea from "@mui/material/CardActionArea";
 import Avatar from "@mui/material/Avatar";
-import TextField from "@mui/material/TextField";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Chip from "@mui/material/Chip";
@@ -30,8 +30,9 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import { useTheme, alpha } from "@mui/material/styles";
+import { TextField } from "@mui/material";
 
-// 템플릿 카드
+// 템플릿 카드 — id는 presets 테이블의 preset_code와 일치해야 합니다.
 const TEMPLATES = [
   {
     id: "dating",
@@ -39,7 +40,6 @@ const TEMPLATES = [
     desc: "설레는 첫 만남, 어색함을 깨줄 센스 있는 질문 리스트",
     icon: "/assets/icons/favorite_icon.svg",
     iconColor: "primary.main",
-    defaultAtmosphere: "어색함",
   },
   {
     id: "mt",
@@ -47,7 +47,6 @@ const TEMPLATES = [
     desc: "다함께 즐기는 단체 분위기를 위한 고텐션 대화 주제",
     icon: "/assets/icons/group_icon.svg",
     iconColor: "secondary.main",
-    defaultAtmosphere: "활기참",
   },
   {
     id: "dinner",
@@ -55,7 +54,6 @@ const TEMPLATES = [
     desc: "상사, 동료와 자연스럽게 어울릴 수 있는 사회생활 팁",
     icon: "/assets/icons/restaurant_icon.svg",
     iconColor: "warning.main",
-    defaultAtmosphere: "활기참",
   },
   {
     id: "ot",
@@ -63,88 +61,123 @@ const TEMPLATES = [
     desc: "새로운 친구들과 빠르게 친해지는 마법 같은 첫 마디",
     icon: "/assets/icons/school_icon.svg",
     iconColor: "success.main",
-    defaultAtmosphere: "어색함",
   },
 ];
 
-// 형식 옵션 데이터
-const FORMAT_OPTIONS = [
-  { code: "question", label: "질문" },
-  { code: "balance", label: "밸런스" },
-  { code: "topic", label: "대화주제" },
-  { code: "mission", label: "미션" },
-  { code: "humor", label: "유머" },
-  { code: "quiz", label: "퀴즈" },
+// 대화 깊이 레벨
+const LEVEL_OPTIONS = [
+  { value: 1, label: "Lv.1 가볍게" },
+  { value: 2, label: "Lv.2 적당히" },
+  { value: 3, label: "Lv.3 깊게" },
 ];
 
-// 직접 입력 옵션 데이터
-const OPTIONS = {
-  atmosphere: ["활기참", "어색함", "진지함", "따뜻함"],
-  relation: ["처음 만난 사이", "친한 사이", "업무 관계", "선후배"],
-  age: ["10대", "20대", "30대", "40대 이상"],
-};
+// 탭 순서: 0 분위기, 1 관계, 2 대상 (DB에 없는 '나이' 축은 제거)
+const TABS = [
+  { key: "mood", label: "원하는 대화 분위기" },
+  { key: "relation", label: "관계" },
+  { key: "target", label: "대화 상대" },
+];
+
+const EMPTY_OPTIONS = { situation: [], relation: [], target: [], mood: [], format: [] };
 
 export default function GeneratePage() {
   const router = useRouter();
   const theme = useTheme();
 
-  // 입력 폼 상태
-  const [situation, setSituation] = useState("");
-  const [selectedAtmosphere, setSelectedAtmosphere] = useState("");
-  const [selectedRelation, setSelectedRelation] = useState("");
-  const [selectedAge, setSelectedAge] = useState("");
+  // DB에서 불러온 선택지 (situation / relation / target / mood / format)
+  const [options, setOptions] = useState(EMPTY_OPTIONS);
+  const [optionsLoading, setOptionsLoading] = useState(true);
 
-  // 탭 상태 (0: 분위기, 1: 관계, 2: 나이)
+  // 직접 입력 폼 상태 — 값은 전부 DB 코드(code)를 저장합니다.
+  const [selectedSituation, setSelectedSituation] = useState("");
+  const [selectedFormat, setSelectedFormat] = useState("");
+  const [selectedMood, setSelectedMood] = useState("");
+  const [selectedRelation, setSelectedRelation] = useState("");
+  const [selectedTarget, setSelectedTarget] = useState("");
+  const [level, setLevel] = useState(1);
+
+  // 탭 상태 (0: 분위기, 1: 관계, 2: 대상)
   const [tabValue, setTabValue] = useState(0);
 
-  // 모달 상태 및 형식 상태
+  // 모달 상태 및 형식/레벨 상태 (템플릿 카드 흐름)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTemplate, setActiveTemplate] = useState(null);
-  const [selectedFormat, setSelectedFormat] = useState("");
+  const [modalFormat, setModalFormat] = useState("");
+  const [modalLevel, setModalLevel] = useState(1);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchOptions()
+      .then(grouped => {
+        if (!cancelled) setOptions(grouped);
+      })
+      .finally(() => {
+        if (!cancelled) setOptionsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const goToLoading = payload => {
+    sessionStorage.setItem("generate-payload", JSON.stringify(payload));
+    router.push("/generate/loading");
+  };
 
   const handleCardClick = template => {
     setActiveTemplate(template);
-    setSelectedFormat("");
+    setModalFormat("");
+    setModalLevel(1);
     setIsModalOpen(true);
   };
 
-  const handleSelectFormat = formatCode => setSelectedFormat(formatCode);
-
   const handleSendTemplate = () => {
+    if (!modalFormat) {
+      alert("형식을 선택해주세요.");
+      return;
+    }
+    setIsModalOpen(false);
+    goToLoading({
+      preset_code: activeTemplate.id,
+      format_code: modalFormat,
+      level: modalLevel,
+    });
+  };
+
+  const removeTag = type => {
+    if (type === "mood") setSelectedMood("");
+    if (type === "relation") setSelectedRelation("");
+    if (type === "target") setSelectedTarget("");
+  };
+
+  const tabState = {
+    mood: [selectedMood, setSelectedMood],
+    relation: [selectedRelation, setSelectedRelation],
+    target: [selectedTarget, setSelectedTarget],
+  };
+
+  const handleGenerate = () => {
+    if (!selectedSituation) {
+      alert("상황을 선택해주세요.");
+      return;
+    }
     if (!selectedFormat) {
       alert("형식을 선택해주세요.");
       return;
     }
-    const queryParams = new URLSearchParams({
-      situation: `${activeTemplate.title} 상황에서의 대화`,
-      atmosphere: activeTemplate.defaultAtmosphere || "",
-      format: selectedFormat,
-    }).toString();
-
-    setIsModalOpen(false);
-    router.push(`/generate/loading?${queryParams}`);
+    goToLoading({
+      format_code: selectedFormat,
+      level,
+      conditions: {
+        situation: selectedSituation,
+        mood: selectedMood || undefined,
+        relation: selectedRelation || undefined,
+        target: selectedTarget || undefined,
+      },
+    });
   };
 
-  const removeTag = type => {
-    if (type === "atmosphere") setSelectedAtmosphere("");
-    if (type === "relation") setSelectedRelation("");
-    if (type === "age") setSelectedAge("");
-  };
-
-  const handleGenerate = () => {
-    if (!situation.trim()) {
-      alert("상황을 입력해주세요.");
-      return;
-    }
-    const queryParams = new URLSearchParams({
-      situation,
-      atmosphere: selectedAtmosphere,
-      relation: selectedRelation,
-      age: selectedAge,
-    }).toString();
-
-    router.push(`/generate/loading?${queryParams}`);
-  };
+  const labelOf = (category, code) => options[category]?.find(o => o.code === code)?.label ?? "";
 
   return (
     <>
@@ -242,8 +275,8 @@ export default function GeneratePage() {
               </Typography>
             </Box>
 
-            {/* 1. 상황 입력 */}
-            <Box sx={{ mb: 4 }}>
+            {/* 1. 상황 선택 (필수) */}
+            <Box sx={{ mb: 3 }}>
               <Typography variant="body2" fontWeight={600} color="text.primary" mb={1} component="div">
                 어떤 상황인가요?
               </Typography>
@@ -252,9 +285,11 @@ export default function GeneratePage() {
                 multiline
                 rows={4}
                 placeholder="예: 오랜만에 만난 초등학교 친구와 카페에서 어색하지 않게 대화하고 싶어요."
-                value={situation}
-                onChange={e => setSituation(e.target.value)}
+                // value={situation}
+                // onChange={e => setSituation(e.target.value)}
                 sx={{
+                  mt: 3,
+                  mb: 3,
                   "& .MuiOutlinedInput-root": {
                     borderRadius: 2.5,
                     backgroundColor: "grey.50",
@@ -263,61 +298,78 @@ export default function GeneratePage() {
                   },
                 }}
               />
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                {options.situation.map(item => (
+                  <Chip
+                    key={item.code}
+                    label={item.label}
+                    onClick={() => setSelectedSituation(item.code)}
+                    variant={selectedSituation === item.code ? "filled" : "outlined"}
+                    color={selectedSituation === item.code ? "primary" : "default"}
+                    sx={{ borderRadius: 5, px: 1, py: 2 }}
+                  />
+                ))}
+                {!optionsLoading && options.situation.length === 0 && (
+                  <Typography variant="body2" color="text.secondary">
+                    선택지를 불러오지 못했습니다.
+                  </Typography>
+                )}
+              </Box>
             </Box>
 
-            {/* 2. 탭 선택 */}
+            {/* 2. 형식 선택 (필수) */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="body2" fontWeight={600} color="text.primary" mb={1} component="div">
+                어떤 형식으로 만들까요?
+              </Typography>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                {options.format.map(item => (
+                  <Chip
+                    key={item.code}
+                    label={item.label}
+                    onClick={() => setSelectedFormat(item.code)}
+                    variant={selectedFormat === item.code ? "filled" : "outlined"}
+                    color={selectedFormat === item.code ? "primary" : "default"}
+                    sx={{ mt: 1, borderRadius: 5, px: 1, py: 2 }}
+                  />
+                ))}
+              </Box>
+            </Box>
+
+            {/* 3. 탭 선택 (선택사항: 분위기 / 관계 / 대상) */}
             <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2.5 }}>
               <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)} textColor="primary" indicatorColor="primary">
-                <Tab label="원하는 대화 분위기" sx={{ fontWeight: 600 }} />
-                <Tab label="관계" sx={{ fontWeight: 600 }} />
-                <Tab label="나이" sx={{ fontWeight: 600 }} />
+                {TABS.map(t => (
+                  <Tab key={t.key} label={t.label} sx={{ fontWeight: 600 }} />
+                ))}
               </Tabs>
             </Box>
 
-            {/* 3. 옵션 선택 버튼 */}
+            {/* 4. 옵션 선택 버튼 */}
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2.5 }}>
-              {tabValue === 0 &&
-                OPTIONS.atmosphere.map(item => (
+              {(() => {
+                const key = TABS[tabValue].key;
+                const [value, setValue] = tabState[key];
+                return options[key].map(item => (
                   <Chip
-                    key={item}
-                    label={item}
-                    onClick={() => setSelectedAtmosphere(item)}
-                    variant={selectedAtmosphere === item ? "filled" : "outlined"}
-                    color={selectedAtmosphere === item ? "primary" : "default"}
+                    key={item.code}
+                    label={item.label}
+                    onClick={() => setValue(item.code)}
+                    variant={value === item.code ? "filled" : "outlined"}
+                    color={value === item.code ? "primary" : "default"}
                     sx={{ borderRadius: 5, px: 1, py: 2 }}
                   />
-                ))}
-              {tabValue === 1 &&
-                OPTIONS.relation.map(item => (
-                  <Chip
-                    key={item}
-                    label={item}
-                    onClick={() => setSelectedRelation(item)}
-                    variant={selectedRelation === item ? "filled" : "outlined"}
-                    color={selectedRelation === item ? "primary" : "default"}
-                    sx={{ borderRadius: 5, px: 1, py: 2 }}
-                  />
-                ))}
-              {tabValue === 2 &&
-                OPTIONS.age.map(item => (
-                  <Chip
-                    key={item}
-                    label={item}
-                    onClick={() => setSelectedAge(item)}
-                    variant={selectedAge === item ? "filled" : "outlined"}
-                    color={selectedAge === item ? "primary" : "default"}
-                    sx={{ borderRadius: 5, px: 1, py: 2 }}
-                  />
-                ))}
+                ));
+              })()}
             </Box>
 
-            {/* 4. 선택된 태그 디스플레이 영역 */}
-            {(selectedAtmosphere || selectedRelation || selectedAge) && (
+            {/* 5. 선택된 태그 디스플레이 영역 */}
+            {(selectedMood || selectedRelation || selectedTarget) && (
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 3 }}>
-                {selectedAtmosphere && (
+                {selectedMood && (
                   <Chip
-                    label={selectedAtmosphere}
-                    onDelete={() => removeTag("atmosphere")}
+                    label={labelOf("mood", selectedMood)}
+                    onDelete={() => removeTag("mood")}
                     color="primary"
                     variant="outlined"
                     sx={{ borderRadius: 5, bgcolor: theme.palette.momentalk.presetCard, fontWeight: 600 }}
@@ -325,17 +377,17 @@ export default function GeneratePage() {
                 )}
                 {selectedRelation && (
                   <Chip
-                    label={selectedRelation}
+                    label={labelOf("relation", selectedRelation)}
                     onDelete={() => removeTag("relation")}
                     color="primary"
                     variant="outlined"
                     sx={{ borderRadius: 5, bgcolor: theme.palette.momentalk.presetCard, fontWeight: 600 }}
                   />
                 )}
-                {selectedAge && (
+                {selectedTarget && (
                   <Chip
-                    label={selectedAge}
-                    onDelete={() => removeTag("age")}
+                    label={labelOf("target", selectedTarget)}
+                    onDelete={() => removeTag("target")}
                     color="primary"
                     variant="outlined"
                     sx={{ borderRadius: 5, bgcolor: theme.palette.momentalk.presetCard, fontWeight: 600 }}
@@ -344,7 +396,26 @@ export default function GeneratePage() {
               </Box>
             )}
 
-            {/* 5. 안내 메시지 박스 */}
+            {/* 6. 레벨(대화 깊이) 선택 */}
+            <Box sx={{ mb: 3.5 }}>
+              <Typography variant="body2" fontWeight={600} color="text.primary" mb={1} component="div">
+                대화 깊이
+              </Typography>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                {LEVEL_OPTIONS.map(lv => (
+                  <Chip
+                    key={lv.value}
+                    label={lv.label}
+                    onClick={() => setLevel(lv.value)}
+                    variant={level === lv.value ? "filled" : "outlined"}
+                    color={level === lv.value ? "primary" : "default"}
+                    sx={{ borderRadius: 5, px: 1, py: 2 }}
+                  />
+                ))}
+              </Box>
+            </Box>
+
+            {/* 7. 안내 메시지 박스 */}
             <Paper
               elevation={0}
               sx={{
@@ -365,7 +436,7 @@ export default function GeneratePage() {
               </Typography>
             </Paper>
 
-            {/* 6. 생성 버튼 (스타일 가이드 Button 컴포넌트) */}
+            {/* 8. 생성 버튼 (스타일 가이드 Button 컴포넌트) */}
             <Button
               variant="primary"
               size="md"
@@ -380,7 +451,7 @@ export default function GeneratePage() {
             </Button>
           </Paper>
 
-          {/* 템플릿 클릭 시 형식 선택 모달 */}
+          {/* 템플릿 클릭 시 형식/레벨 선택 모달 */}
           <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
             <Box
               sx={{
@@ -408,13 +479,13 @@ export default function GeneratePage() {
                 원하시는 대화 형식을 선택해 주세요.
               </Typography>
 
-              <List disablePadding sx={{ mb: 3 }}>
-                {FORMAT_OPTIONS.map(item => {
-                  const isSelected = selectedFormat === item.code;
+              <List disablePadding sx={{ mb: 2.5 }}>
+                {options.format.map(item => {
+                  const isSelected = modalFormat === item.code;
                   return (
                     <ListItem key={item.code} disablePadding sx={{ mb: 1 }}>
                       <ListItemButton
-                        onClick={() => handleSelectFormat(item.code)}
+                        onClick={() => setModalFormat(item.code)}
                         sx={{
                           borderRadius: 2,
                           border: "1px solid",
@@ -451,18 +522,29 @@ export default function GeneratePage() {
                 })}
               </List>
 
+              {/* 레벨 선택 */}
+              <Typography variant="body2" fontWeight={600} color="text.primary" mb={1}>
+                대화 깊이
+              </Typography>
+              <Box sx={{ display: "flex", gap: 1, mb: 3 }}>
+                {LEVEL_OPTIONS.map(lv => (
+                  <Chip
+                    key={lv.value}
+                    label={lv.label}
+                    onClick={() => setModalLevel(lv.value)}
+                    variant={modalLevel === lv.value ? "filled" : "outlined"}
+                    color={modalLevel === lv.value ? "primary" : "default"}
+                    sx={{ borderRadius: 5 }}
+                  />
+                ))}
+              </Box>
+
               {/* 하단 버튼 (이전 / 전송) — 스타일 가이드 Button 컴포넌트 */}
               <Box sx={{ display: "flex", gap: 1.5 }}>
                 <Button variant="tertiary" size="modal" fullWidth onClick={() => setIsModalOpen(false)}>
                   이전
                 </Button>
-                <Button
-                  variant="primary"
-                  size="modal"
-                  fullWidth
-                  onClick={handleSendTemplate}
-                  disabled={!selectedFormat}
-                >
+                <Button variant="primary" size="modal" fullWidth onClick={handleSendTemplate} disabled={!modalFormat}>
                   전송
                 </Button>
               </Box>
