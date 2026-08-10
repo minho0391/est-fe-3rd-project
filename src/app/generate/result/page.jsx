@@ -16,11 +16,11 @@ import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import Avatar from "@mui/material/Avatar";
 import CircularProgress from "@mui/material/CircularProgress";
+import Modal from "@mui/material/Modal";
 import { useTheme, alpha } from "@mui/material/styles";
 
 import { getGenerationById, saveGenerationItem } from "@/lib/generateQueries";
 
-/** 실제 응답엔 카드별 아이콘 정보가 없어서, 디자인대로 전 카드 동일 아이콘을 씁니다. */
 const TOPIC_ICON = "/assets/icons/refresh_icon.svg";
 
 function ResultContent() {
@@ -32,6 +32,7 @@ function ResultContent() {
   const [state, setState] = useState("loading"); // 'loading' | 'ready' | 'notfound'
   const [data, setData] = useState(null);
   const [saveState, setSaveState] = useState("idle"); // 'idle' | 'saving' | 'saved' | 'error'
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -85,6 +86,7 @@ function ResultContent() {
     try {
       await Promise.all(savable.map(item => saveGenerationItem(item.id)));
       setSaveState("saved");
+      setIsSaveModalOpen(true);
     } catch (e) {
       setSaveState("error");
       if (String(e.message).includes("로그인")) {
@@ -222,6 +224,91 @@ function ResultContent() {
           </Button>
         </Box>
       </Paper>
+
+      {/* 저장 완료 모달 */}
+      <Modal open={isSaveModalOpen} onClose={() => setIsSaveModalOpen(false)}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: { xs: "90%", sm: 460 },
+            bgcolor: "background.paper",
+            borderRadius: 4,
+            overflow: "hidden",
+            boxShadow: 24,
+          }}
+        >
+          {/* 상단 그라데이션 배너 + 체크 아이콘 */}
+          <Box
+            sx={{
+              position: "relative",
+              height: 190,
+              background: `radial-gradient(circle at 30% 25%, ${alpha(theme.palette.secondary.main, 0.9)}, ${theme.palette.primary.main})`,
+            }}
+          >
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: -44,
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: 96,
+                height: 96,
+                borderRadius: "50%",
+                bgcolor: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
+              }}
+            >
+              <Avatar sx={{ bgcolor: "primary.main", width: 64, height: 64 }}>
+                <Box component="img" src="/assets/icons/account_icon.svg" alt="" sx={{ width: 34, height: 34 }} />
+              </Avatar>
+            </Box>
+          </Box>
+          {/* 본문 */}
+          <Box sx={{ pt: 8, pb: 4.5, px: { xs: 3, sm: 4.5 }, textAlign: "center" }}>
+            <Typography variant="h4" color="text.primary" mb={2}>
+              대화 가이드 저장 완료!
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 4, lineHeight: "24px" }}>
+              생성된 대화 가이드를 내 보관함에 저장하거나 친구에게 공유할 수 있습니다. 저장된 내용은 마이페이지에서
+              언제든지 다시 확인할 수 있어요.
+            </Typography>
+            <Button
+              variant="primary"
+              size="md"
+              fullWidth
+              onClick={() => router.push("/mypage")}
+              leadingIcon="/assets/icons/mypage_icon.svg"
+              sx={{ height: 52, fontSize: "0.95rem", mb: 1.5 }}
+            >
+              마이페이지로 이동하기
+            </Button>
+            <Button
+              variant="tertiary"
+              size="md"
+              fullWidth
+              onClick={() => router.push("/community")}
+              leadingIcon="/assets/icons/community_icon.svg"
+              sx={{ height: 52, fontSize: "0.95rem", mb: 2.5 }}
+            >
+              커뮤니티에 공유하기
+            </Button>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              onClick={() => setIsSaveModalOpen(false)}
+              sx={{ cursor: "pointer", "&:hover": { color: "text.primary" } }}
+            >
+              현재 페이지 유지
+            </Typography>
+          </Box>
+        </Box>
+      </Modal>
     </Box>
   );
 }
