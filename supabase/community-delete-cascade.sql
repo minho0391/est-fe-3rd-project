@@ -137,6 +137,7 @@ begin
 end;
 $$;
 
+drop trigger if exists trg_comment_count on public.comments;
 drop trigger if exists comments_sync_post_comment_count on public.comments;
 create trigger comments_sync_post_comment_count
 after insert or delete or update of deleted_at, post_id
