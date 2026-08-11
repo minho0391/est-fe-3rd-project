@@ -80,10 +80,7 @@ const extractJson = answer => {
  * @returns {Promise<object>} 파싱된 JSON 객체
  * @throws {AlanError}
  */
-export const askAlan = async (
-  prompt,
-  { reset = true, timeoutMs = 60000 } = {},
-) => {
+export const askAlan = async (prompt, { reset = true, timeoutMs = 60000 } = {}) => {
   if (!prompt?.trim()) {
     throw new AlanError("프롬프트가 비어 있습니다.", { status: 400 });
   }
@@ -136,13 +133,7 @@ export const ALAN_TASK = {
   COMMUNITY_POST: "community-post",
 };
 
-const buildConversationPrompt = ({
-  situation,
-  mood,
-  relation,
-  target,
-  format,
-}) => {
+const buildConversationPrompt = ({ situation, mood, relation, target, format }) => {
   const conditions = [
     situation && `상황: ${situation}`,
     mood && `원하는 분위기: ${mood}`,
@@ -165,9 +156,7 @@ results는 3개, 각 scripts는 1개, 각 tips는 2개.
 };
 
 const buildCommunityPostPrompt = ({ title, description, keywords = [] }) => {
-  const keywordText = Array.isArray(keywords)
-    ? keywords.filter(Boolean).join(", ")
-    : "";
+  const keywordText = Array.isArray(keywords) ? keywords.filter(Boolean).join(", ") : "";
 
   return `커뮤니티에 게시할 글 초안을 작성해줘.
 
@@ -199,7 +188,7 @@ const normalizeConversationResult = result => {
     results: results.slice(0, 3).map((item, index) => ({
       position: index + 1,
       title: item?.title ?? "",
-      scripts: Array.isArray(item?.scripts) ? item.scripts.slice(0, 1) : [],
+      scripts: Array.isArray(item?.scripts) ? item.scripts : [],
       tips: Array.isArray(item?.tips) ? item.tips.slice(0, 2) : [],
     })),
   };
@@ -214,9 +203,7 @@ const normalizeCommunityPostResult = (result, payload) => {
 
   const normalized = {
     title: String(result?.title ?? payload?.title ?? "").trim(),
-    description: String(
-      result?.description ?? payload?.description ?? "",
-    ).trim(),
+    description: String(result?.description ?? payload?.description ?? "").trim(),
     content: String(result?.content ?? "").trim(),
     tags,
   };
@@ -298,10 +285,7 @@ export const generateAlanContent = async (task, payload = {}) => {
  */
 export const toAlanResponse = error => {
   if (error instanceof AlanError) {
-    return Response.json(
-      { source: "failed", error: error.message },
-      { status: error.status },
-    );
+    return Response.json({ source: "failed", error: error.message }, { status: error.status });
   }
 
   console.error("[alan] 예상치 못한 오류", error);

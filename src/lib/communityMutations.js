@@ -344,6 +344,9 @@ export const createComment = async (postId, content, parentId = null) => {
     .select(
       "id, post_id, author_id, parent_id, content, created_at, profiles ( nickname, avatar_url )",
     )
+    .select(
+      "id, post_id, author_id, content, created_at, profiles ( nickname, avatar_url )",
+    )
     .single();
 
   if (error) throw error;
@@ -488,7 +491,14 @@ export const updateCurrentUserProfile = async ({ nickname }) => {
     .select("id, nickname, avatar_url, role, created_at")
     .single();
 
-  if (error) throw error;
+  // 23505 = unique_violation. profiles.nickname 에 unique 제약이 걸려 있어
+  // 중복이면 Postgres 원문이 그대로 화면에 노출되므로 사용자용 문구로 바꿉니다.
+  if (error) {
+    if (error.code === "23505") {
+      throw new Error("이미 사용 중인 닉네임입니다.");
+    }
+    throw error;
+  }
 
   // 헤더/다른 화면에서 auth metadata를 사용하는 경우에도 이름이 맞도록 동기화합니다.
   const { error: authError } = await db.auth.updateUser({
