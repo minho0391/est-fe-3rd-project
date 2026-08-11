@@ -344,9 +344,6 @@ export const createComment = async (postId, content, parentId = null) => {
     .select(
       "id, post_id, author_id, parent_id, content, created_at, profiles ( nickname, avatar_url )",
     )
-    .select(
-      "id, post_id, author_id, content, created_at, profiles ( nickname, avatar_url )",
-    )
     .single();
 
   if (error) throw error;
