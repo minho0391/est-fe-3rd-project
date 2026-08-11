@@ -30,6 +30,16 @@ with check (
   and (storage.foldername(name))[1] = (select auth.uid()::text)
 );
 
+drop policy if exists "post images select own folder" on storage.objects;
+create policy "post images select own folder"
+on storage.objects
+for select
+to authenticated
+using (
+  bucket_id = 'post-images'
+  and (storage.foldername(name))[1] = (select auth.uid()::text)
+);
+
 drop policy if exists "post images delete own folder" on storage.objects;
 create policy "post images delete own folder"
 on storage.objects
