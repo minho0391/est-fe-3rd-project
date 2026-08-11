@@ -19,7 +19,7 @@ import {
 import { deletePost } from "@/lib/communityMutations";
 
 const buildLoginUrl = returnUrl =>
-  `/sign-in?next=${encodeURIComponent(returnUrl || "/post")}`;
+  `/sign-in?returnUrl=${encodeURIComponent(returnUrl || "/post")}`;
 
 export default function PostDetailPage() {
   const params = useParams();
