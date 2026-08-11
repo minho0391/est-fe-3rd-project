@@ -1,8 +1,7 @@
 /**
  * Supabase 기반 커뮤니티 조회 함수.
  *
- * @/data/communityPosts 의 셀렉터와 같은 이름·같은 반환 형태를 유지합니다.
- * 다만 전부 async 이므로 호출부에서 await 이 필요합니다.
+ * 전부 async 이므로 호출부에서 await 이 필요합니다.
  */
 
 import { createClient } from "@/utils/supabase/client";
@@ -64,7 +63,7 @@ const throwQueryError = (context, error) => {
 
 const getSingleRelation = relation => (Array.isArray(relation) ? relation[0] : relation);
 
-/** Supabase 행을 기존 커뮤니티 UI 데이터 형태로 변환합니다. */
+/** Supabase 행을 커뮤니티 UI 데이터 형태로 변환합니다. */
 const mapPost = (row, currentUserId = null) => {
   const board = getSingleRelation(row.boards);
   const profile = getSingleRelation(row.profiles);
@@ -113,7 +112,7 @@ const mapPosts = async rows => {
 const withLikes = async rows => mapPosts(rows);
 
 /**
- * 목데이터와 동일한 최신순 비교 함수.
+ * 최신순 비교 함수.
  * createdAt은 mapPost()에서 "YYYY.MM.DD" 형태로 정규화됩니다.
  */
 export const compareCommunityPostCreatedAtDesc = (a, b) => {
@@ -340,11 +339,17 @@ export const getCurrentUserProfile = async () => {
   };
 };
 
-/** 게시판 목록 (목데이터의 communityBoards 대체) */
+/**
+ * 게시판 목록
+ *
+ * write_role 은 그 게시판에 글을 쓸 수 있는 최소 권한입니다.
+ * 예: 공지사항은 "admin" 이라 관리자만 작성 가능합니다.
+ * 글쓰기 화면에서 현재 사용자 권한과 비교해 선택지를 걸러 주세요.
+ */
 export const getCommunityBoards = async () => {
   const { data, error } = await supabase()
     .from("boards")
-    .select("id, code, name, is_notice")
+    .select("id, code, name, is_notice, write_role")
     .order("sort_order");
 
   throwQueryError("게시판 목록 조회 실패", error);
