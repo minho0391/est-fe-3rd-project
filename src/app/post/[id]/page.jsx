@@ -16,6 +16,7 @@ import {
   incrementPostView,
   togglePostLike,
 } from "@/lib/communityQueries";
+import { deletePost } from "@/lib/communityMutations";
 
 const buildLoginUrl = returnUrl =>
   `/sign-in?next=${encodeURIComponent(returnUrl || "/post")}`;
@@ -32,6 +33,8 @@ export default function PostDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [isLikePending, setIsLikePending] = useState(false);
+  const [isDeletePending, setIsDeletePending] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -114,6 +117,35 @@ export default function PostDetailPage() {
     }
   };
 
+  const handleDeletePost = async () => {
+    if (!currentUser) {
+      router.push(buildLoginUrl(pathname));
+      return;
+    }
+
+    if (!basePost || currentUser.id !== basePost.authorId || isDeletePending) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "게시글을 삭제하면 댓글·대댓글·좋아요·태그 연결·조회 기록과 본문에 업로드한 이미지도 함께 정리됩니다. 삭제하시겠습니까?",
+    );
+    if (!confirmed) return;
+
+    try {
+      setIsDeletePending(true);
+      setDeleteError("");
+      await deletePost(basePost.id);
+      router.replace("/post/list");
+      router.refresh();
+    } catch (error) {
+      console.error("게시글 삭제 실패", error);
+      setDeleteError(error?.message || "게시글 삭제에 실패했습니다.");
+    } finally {
+      setIsDeletePending(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <main className="community-scope community-page detail-page-container">
@@ -166,7 +198,18 @@ export default function PostDetailPage() {
         isLiked={Boolean(basePost.likedByCurrentUser)}
         isLikePending={isLikePending}
         onLikeToggle={handleLikeToggle}
+        canDelete={Boolean(
+          currentUser?.id && currentUser.id === basePost.authorId,
+        )}
+        isDeletePending={isDeletePending}
+        onDelete={handleDeletePost}
       />
+
+      {deleteError && (
+        <p className="post-detail-deleteError" role="alert">
+          {deleteError}
+        </p>
+      )}
 
       <CommentSection
         postId={basePost.id}
