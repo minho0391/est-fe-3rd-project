@@ -6,7 +6,11 @@ import "@/auth/auth.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import Button from "@/components/ui/Button";
-import { signInWithEmail, signInWithGoogle, resetPassword } from "@/utils/supabase/auth";
+import {
+  signInWithEmail,
+  signInWithGoogle,
+  resetPassword,
+} from "@/utils/supabase/auth";
 
 const PROMO_BULLETS = [
   "AI 맞춤 콘텐츠 생성",
@@ -19,7 +23,9 @@ function PromoPanel() {
   return (
     <aside className="signin-promo" aria-label="Momentalk 소개">
       <div className="signin-promoHeading">
-        <h2 className="signin-promoTitle">Momentalk의 다양한 콘텐츠를 만나보세요</h2>
+        <h2 className="signin-promoTitle">
+          Momentalk의 다양한 콘텐츠를 만나보세요
+        </h2>
         <p className="signin-promoDesc">
           로그인하면 AI를 활용해 나만의 대화 콘텐츠를 저장하고 공유할 수 있어요
         </p>
@@ -33,7 +39,13 @@ function PromoPanel() {
         ))}
       </ul>
 
-      <Button component={Link} href="/sign-up" variant="primary" size="md" fullWidth>
+      <Button
+        component={Link}
+        href="/sign-up"
+        variant="primary"
+        size="md"
+        fullWidth
+      >
         회원가입
       </Button>
     </aside>
@@ -43,7 +55,8 @@ function PromoPanel() {
 function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") || "/";
+  const returnUrl =
+    searchParams.get("returnUrl") || searchParams.get("next") || "/";
   const authFailed = searchParams.get("error") === "auth_failed";
 
   const [email, setEmail] = useState("");
@@ -62,7 +75,7 @@ function SignInForm() {
 
     try {
       await signInWithEmail({ email, password });
-      router.push(next);
+      router.push(returnUrl);
       router.refresh();
     } catch (err) {
       setError(
@@ -79,7 +92,7 @@ function SignInForm() {
     setError("");
     setNotice("");
     try {
-      await signInWithGoogle(next);
+      await signInWithGoogle(returnUrl);
     } catch {
       setError("구글 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.");
     }
@@ -98,7 +111,9 @@ function SignInForm() {
       await resetPassword(email);
       setNotice("비밀번호 재설정 메일을 보냈습니다. 메일함을 확인해 주세요.");
     } catch {
-      setError("비밀번호 재설정 메일 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+      setError(
+        "비밀번호 재설정 메일 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+      );
     }
   };
 
@@ -106,7 +121,9 @@ function SignInForm() {
     <div className="signin-layout">
       <section className="signin-section" aria-label="이메일로 로그인">
         {error && <p className="signin-alert signin-alert-error">{error}</p>}
-        {notice && <p className="signin-alert signin-alert-success">{notice}</p>}
+        {notice && (
+          <p className="signin-alert signin-alert-success">{notice}</p>
+        )}
 
         <form onSubmit={handleSubmit} className="signin-form">
           <div className="signin-field">
@@ -141,16 +158,31 @@ function SignInForm() {
             />
           </div>
 
-          <button type="button" onClick={handleFindPassword} className="signin-findPasswordLink">
+          <button
+            type="button"
+            onClick={handleFindPassword}
+            className="signin-findPasswordLink"
+          >
             비밀번호 찾기
           </button>
 
-          <Button type="submit" variant="primary" size="md" disabled={loading} fullWidth>
+          <Button
+            type="submit"
+            variant="primary"
+            size="md"
+            disabled={loading}
+            fullWidth
+          >
             {loading ? "로그인 중..." : "로그인"}
           </Button>
         </form>
 
-        <Button variant="primary" size="md" onClick={handleGoogleSignIn} fullWidth>
+        <Button
+          variant="primary"
+          size="md"
+          onClick={handleGoogleSignIn}
+          fullWidth
+        >
           Google 로그인
         </Button>
       </section>
