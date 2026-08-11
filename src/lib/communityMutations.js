@@ -123,6 +123,74 @@ export const createPost = async ({
   return data.id;
 };
 
+/**
+ * 게시글 본문 이미지 업로드.
+ *
+ * public `post-images` 버킷의 {user_id}/{128bit-random}.{ext} 경로에 저장합니다.
+ * 브라우저에서 본문에 바로 표시할 수 있도록 공개 URL을 반환합니다.
+ *
+ * @param {File} file 이미지 파일
+ * @returns {Promise<string>} 공개 URL
+ */
+export const uploadPostImage = async file => {
+  const db = supabase();
+  const user = await requireUser(db);
+
+  if (!(file instanceof File) || !file.type.startsWith("image/")) {
+    throw new Error("이미지 파일만 업로드할 수 있습니다.");
+  }
+
+  const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+  if (file.size > MAX_IMAGE_SIZE) {
+    throw new Error("본문 이미지는 5MB 이하만 업로드할 수 있습니다.");
+  }
+
+  // 원본 파일명은 Storage 경로에 사용하지 않습니다.
+  // 128bit 난수를 hex 문자열로 만들어 충돌 가능성을 낮추고 파일명을 예측하기 어렵게 합니다.
+  const randomBytes = new Uint8Array(16);
+  crypto.getRandomValues(randomBytes);
+  const randomFileName = Array.from(randomBytes, byte =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
+
+  const extensionByMimeType = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "image/gif": "gif",
+    "image/avif": "avif",
+  };
+  const safeExt = extensionByMimeType[file.type] ?? "jpg";
+  const path = `${user.id}/${randomFileName}.${safeExt}`;
+
+  const { error: uploadError } = await db.storage
+    .from("post-images")
+    .upload(path, file, {
+      cacheControl: "31536000",
+      upsert: false,
+      contentType: file.type,
+    });
+
+  if (uploadError) {
+    if (/bucket.*not found/i.test(uploadError.message ?? "")) {
+      throw new Error(
+        "게시글 이미지 저장소(post-images)가 준비되지 않았습니다.",
+      );
+    }
+    throw uploadError;
+  }
+
+  const {
+    data: { publicUrl },
+  } = db.storage.from("post-images").getPublicUrl(path);
+
+  if (!publicUrl) {
+    throw new Error("업로드한 이미지 URL을 가져오지 못했습니다.");
+  }
+
+  return publicUrl;
+};
+
 /** 게시글 수정 (본인 글만 — RLS가 막습니다) */
 export const updatePost = async (postId, { board, title, description, content, tags }) => {
   const db = supabase();

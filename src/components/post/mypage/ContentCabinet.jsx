@@ -1,7 +1,7 @@
 // [콘텐츠 보관함 영역] (AI 생성 및 운영진 기본 콘텐츠 리스트)
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import {
   AutoAwesomeIcon,
@@ -11,12 +11,30 @@ import {
   RefreshIcon,
 } from "@/images/icons";
 
-import { savedCommunityContents } from "@/data/communityPosts";
+import { getSavedContents } from "@/lib/communityQueries";
 
 export default function ContentCabinet({ onSelectContent }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const [filter, setFilter] = useState("ALL"); // ALL, AI, ADMIN
+  const [savedContents, setSavedContents] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    getSavedContents()
+      .then(rows => {
+        if (mounted) setSavedContents(rows);
+      })
+      .catch(error => {
+        console.error("콘텐츠 보관함을 불러오지 못했습니다.", error);
+        if (mounted) setSavedContents([]);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // 보관함 팝업 열기/닫기
   const toggleDrawer = () => setIsOpen(prev => !prev);
@@ -31,7 +49,7 @@ export default function ContentCabinet({ onSelectContent }) {
   };
 
   // 필터링된 콘텐츠 리스트
-  const filteredContents = savedCommunityContents.filter(item => {
+  const filteredContents = savedContents.filter(item => {
     if (filter === "AI") return item.type === "AI";
 
     if (filter === "ADMIN") return item.type === "ADMIN";

@@ -1,7 +1,7 @@
 // [글 작성 폼] (제목, 추가 설명 입력창)
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import "react-quill-new/dist/quill.snow.css";
@@ -11,19 +11,55 @@ import ContentFetcherModal from "./ContentFetcherModal";
 import Button from "@/components/ui/Button";
 import { CloseIcon, InfoOutlinedIcon } from "@/images/icons";
 import { getCommunityBoards } from "@/lib/communityQueries";
+import { createPost, uploadPostImage } from "@/lib/communityMutations";
 
 // React Quill SSR 이슈 방지를 위한 Dynamic Import
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
-const modules = {
-  toolbar: [
-    [{ header: [1, 2, 3, false] }],
-    ["bold", "italic", "underline", "strike", "blockquote"],
-    [{ list: "ordered" }, { list: "bullet" }],
-    [{ align: ["", "center", "right"] }],
-    ["link", "video", "image"],
-    ["clean"],
-  ],
+const normalizeExternalUrl = rawUrl => {
+  const value = String(rawUrl ?? "").trim();
+  if (!value) return "";
+
+  if (/^(https?:|mailto:|tel:)/i.test(value)) return value;
+  return `https://${value}`;
+};
+
+const normalizeVideoUrl = rawUrl => {
+  const normalized = normalizeExternalUrl(rawUrl);
+  if (!normalized) return "";
+
+  try {
+    const url = new URL(normalized);
+    const host = url.hostname.replace(/^www\./, "").toLowerCase();
+
+    if (host === "youtu.be") {
+      const videoId = url.pathname.split("/").filter(Boolean)[0];
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : normalized;
+    }
+
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      if (url.pathname === "/watch") {
+        const videoId = url.searchParams.get("v");
+        return videoId
+          ? `https://www.youtube.com/embed/${videoId}`
+          : normalized;
+      }
+
+      const match = url.pathname.match(/^\/(?:shorts|embed)\/([^/?#]+)/);
+      if (match?.[1]) return `https://www.youtube.com/embed/${match[1]}`;
+    }
+
+    if (host === "vimeo.com") {
+      const videoId = url.pathname.split("/").filter(Boolean)[0];
+      if (/^\d+$/.test(videoId ?? "")) {
+        return `https://player.vimeo.com/video/${videoId}`;
+      }
+    }
+
+    return normalized;
+  } catch {
+    return "";
+  }
 };
 
 const isQuillContentEmpty = value => {
@@ -69,6 +105,108 @@ export default function WriteForm() {
   const [tagInput, setTagInput] = useState("");
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isExistingModalOpen, setIsExistingModalOpen] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const modules = useMemo(
+    () => ({
+      toolbar: {
+        container: [
+          [{ header: [1, 2, 3, false] }],
+          ["bold", "italic", "underline", "strike", "blockquote"],
+          [{ list: "ordered" }, { list: "bullet" }],
+          [{ align: ["", "center", "right", "justify"] }],
+          ["link", "video", "image"],
+          ["clean"],
+        ],
+        handlers: {
+          image: function handleImage() {
+            const quill = this.quill;
+            const input = document.createElement("input");
+            input.type = "file";
+            input.accept = "image/*";
+            input.click();
+
+            input.onchange = async () => {
+              const file = input.files?.[0];
+              if (!file) return;
+
+              try {
+                const imageUrl = await uploadPostImage(file);
+                const range = quill.getSelection(true);
+                const index = range?.index ?? quill.getLength();
+
+                quill.insertEmbed(index, "image", imageUrl, "user");
+                quill.setSelection(index + 1, 0, "silent");
+              } catch (error) {
+                console.error("본문 이미지 업로드 실패", error);
+                window.alert(
+                  error?.message ||
+                    "이미지 업로드에 실패했습니다. 다시 시도해 주세요.",
+                );
+              }
+            };
+          },
+          video: function handleVideo() {
+            const quill = this.quill;
+            const rawUrl = window.prompt(
+              "YouTube, Vimeo 또는 영상 URL을 입력해 주세요.",
+            );
+            if (!rawUrl) return;
+
+            const videoUrl = normalizeVideoUrl(rawUrl);
+            if (!videoUrl) {
+              window.alert("올바른 영상 URL을 입력해 주세요.");
+              return;
+            }
+
+            const range = quill.getSelection(true);
+            const index = range?.index ?? quill.getLength();
+            quill.insertEmbed(index, "video", videoUrl, "user");
+            quill.setSelection(index + 1, 0, "silent");
+          },
+          link: function handleLink(value) {
+            const quill = this.quill;
+            const currentRange = quill.getSelection(true);
+            if (!currentRange) return;
+
+            if (value === false) {
+              quill.format("link", false, "user");
+              return;
+            }
+
+            const rawUrl = window.prompt("연결할 URL을 입력해 주세요.");
+            if (!rawUrl) return;
+
+            const linkUrl = normalizeExternalUrl(rawUrl);
+            if (!linkUrl) {
+              window.alert("올바른 URL을 입력해 주세요.");
+              return;
+            }
+
+            if (currentRange.length > 0) {
+              quill.format("link", linkUrl, "user");
+              return;
+            }
+
+            quill.insertText(
+              currentRange.index,
+              linkUrl,
+              "link",
+              linkUrl,
+              "user",
+            );
+            quill.setSelection(
+              currentRange.index + linkUrl.length,
+              0,
+              "silent",
+            );
+          },
+        },
+      },
+    }),
+    [],
+  );
 
   const showEditorPlaceholder =
     !isEditorFocused && isQuillContentEmpty(content);
@@ -198,31 +336,38 @@ export default function WriteForm() {
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
-  // 폼 제출 함수: 목데이터 단계에서는 sessionStorage에 저장 후 미리보기 상세로 이동
-  const handleSubmit = e => {
+  // 실제 Supabase posts 테이블에 저장한 뒤 생성된 게시글 상세로 이동합니다.
+  const handleSubmit = async e => {
     e.preventDefault();
+    if (isSubmitting) return;
 
-    const newPost = {
-      id: "preview",
-      board,
-      title: title.trim(),
-      description: description.trim(),
-      content,
-      tags,
-      authorId: "user-1",
-      author: "홍길동",
-      authorRole: "정회원",
-      authorAvatarUrl: "https://via.placeholder.com/40",
-      createdAt: new Date().toISOString().slice(0, 10).replaceAll("-", "."),
-      views: 0,
-      likes: 0,
-      commentsCount: 0,
-      isAiGenerated: contentSource === "AI",
-    };
+    if (isQuillContentEmpty(content)) {
+      setSubmitError("내용을 입력해 주세요.");
+      return;
+    }
 
-    // TODO: Supabase 게시글 insert 연동 후 sessionStorage 미리보기 저장 및 /post/preview 이동 로직 제거
-    sessionStorage.setItem("community-preview-post", JSON.stringify(newPost));
-    router.push("/post/preview");
+    try {
+      setIsSubmitting(true);
+      setSubmitError("");
+
+      const postId = await createPost({
+        board,
+        title,
+        description,
+        content,
+        tags,
+        isAiGenerated: contentSource === "AI",
+      });
+
+      router.push(`/post/${postId}`);
+    } catch (error) {
+      console.error("게시글 등록 실패", error);
+      setSubmitError(
+        error?.message || "게시글 등록에 실패했습니다. 다시 시도해 주세요.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -354,9 +499,20 @@ export default function WriteForm() {
           </div>
 
           {/* 등록 버튼 영역 */}
+          {submitError && (
+            <p className="write-submitError" role="alert">
+              {submitError}
+            </p>
+          )}
+
           <div className="write-actionRow">
-            <Button type="submit" variant="primary" size="md">
-              등록
+            <Button
+              type="submit"
+              variant="primary"
+              size="md"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "등록 중..." : "등록"}
             </Button>
           </div>
 

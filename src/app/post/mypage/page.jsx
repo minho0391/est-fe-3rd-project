@@ -66,6 +66,8 @@ export default function MyPage() {
   const [profileActionError, setProfileActionError] = useState("");
   const [isProfileSaving, setIsProfileSaving] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [currentPostsPage, setCurrentPostsPage] = useState(1);
+  const POSTS_PER_PAGE = 10;
 
   useEffect(() => {
     if (!editAvatarFile) {
@@ -188,7 +190,7 @@ export default function MyPage() {
 
       const refreshed = await getCurrentUserProfile();
       if (refreshed) {
-        setUserProfile({ ...refreshed, avatarUrl });
+        setUserProfile(refreshed);
       }
 
       setIsProfileEditorOpen(false);
@@ -231,6 +233,21 @@ export default function MyPage() {
 
     return posts;
   }, [myPosts, sortKey]);
+
+  useEffect(() => {
+    setCurrentPostsPage(1);
+  }, [sortKey, myPosts.length]);
+
+  const totalPostPages = Math.ceil(sortedMyPosts.length / POSTS_PER_PAGE);
+  const paginatedMyPosts = sortedMyPosts.slice(
+    (currentPostsPage - 1) * POSTS_PER_PAGE,
+    currentPostsPage * POSTS_PER_PAGE,
+  );
+
+  const myPostPageNumbers = Array.from(
+    { length: totalPostPages },
+    (_, index) => index + 1,
+  );
 
   const renderPostRows = posts => (
     <div className="mypage-postList">
@@ -551,31 +568,54 @@ export default function MyPage() {
                   </span>
                 </div>
 
-                {renderPostRows(sortedMyPosts)}
+                {renderPostRows(paginatedMyPosts)}
 
-                <nav
-                  className="mypage-pagination"
-                  aria-label="마이페이지 페이지네이션"
-                >
-                  <button type="button" aria-label="이전 페이지">
-                    <ChevronLeftIcon aria-hidden="true" />
-                  </button>
-
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(page => (
+                {totalPostPages > 0 && (
+                  <nav
+                    className="mypage-pagination"
+                    aria-label="마이페이지 페이지네이션"
+                  >
                     <button
-                      key={page}
                       type="button"
-                      className={page === 1 ? "mypage-pageActive" : ""}
-                      aria-current={page === 1 ? "page" : undefined}
+                      aria-label="이전 페이지"
+                      disabled={currentPostsPage === 1}
+                      onClick={() =>
+                        setCurrentPostsPage(page => Math.max(1, page - 1))
+                      }
                     >
-                      {page}
+                      <ChevronLeftIcon aria-hidden="true" />
                     </button>
-                  ))}
 
-                  <button type="button" aria-label="다음 페이지">
-                    <ChevronRightIcon aria-hidden="true" />
-                  </button>
-                </nav>
+                    {myPostPageNumbers.map(page => (
+                      <button
+                        key={page}
+                        type="button"
+                        className={
+                          page === currentPostsPage ? "mypage-pageActive" : ""
+                        }
+                        aria-current={
+                          page === currentPostsPage ? "page" : undefined
+                        }
+                        onClick={() => setCurrentPostsPage(page)}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                    <button
+                      type="button"
+                      aria-label="다음 페이지"
+                      disabled={currentPostsPage === totalPostPages}
+                      onClick={() =>
+                        setCurrentPostsPage(page =>
+                          Math.min(totalPostPages, page + 1),
+                        )
+                      }
+                    >
+                      <ChevronRightIcon aria-hidden="true" />
+                    </button>
+                  </nav>
+                )}
               </>
             )}
 

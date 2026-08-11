@@ -295,29 +295,39 @@ export const getCommentsByAuthorId = async authorId => {
   }));
 };
 
-/** 현재 로그인 사용자 (목데이터의 currentCommunityUser 대체) */
+/** 현재 로그인 사용자 (Supabase Auth 기준) */
 export const getCurrentCommunityUser = async () => {
   const db = supabase();
   const {
     data: { user },
+    error: authError,
   } = await db.auth.getUser();
-  if (!user) return null;
 
-  const { data: profile } = await db
+  if (authError || !user) return null;
+
+  // Auth 로그인 여부와 profiles 행 존재 여부를 분리한다.
+  // 프로필이 아직 없거나 조회되지 않아도 실제 로그인 사용자를 비로그인으로 오판하지 않는다.
+  const { data: profile, error: profileError } = await db
     .from("profiles")
     .select("id, nickname, avatar_url, role, created_at")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
-  if (!profile) return null;
+  if (profileError) {
+    console.error("현재 사용자 프로필 조회 실패", profileError);
+  }
 
   return {
-    id: profile.id,
-    name: profile.nickname,
+    id: user.id,
+    name:
+      profile?.nickname ??
+      user.user_metadata?.nickname ??
+      user.email?.split("@")[0] ??
+      "사용자",
     email: user.email ?? "",
-    role: profile.role === "admin" ? "관리자" : "정회원",
-    joinDate: toDateLabel(profile.created_at),
-    avatarUrl: profile.avatar_url ?? "",
+    role: profile?.role === "admin" ? "관리자" : "정회원",
+    joinDate: profile?.created_at ? toDateLabel(profile.created_at) : "",
+    avatarUrl: profile?.avatar_url ?? user.user_metadata?.avatar_url ?? "",
   };
 };
 

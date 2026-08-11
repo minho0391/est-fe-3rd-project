@@ -2591,3 +2591,79 @@
   font-weight: 400;
   word-break: break-word;
 }
+
+/* Quill 본문을 상세 페이지에서도 작성 화면과 동일하게 렌더링합니다. */
+.post-body-articleBody {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.post-body-articleBody img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.post-body-articleBody iframe,
+.post-body-articleBody video,
+.post-body-articleBody .ql-video {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border: 0;
+}
+
+.post-body-articleBody a {
+  color: var(--primary);
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+
+.post-body-articleBody .ql-align-center {
+  text-align: center;
+}
+
+.post-body-articleBody .ql-align-center img,
+.post-body-articleBody .ql-align-center iframe,
+.post-body-articleBody .ql-align-center video {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.post-body-articleBody .ql-align-right {
+  text-align: right;
+}
+
+.post-body-articleBody .ql-align-right img,
+.post-body-articleBody .ql-align-right iframe,
+.post-body-articleBody .ql-align-right video {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.post-body-articleBody .ql-align-justify {
+  text-align: justify;
+}
+
+.write-submitError,
+.comments-actionError {
+  color: #b42318;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* Quill 작성 화면에서도 삽입 이미지/영상이 에디터 너비를 넘지 않도록 제한합니다. */
+.community-scope .write-quillEditor .ql-editor img {
+  max-width: 100%;
+  height: auto;
+}
+
+.community-scope .write-quillEditor .ql-editor iframe,
+.community-scope .write-quillEditor .ql-editor video,
+.community-scope .write-quillEditor .ql-editor .ql-video {
+  max-width: 100%;
+}
