@@ -6,12 +6,13 @@ import "@/community/post.css";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import PostDetailContent from "@/components/post/detail/PostBody.jsx";
 import CommentSection from "@/components/post/detail/Comments.jsx";
 import {
   getCommunityPostById,
   getCommentsByPostId,
+<<<<<<< Updated upstream
   getCurrentCommunityUser,
   incrementPostView,
   togglePostLike,
@@ -20,11 +21,18 @@ import { deletePost } from "@/lib/communityMutations";
 
 const buildLoginUrl = returnUrl =>
   `/sign-in?returnUrl=${encodeURIComponent(returnUrl || "/post")}`;
+=======
+} from "@/data/communityPosts";
+import {
+  getCommunityPostLikeState,
+  getCommunitySessionUser,
+  toggleCommunityPostLike,
+} from "@/lib/communityInteractions";
+>>>>>>> Stashed changes
 
 export default function PostDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const pathname = usePathname();
   const postId = params?.id;
 
   const [basePost, setBasePost] = useState(null);
@@ -183,6 +191,39 @@ export default function PostDetailPage() {
       avatarUrl: basePost.authorAvatarUrl,
       role: basePost.authorRole,
     },
+<<<<<<< Updated upstream
+=======
+    views,
+    likes,
+  };
+
+  const initialComments = getCommentsByPostId(basePost.id);
+
+  const handleLikeToggle = async () => {
+    if (!currentUser) {
+      router.push("/sign-in");
+      return;
+    }
+
+    if (isLikePending) return;
+
+    setIsLikePending(true);
+
+    try {
+      const nextState = await toggleCommunityPostLike({
+        postId: basePost.id,
+        initialLikeCount: likes,
+        initialLiked: isLiked,
+        userId: currentUser.id,
+      });
+
+      // 서버(현재는 목 저장소)가 반환한 값을 그대로 반영해 이중 증가를 방지합니다.
+      setLikes(nextState.likeCount);
+      setIsLiked(nextState.liked);
+    } finally {
+      setIsLikePending(false);
+    }
+>>>>>>> Stashed changes
   };
 
   return (
@@ -205,6 +246,7 @@ export default function PostDetailPage() {
         onDelete={handleDeletePost}
       />
 
+<<<<<<< Updated upstream
       {deleteError && (
         <p className="post-detail-deleteError" role="alert">
           {deleteError}
@@ -217,6 +259,9 @@ export default function PostDetailPage() {
         currentUser={currentUser}
         returnUrl={pathname}
       />
+=======
+      <CommentSection initialComments={initialComments} currentUser={currentUser} />
+>>>>>>> Stashed changes
     </main>
   );
 }
