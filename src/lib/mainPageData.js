@@ -1,8 +1,8 @@
 export const presets = [
-  { id: "hoesik", label: "회식", image: "/preset-hoesik.webp" },
-  { id: "sogaeting", label: "소개팅", image: "/preset-sogaeting.webp" },
-  { id: "ot", label: "신입 OT", image: "/preset-ot.webp" },
-  { id: "mt", label: "MT", image: "/preset-mt.webp" },
+  { id: "hoesik", code: "dinner", label: "회식", image: "/preset-hoesik.webp" },
+  { id: "sogaeting", code: "blind_date", label: "소개팅", image: "/preset-sogaeting.webp" },
+  { id: "ot", code: "ot", label: "신입 OT", image: "/preset-ot.webp" },
+  { id: "mt", code: "mt", label: "MT", image: "/preset-mt.webp" },
 ];
 
 export const types = [

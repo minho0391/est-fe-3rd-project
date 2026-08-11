@@ -1,10 +1,10 @@
-// [게시판 상세] 페이지 (localhost:3000/post/1)
+// [게시판 상세] 페이지 (localhost:3000/post/[id])
 "use client";
 
 import "@/community/common.css";
 import "@/community/post.css";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import PostDetailContent from "@/components/post/detail/PostBody.jsx";
@@ -12,13 +12,14 @@ import CommentSection from "@/components/post/detail/Comments.jsx";
 import {
   getCommunityPostById,
   getCommentsByPostId,
-} from "@/data/communityPosts";
-import {
-  buildCommunityLoginUrl,
-  getCommunityPostLikeState,
-  getCommunitySessionUser,
-  toggleCommunityPostLike,
-} from "@/lib/communityInteractions";
+  getCurrentCommunityUser,
+  incrementPostView,
+  togglePostLike,
+} from "@/lib/communityQueries";
+import { deletePost } from "@/lib/communityMutations";
+
+const buildLoginUrl = returnUrl =>
+  `/sign-in?returnUrl=${encodeURIComponent(returnUrl || "/post")}`;
 
 export default function PostDetailPage() {
   const params = useParams();
@@ -26,72 +27,132 @@ export default function PostDetailPage() {
   const pathname = usePathname();
   const postId = params?.id;
 
-  const staticPost = useMemo(
-    () => (postId === "preview" ? null : getCommunityPostById(postId)),
-    [postId],
-  );
-
-  const [previewPost, setPreviewPost] = useState(null);
-
-  const basePost = previewPost ?? staticPost;
-
-  const [views, setViews] = useState(basePost?.views ?? 0);
-
-  const [likes, setLikes] = useState(basePost?.likes ?? 0);
-
-  const [isLiked, setIsLiked] = useState(false);
-  const [isLikePending, setIsLikePending] = useState(false);
+  const [basePost, setBasePost] = useState(null);
+  const [comments, setComments] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
-
-  const countedPostRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [isLikePending, setIsLikePending] = useState(false);
+  const [isDeletePending, setIsDeletePending] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
-    setCurrentUser(getCommunitySessionUser());
-  }, []);
+    let mounted = true;
 
-  useEffect(() => {
-    if (postId !== "preview") {
-      setPreviewPost(null);
-      return;
-    }
+    const loadDetail = async () => {
+      if (!postId || postId === "preview") {
+        if (mounted) {
+          setBasePost(null);
+          setComments([]);
+          setLoadError(
+            postId === "preview"
+              ? "미리보기 게시글은 더 이상 사용하지 않습니다."
+              : "게시글을 찾을 수 없습니다.",
+          );
+          setIsLoading(false);
+        }
+        return;
+      }
 
-    // TODO: Supabase 상세 조회 연동 후 /post/preview 분기 및 sessionStorage 미리보기 읽기 로직 제거
-    const savedPost = sessionStorage.getItem("community-preview-post");
+      try {
+        setIsLoading(true);
+        setLoadError("");
 
-    if (!savedPost) {
-      setPreviewPost(null);
-      return;
-    }
+        const [post, commentRows, user] = await Promise.all([
+          getCommunityPostById(postId),
+          getCommentsByPostId(postId),
+          getCurrentCommunityUser(),
+        ]);
 
-    try {
-      setPreviewPost(JSON.parse(savedPost));
-    } catch (error) {
-      console.error("게시글 미리보기 데이터를 불러오지 못했습니다.", error);
-      sessionStorage.removeItem("community-preview-post");
-      setPreviewPost(null);
-    }
+        if (!mounted) return;
+
+        setCurrentUser(user);
+        setComments(commentRows);
+
+        if (!post) {
+          setBasePost(null);
+          return;
+        }
+
+        setBasePost(post);
+
+        // 실제 DB 조회수 집계 후 최신 값을 다시 읽습니다.
+        await incrementPostView(post.id);
+        const refreshedPost = await getCommunityPostById(post.id);
+        if (mounted && refreshedPost) setBasePost(refreshedPost);
+      } catch (error) {
+        console.error("게시글 상세를 불러오지 못했습니다.", error);
+        if (mounted) {
+          setLoadError("게시글을 불러오지 못했습니다. 다시 시도해 주세요.");
+        }
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    };
+
+    loadDetail();
+
+    return () => {
+      mounted = false;
+    };
   }, [postId]);
 
-  useEffect(() => {
-    if (!basePost) return;
-
-    setViews(basePost.views ?? 0);
-
-    const likeState = getCommunityPostLikeState({
-      postId: basePost.id,
-      initialLikeCount: basePost.likes ?? 0,
-      initialLiked: basePost.likedByCurrentUser ?? false,
-      userId: getCommunitySessionUser()?.id,
-    });
-
-    setLikes(likeState.likeCount);
-    setIsLiked(likeState.liked);
-
-    if (countedPostRef.current !== basePost.id) {
-      countedPostRef.current = basePost.id;
-      setViews(current => current + 1);
+  const handleLikeToggle = async () => {
+    if (!currentUser) {
+      router.push(buildLoginUrl(pathname));
+      return;
     }
-  }, [basePost?.id, basePost?.views, basePost?.likes]);
+
+    if (!basePost || isLikePending) return;
+
+    try {
+      setIsLikePending(true);
+      await togglePostLike(basePost.id);
+      const refreshedPost = await getCommunityPostById(basePost.id);
+      if (refreshedPost) setBasePost(refreshedPost);
+    } catch (error) {
+      console.error("좋아요 처리 실패", error);
+    } finally {
+      setIsLikePending(false);
+    }
+  };
+
+  const handleDeletePost = async () => {
+    if (!currentUser) {
+      router.push(buildLoginUrl(pathname));
+      return;
+    }
+
+    if (!basePost || currentUser.id !== basePost.authorId || isDeletePending) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "게시글을 삭제하면 댓글·대댓글·좋아요·태그 연결·조회 기록과 본문에 업로드한 이미지도 함께 정리됩니다. 삭제하시겠습니까?",
+    );
+    if (!confirmed) return;
+
+    try {
+      setIsDeletePending(true);
+      setDeleteError("");
+      await deletePost(basePost.id);
+      router.replace("/post/list");
+      router.refresh();
+    } catch (error) {
+      console.error("게시글 삭제 실패", error);
+      setDeleteError(error?.message || "게시글 삭제에 실패했습니다.");
+    } finally {
+      setIsDeletePending(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <main className="community-scope community-page detail-page-container">
+        <p className="community-listState">게시글을 불러오는 중입니다.</p>
+      </main>
+    );
+  }
 
   if (!basePost) {
     return (
@@ -106,9 +167,8 @@ export default function PostDetailPage() {
           <h1 className="community-section-title">
             게시글을 찾을 수 없습니다.
           </h1>
-
           <p className="community-section-description">
-            삭제되었거나 존재하지 않는 게시글입니다.
+            {loadError || "삭제되었거나 존재하지 않는 게시글입니다."}
           </p>
         </section>
       </main>
@@ -123,36 +183,6 @@ export default function PostDetailPage() {
       avatarUrl: basePost.authorAvatarUrl,
       role: basePost.authorRole,
     },
-    views,
-    likes,
-  };
-
-  const initialComments = getCommentsByPostId(basePost.id);
-
-  const handleLikeToggle = async () => {
-    if (!currentUser) {
-      router.push(buildCommunityLoginUrl(pathname));
-      return;
-    }
-
-    if (isLikePending) return;
-
-    setIsLikePending(true);
-
-    try {
-      const nextState = await toggleCommunityPostLike({
-        postId: basePost.id,
-        initialLikeCount: likes,
-        initialLiked: isLiked,
-        userId: currentUser.id,
-      });
-
-      // 서버(현재는 목 저장소)가 반환한 값을 그대로 반영해 이중 증가를 방지합니다.
-      setLikes(nextState.likeCount);
-      setIsLiked(nextState.liked);
-    } finally {
-      setIsLikePending(false);
-    }
   };
 
   return (
@@ -165,13 +195,25 @@ export default function PostDetailPage() {
 
       <PostDetailContent
         post={post}
-        isLiked={isLiked}
+        isLiked={Boolean(basePost.likedByCurrentUser)}
         isLikePending={isLikePending}
         onLikeToggle={handleLikeToggle}
+        canDelete={Boolean(
+          currentUser?.id && currentUser.id === basePost.authorId,
+        )}
+        isDeletePending={isDeletePending}
+        onDelete={handleDeletePost}
       />
 
+      {deleteError && (
+        <p className="post-detail-deleteError" role="alert">
+          {deleteError}
+        </p>
+      )}
+
       <CommentSection
-        initialComments={initialComments}
+        postId={basePost.id}
+        initialComments={comments}
         currentUser={currentUser}
         returnUrl={pathname}
       />
