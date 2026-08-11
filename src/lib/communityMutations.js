@@ -288,7 +288,7 @@ export const updatePost = async (
   { board, title, description, content, tags },
 ) => {
   const db = supabase();
-  await requireUser(db);
+  const user = await requireUser(db);
 
   let previousImagePaths = [];
   if (content !== undefined) {
@@ -303,7 +303,24 @@ export const updatePost = async (
 
   const patch = { updated_at: new Date().toISOString() };
 
-  if (board !== undefined) patch.board_id = await resolveBoardId(db, board);
+  if (board !== undefined) {
+    const nextBoard = await resolveBoardId(db, board);
+
+    if (nextBoard.write_role === "admin") {
+      const { data: profile, error: profileError } = await db
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (profileError) throw profileError;
+      if (profile?.role !== "admin") {
+        throw new Error("관리자만 작성할 수 있는 게시판입니다.");
+      }
+    }
+
+    patch.board_id = nextBoard.id;
+  }
   if (title !== undefined) patch.title = title.trim();
   if (description !== undefined) patch.description = description.trim() || null;
   if (content !== undefined) {
