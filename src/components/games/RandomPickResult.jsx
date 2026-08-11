@@ -5,6 +5,7 @@ import Typography from "@mui/material/Typography";
 import Dialog from "@mui/material/Dialog";
 import Button from "@/components/ui/Button";
 import { FORMAT_LABELS } from "@/lib/randomPickData";
+import { dialogActionRowSx, dialogBackdropSx, keepAllSx, transparentPaperSx } from "./styles";
 
 const badgeSx = {
   px: 2,
@@ -15,7 +16,43 @@ const badgeSx = {
   letterSpacing: "0.6px",
 };
 
-const keepAllSx = { wordBreak: "keep-all" };
+const ballWrapSx = { position: "relative", width: 160, height: 160, flexShrink: 0 };
+
+const ballImageSx = {
+  position: "absolute",
+  top: "-12.5%",
+  left: "-25%",
+  width: "150%",
+  height: "150%",
+  maxWidth: "none",
+};
+
+const panelSx = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: 4,
+  width: "100%",
+  p: "49px",
+  bgcolor: "background.paper",
+  border: 1,
+  borderColor: "momentalk.modalBorder",
+  borderRadius: "20px",
+  boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+};
+
+const scriptGroupSx = { display: "flex", flexDirection: "column", gap: 1.5, width: "100%" };
+
+const tipListSx = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 0.75,
+  width: "100%",
+  p: 2,
+  bgcolor: "momentalk.typeCard",
+  borderRadius: "12px",
+  listStyle: "none",
+};
 
 export default function RandomPickResult({ content, onClose, onRepick }) {
   const label = FORMAT_LABELS[content.format_code] ?? "뽑힌 콘텐츠";
@@ -26,56 +63,21 @@ export default function RandomPickResult({ content, onClose, onRepick }) {
       onClose={onClose}
       aria-label="뽑기 결과"
       slotProps={{
-        backdrop: { sx: { bgcolor: "rgba(0, 0, 0, 0.7)" } },
-        paper: {
-          sx: {
-            width: 448,
-            maxWidth: "100%",
-            m: 3,
-            bgcolor: "transparent",
-            boxShadow: "none",
-            overflow: "visible",
-          },
-        },
+        backdrop: { sx: dialogBackdropSx },
+        paper: { sx: transparentPaperSx },
       }}
     >
       <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-        <Box sx={{ position: "relative", width: 160, height: 160, flexShrink: 0 }}>
-          <Box
-            component="img"
-            src="/randompick-ball.svg"
-            alt=""
-            sx={{
-              position: "absolute",
-              top: "-12.5%",
-              left: "-25%",
-              width: "150%",
-              height: "150%",
-              maxWidth: "none",
-            }}
-          />
+        <Box sx={ballWrapSx}>
+          <Box component="img" src="/randompick-ball.svg" alt="" sx={ballImageSx} />
         </Box>
 
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 4,
-            width: "100%",
-            p: "49px",
-            bgcolor: "background.paper",
-            border: 1,
-            borderColor: "momentalk.modalBorder",
-            borderRadius: "20px",
-            boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-          }}
-        >
+        <Box sx={panelSx}>
           <Typography component="span" variant="body2" color="primary.main" sx={badgeSx}>
             {label}
           </Typography>
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, width: "100%" }}>
+          <Box sx={scriptGroupSx}>
             {content.scripts?.map((script, index) => (
               <Typography key={index} variant="h3" align="center" sx={keepAllSx}>
                 {script}
@@ -84,19 +86,7 @@ export default function RandomPickResult({ content, onClose, onRepick }) {
           </Box>
 
           {content.tips?.length > 0 && (
-            <Box
-              component="ul"
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 0.75,
-                width: "100%",
-                p: 2,
-                bgcolor: "momentalk.typeCard",
-                borderRadius: "12px",
-                listStyle: "none",
-              }}
-            >
+            <Box component="ul" sx={tipListSx}>
               {content.tips.map((tip, index) => (
                 <Typography
                   key={index}
@@ -112,15 +102,7 @@ export default function RandomPickResult({ content, onClose, onRepick }) {
             </Box>
           )}
 
-          <Box
-            sx={{
-              display: "flex",
-              gap: 2,
-              justifyContent: "center",
-              width: "100%",
-              "& > *": { flex: "1 0 0", minWidth: 0 },
-            }}
-          >
+          <Box sx={dialogActionRowSx}>
             <Button variant="secondary" onClick={onClose}>
               닫기
             </Button>
