@@ -1,13 +1,17 @@
 // [댓글 영역] (댓글 목록 및 입력창)
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import { AccountCircleIcon, DeleteOutlined } from "@/images/icons";
-import { buildCommunityLoginUrl } from "@/lib/communityInteractions";
+import { createComment, deleteComment } from "@/lib/communityMutations";
+
+const buildLoginUrl = returnUrl =>
+  `/sign-in?returnUrl=${encodeURIComponent(returnUrl || "/post")}`;
 
 export default function CommentSection({
+  postId,
   initialComments = [],
   currentUser = null,
   returnUrl = "/post",
@@ -15,19 +19,24 @@ export default function CommentSection({
   const router = useRouter();
   const [comments, setComments] = useState(initialComments);
   const [commentInput, setCommentInput] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [actionError, setActionError] = useState("");
+
+  useEffect(() => {
+    setComments(initialComments);
+  }, [initialComments]);
 
   const redirectToLogin = () => {
-    router.push(buildCommunityLoginUrl(returnUrl));
+    router.push(buildLoginUrl(returnUrl));
   };
 
   const handleInputFocus = event => {
     if (currentUser) return;
-
     event.currentTarget.blur();
     redirectToLogin();
   };
 
-  const handleSubmit = event => {
+  const handleSubmit = async event => {
     event.preventDefault();
 
     if (!currentUser) {
@@ -36,23 +45,31 @@ export default function CommentSection({
     }
 
     const trimmedInput = commentInput.trim();
-    if (!trimmedInput) return;
+    if (!trimmedInput || isSubmitting) return;
 
-    const newComment = {
-      id: Date.now(),
-      authorId: currentUser.id,
-      author: currentUser.name,
-      avatarUrl: currentUser.avatarUrl,
-      content: trimmedInput,
-      createdAt: "방금 전",
-    };
-
-    setComments(current => [newComment, ...current]);
-    setCommentInput("");
+    try {
+      setIsSubmitting(true);
+      setActionError("");
+      const newComment = await createComment(postId, trimmedInput);
+      setComments(current => [newComment, ...current]);
+      setCommentInput("");
+    } catch (error) {
+      console.error("댓글 등록 실패", error);
+      setActionError(error?.message || "댓글 등록에 실패했습니다.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleDelete = commentId => {
-    setComments(current => current.filter(item => item.id !== commentId));
+  const handleDelete = async commentId => {
+    try {
+      setActionError("");
+      await deleteComment(commentId);
+      setComments(current => current.filter(item => item.id !== commentId));
+    } catch (error) {
+      console.error("댓글 삭제 실패", error);
+      setActionError(error?.message || "댓글 삭제에 실패했습니다.");
+    }
   };
 
   return (
@@ -77,14 +94,22 @@ export default function CommentSection({
           readOnly={!currentUser}
         />
 
+        {actionError && (
+          <p className="comments-actionError" role="alert">
+            {actionError}
+          </p>
+        )}
+
         <div className="comments-inputActionRow">
           <Button
             type="submit"
             variant="primary"
             size="md"
-            disabled={Boolean(currentUser) && !commentInput.trim()}
+            disabled={
+              isSubmitting || (Boolean(currentUser) && !commentInput.trim())
+            }
           >
-            댓글 등록
+            {isSubmitting ? "등록 중..." : "댓글 등록"}
           </Button>
         </div>
       </form>
