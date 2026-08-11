@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import GameCardBack from "./GameCardBack";
 import CardJokerResult from "./CardJokerResult";
+import Button from "@/components/ui/Button";
 
 const CARD_COUNT = 4;
 
@@ -57,6 +58,7 @@ export default function CardJokerPlay() {
     if (deck[index]) setTimeout(() => setShowResult(true), RESULT_DELAY);
   };
 
+  // 조커 위치를 새로 뽑고 카드를 전부 덮습니다.
   const handleRestart = () => {
     setDeck(createDeck());
     setOpened([]);
@@ -108,6 +110,12 @@ export default function CardJokerPlay() {
           );
         })}
       </Box>
+
+      {opened.length > 0 && (
+        <Button variant="secondary" onClick={handleRestart} sx={{ width: 240 }}>
+          다시 시작
+        </Button>
+      )}
 
       {showResult && <CardJokerResult onConfirm={handleRestart} />}
     </Box>

@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import GameCardBack from "./GameCardBack";
 import CardContentResult from "./CardContentResult";
+import Button from "@/components/ui/Button";
 import { createClient } from "@/utils/supabase/client";
 
 const CARD_COUNT = 4;
@@ -76,12 +77,20 @@ export default function CardContentPlay() {
 
   const handleCloseResult = () => setResult(null);
 
+  // 뒤집은 카드를 모두 덮고 처음 상태로 되돌립니다.
+  const handleRestart = () => {
+    setOpened({});
+    setResult(null);
+  };
+
   const isReady = !error && items.length > 0;
+  const openedCount = Object.keys(opened).length;
+  const isFinished = openedCount === CARD_COUNT;
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
       <Typography component="h2" variant="h4" align="center">
-        {error || "카드를 뒤집으면 질문이 나와요"}
+        {error || (isFinished ? "카드를 모두 뒤집었어요" : "카드를 뒤집으면 질문이 나와요")}
       </Typography>
 
       <Box
@@ -115,6 +124,12 @@ export default function CardContentPlay() {
           );
         })}
       </Box>
+
+      {openedCount > 0 && (
+        <Button variant="secondary" onClick={handleRestart} sx={{ width: 240 }}>
+          다시 시작
+        </Button>
+      )}
 
       {result && (
         <CardContentResult
