@@ -651,7 +651,7 @@ export default function MyPage() {
                 <ContentCabinet
                   contents={savedContents}
                   embedded
-                  initialFilter="AI"
+                  initialFilter="ALL"
                 />
               </>
             )}
