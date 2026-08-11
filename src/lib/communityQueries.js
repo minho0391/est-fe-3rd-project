@@ -55,17 +55,14 @@ const POST_SELECT = `
 const throwQueryError = (context, error) => {
   if (!error) return;
 
-  const message = [context, error.message, error.details, error.hint]
-    .filter(Boolean)
-    .join(" | ");
+  const message = [context, error.message, error.details, error.hint].filter(Boolean).join(" | ");
 
   const wrapped = new Error(message);
   wrapped.cause = error;
   throw wrapped;
 };
 
-const getSingleRelation = relation =>
-  Array.isArray(relation) ? relation[0] : relation;
+const getSingleRelation = relation => (Array.isArray(relation) ? relation[0] : relation);
 
 /** Supabase 행을 기존 커뮤니티 UI 데이터 형태로 변환합니다. */
 const mapPost = (row, currentUserId = null) => {
@@ -92,8 +89,7 @@ const mapPost = (row, currentUserId = null) => {
     commentsCount: row.comment_count ?? 0,
     tags,
     likedByCurrentUser:
-      Boolean(currentUserId) &&
-      (row.post_likes ?? []).some(like => like.user_id === currentUserId),
+      Boolean(currentUserId) && (row.post_likes ?? []).some(like => like.user_id === currentUserId),
     isAiGenerated: row.is_ai_generated === true,
   };
 };
@@ -133,9 +129,7 @@ export const compareCommunityPostCreatedAtDesc = (a, b) => {
 
   const dateDifference = toTimestamp(b?.createdAt) - toTimestamp(a?.createdAt);
 
-  return (
-    dateDifference || String(b?.id ?? "").localeCompare(String(a?.id ?? ""))
-  );
+  return dateDifference || String(b?.id ?? "").localeCompare(String(a?.id ?? ""));
 };
 
 /** 공지 포함 전체 게시글 (최신순) */
@@ -206,9 +200,7 @@ export const getPopularCommunityPosts = async (limit = 3) => {
 export const getCommentsByPostId = async postId => {
   const { data, error } = await supabase()
     .from("comments")
-    .select(
-      "id, post_id, author_id, content, created_at, profiles ( nickname, avatar_url )",
-    )
+    .select("id, post_id, author_id, content, created_at, profiles ( nickname, avatar_url )")
     .eq("post_id", postId)
     .is("deleted_at", null)
     .order("created_at", { ascending: true });
@@ -320,10 +312,7 @@ export const getCurrentCommunityUser = async () => {
   return {
     id: user.id,
     name:
-      profile?.nickname ??
-      user.user_metadata?.nickname ??
-      user.email?.split("@")[0] ??
-      "사용자",
+      profile?.nickname ?? user.user_metadata?.nickname ?? user.email?.split("@")[0] ?? "사용자",
     email: user.email ?? "",
     role: profile?.role === "admin" ? "관리자" : "정회원",
     joinDate: profile?.created_at ? toDateLabel(profile.created_at) : "",
@@ -363,23 +352,40 @@ export const getCommunityBoards = async () => {
   return data ?? [];
 };
 
-/** 저장한 콘텐츠 (마이페이지 보관함) */
+/**
+ * 마이페이지 보관함 목록.
+ *
+ * 내가 저장한 AI 생성물(saved_contents)과
+ * 운영진이 등록한 기본 콘텐츠(default_contents)를 합쳐서 돌려줍니다.
+ * 화면의 필터는 type 값("AI" / "ADMIN")으로 구분합니다.
+ */
 export const getSavedContents = async () => {
   const db = supabase();
   const {
     data: { user },
   } = await db.auth.getUser();
-  if (!user) return [];
 
-  const { data } = await db
-    .from("saved_contents")
-    .select(
-      "id, format_code, title, scripts, tips, extras, conditions, memo, created_at",
-    )
-    .order("created_at", { ascending: false });
+  // 운영진 콘텐츠는 로그인 여부와 무관하게 보여줍니다.
+  const [savedResult, defaultResult] = await Promise.all([
+    user
+      ? db
+          .from("saved_contents")
+          .select("id, format_code, title, scripts, tips, extras, conditions, memo, created_at")
+          .order("created_at", { ascending: false })
+      : Promise.resolve({ data: [], error: null }),
+    db
+      .from("default_contents")
+      .select("id, format_code, title, scripts, tips, situation_codes")
+      .eq("is_active", true)
+      .order("weight", { ascending: false })
+      .limit(50),
+  ]);
 
-  return (data ?? []).map(s => ({
-    id: s.id,
+  throwQueryError("보관함 조회 실패", savedResult.error);
+  throwQueryError("기본 콘텐츠 조회 실패", defaultResult.error);
+
+  const savedItems = (savedResult.data ?? []).map(s => ({
+    id: `saved-${s.id}`,
     type: "AI",
     badge: "AI 생성",
     title: s.title,
@@ -388,6 +394,19 @@ export const getSavedContents = async () => {
     memo: s.memo,
     createdAt: toDateLabel(s.created_at),
   }));
+
+  const defaultItems = (defaultResult.data ?? []).map(d => ({
+    id: `default-${d.id}`,
+    type: "ADMIN",
+    badge: "운영진",
+    title: d.title,
+    content: (d.scripts ?? []).join("\n"),
+    tags: [d.situation_codes?.[0], d.format_code].filter(Boolean),
+    memo: null,
+    createdAt: "",
+  }));
+
+  return [...savedItems, ...defaultItems];
 };
 
 /** 좋아요 토글 */
