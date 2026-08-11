@@ -55,7 +55,8 @@ function PromoPanel() {
 function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") || "/";
+  const returnUrl =
+    searchParams.get("returnUrl") || searchParams.get("next") || "/";
   const authFailed = searchParams.get("error") === "auth_failed";
 
   const [email, setEmail] = useState("");
@@ -74,7 +75,7 @@ function SignInForm() {
 
     try {
       await signInWithEmail({ email, password });
-      router.push(next);
+      router.push(returnUrl);
       router.refresh();
     } catch (err) {
       setError(
@@ -91,7 +92,7 @@ function SignInForm() {
     setError("");
     setNotice("");
     try {
-      await signInWithGoogle(next);
+      await signInWithGoogle(returnUrl);
     } catch {
       setError("구글 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.");
     }

@@ -5,7 +5,6 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import { AccountCircleIcon, DeleteOutlined } from "@/images/icons";
-<<<<<<< Updated upstream
 import { createComment, deleteComment } from "@/lib/communityMutations";
 
 const buildLoginUrl = returnUrl =>
@@ -17,10 +16,6 @@ export default function CommentSection({
   currentUser = null,
   returnUrl = "/post",
 }) {
-=======
-
-export default function CommentSection({ initialComments = [], currentUser = null }) {
->>>>>>> Stashed changes
   const router = useRouter();
   const [comments, setComments] = useState(initialComments);
   const [commentInput, setCommentInput] = useState("");
@@ -32,11 +27,7 @@ export default function CommentSection({ initialComments = [], currentUser = nul
   }, [initialComments]);
 
   const redirectToLogin = () => {
-<<<<<<< Updated upstream
     router.push(buildLoginUrl(returnUrl));
-=======
-    router.push("/sign-in");
->>>>>>> Stashed changes
   };
 
   const handleInputFocus = event => {
