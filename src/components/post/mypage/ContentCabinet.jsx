@@ -25,6 +25,10 @@ export default function ContentCabinet({
   const [savedContents, setSavedContents] = useState(contents ?? []);
 
   useEffect(() => {
+    setFilter(initialFilter);
+  }, [initialFilter]);
+
+  useEffect(() => {
     if (contents !== undefined) {
       setSavedContents(contents);
       return undefined;
@@ -70,23 +74,31 @@ export default function ContentCabinet({
   if (embedded) {
     return (
       <section className="cabinet-embedded" aria-label="내 AI 저장 콘텐츠">
-        <div className="cabinet-filterTabs">
-          {[
-            ["ALL", "전체"],
-            ["AI", "AI 생성"],
-            ["ADMIN", "운영진 기본"],
-          ].map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              className={`cabinet-filterBtn ${
-                filter === key ? "cabinet-activeFilter" : ""
-              }`}
-              onClick={() => setFilter(key)}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="cabinet-embeddedFilterBar">
+          <div
+            className="cabinet-filterTabs"
+            role="tablist"
+            aria-label="저장 콘텐츠 필터"
+          >
+            {[
+              ["ALL", "전체"],
+              ["AI", "AI 생성"],
+              ["ADMIN", "운영진 기본"],
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                className={`cabinet-filterBtn ${
+                  filter === key ? "cabinet-activeFilter" : ""
+                }`}
+                role="tab"
+                aria-selected={filter === key}
+                onClick={() => setFilter(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="cabinet-contentList">

@@ -10,7 +10,10 @@ import AiContentModal from "./AiContentModal";
 import ContentFetcherModal from "./ContentFetcherModal";
 import Button from "@/components/ui/Button";
 import { CloseIcon, InfoOutlinedIcon } from "@/images/icons";
-import { getCommunityBoards } from "@/lib/communityQueries";
+import {
+  getCommunityBoards,
+  getCurrentCommunityUser,
+} from "@/lib/communityQueries";
 import { createPost, uploadPostImage } from "@/lib/communityMutations";
 
 // React Quill SSR 이슈 방지를 위한 Dynamic Import
@@ -217,16 +220,27 @@ export default function WriteForm() {
     const loadBoards = async () => {
       try {
         setBoardsError("");
-        const rows = await getCommunityBoards();
+        const [rows, currentUser] = await Promise.all([
+          getCommunityBoards(),
+          getCurrentCommunityUser(),
+        ]);
 
         if (!isMounted) return;
 
-        setBoards(rows);
+        const isAdmin = currentUser?.role === "관리자";
+        const writableBoards = rows.filter(
+          item => item.write_role !== "admin" || isAdmin,
+        );
 
-        const hasCurrentBoard = rows.some(item => item.name === board);
-        if (!hasCurrentBoard && rows.length > 0) {
+        setBoards(writableBoards);
+
+        const hasCurrentBoard = writableBoards.some(
+          item => item.name === board,
+        );
+        if (!hasCurrentBoard && writableBoards.length > 0) {
           const defaultBoard =
-            rows.find(item => item.name === "자유게시판")?.name ?? rows[0].name;
+            writableBoards.find(item => item.name === "자유게시판")?.name ??
+            writableBoards[0].name;
           setBoard(defaultBoard);
         }
       } catch (error) {
