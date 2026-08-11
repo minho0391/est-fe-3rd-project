@@ -28,6 +28,7 @@ import {
   getCurrentUserProfile,
   getLikedPostsByCurrentUser,
   getPostsByAuthorId,
+  getSavedContents,
 } from "@/lib/communityQueries";
 import {
   removeAvatar,
@@ -35,6 +36,7 @@ import {
   uploadAvatar,
 } from "@/lib/communityMutations";
 import { signOut } from "@/utils/supabase/auth";
+import ContentCabinet from "@/components/post/mypage/ContentCabinet";
 
 const formatCount = value => {
   const number = Number(value ?? 0);
@@ -56,6 +58,7 @@ export default function MyPage() {
   const [myPosts, setMyPosts] = useState([]);
   const [myComments, setMyComments] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
+  const [savedContents, setSavedContents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
@@ -100,14 +103,16 @@ export default function MyPage() {
           setMyPosts([]);
           setMyComments([]);
           setLikedPosts([]);
+          setSavedContents([]);
           setLoadError("로그인이 필요합니다.");
           return;
         }
 
-        const [posts, comments, liked] = await Promise.all([
+        const [posts, comments, liked, saved] = await Promise.all([
           getPostsByAuthorId(me.id),
           getCommentsByAuthorId(me.id),
           getLikedPostsByCurrentUser(),
+          getSavedContents(),
         ]);
 
         if (!isMounted) return;
@@ -116,6 +121,7 @@ export default function MyPage() {
         setMyPosts(posts);
         setMyComments(comments);
         setLikedPosts(liked);
+        setSavedContents(saved);
       } catch (error) {
         console.error("마이페이지 데이터를 불러오지 못했습니다.", error);
 
@@ -244,9 +250,16 @@ export default function MyPage() {
     currentPostsPage * POSTS_PER_PAGE,
   );
 
+  const PAGE_WINDOW = 5;
+  const pageWindowStart =
+    Math.floor((currentPostsPage - 1) / PAGE_WINDOW) * PAGE_WINDOW + 1;
+  const pageWindowEnd = Math.min(
+    totalPostPages,
+    pageWindowStart + PAGE_WINDOW - 1,
+  );
   const myPostPageNumbers = Array.from(
-    { length: totalPostPages },
-    (_, index) => index + 1,
+    { length: Math.max(0, pageWindowEnd - pageWindowStart + 1) },
+    (_, index) => pageWindowStart + index,
   );
 
   const renderPostRows = posts => (
@@ -437,7 +450,13 @@ export default function MyPage() {
               <span>마이페이지</span>
             </button>
 
-            <button type="button" className="mypage-menuItem">
+            <button
+              type="button"
+              className={`mypage-menuItem ${
+                activeTab === "savedContents" ? "mypage-menuItemActive" : ""
+              }`}
+              onClick={() => setActiveTab("savedContents")}
+            >
               <BookmarkBorderIcon aria-hidden="true" fontSize="small" />
               <span>내 AI 저장</span>
             </button>
@@ -621,6 +640,21 @@ export default function MyPage() {
 
             {activeTab === "myComments" && renderComments()}
             {activeTab === "likedPosts" && renderPostRows(likedPosts)}
+            {activeTab === "savedContents" && (
+              <>
+                <div className="mypage-listHeader">
+                  <div>
+                    <p className="mypage-listEyebrow">MY CONTENT</p>
+                    <h2 className="mypage-listTitle">내 AI 저장</h2>
+                  </div>
+                </div>
+                <ContentCabinet
+                  contents={savedContents}
+                  embedded
+                  initialFilter="AI"
+                />
+              </>
+            )}
           </section>
         </section>
       </div>

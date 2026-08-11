@@ -64,8 +64,11 @@ export default function CommentSection({
   const handleDelete = async commentId => {
     try {
       setActionError("");
-      await deleteComment(commentId);
-      setComments(current => current.filter(item => item.id !== commentId));
+      const deletedIds = await deleteComment(commentId);
+      const deletedIdSet = new Set((deletedIds ?? []).map(String));
+      setComments(current =>
+        current.filter(item => !deletedIdSet.has(String(item.id))),
+      );
     } catch (error) {
       console.error("댓글 삭제 실패", error);
       setActionError(error?.message || "댓글 삭제에 실패했습니다.");

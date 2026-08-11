@@ -13,13 +13,23 @@ import {
 
 import { getSavedContents } from "@/lib/communityQueries";
 
-export default function ContentCabinet({ onSelectContent }) {
+export default function ContentCabinet({
+  onSelectContent,
+  contents,
+  embedded = false,
+  initialFilter = "ALL",
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const [filter, setFilter] = useState("ALL"); // ALL, AI, ADMIN
-  const [savedContents, setSavedContents] = useState([]);
+  const [filter, setFilter] = useState(initialFilter); // ALL, AI, ADMIN
+  const [savedContents, setSavedContents] = useState(contents ?? []);
 
   useEffect(() => {
+    if (contents !== undefined) {
+      setSavedContents(contents);
+      return undefined;
+    }
+
     let mounted = true;
 
     getSavedContents()
@@ -34,7 +44,7 @@ export default function ContentCabinet({ onSelectContent }) {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [contents]);
 
   // 보관함 팝업 열기/닫기
   const toggleDrawer = () => setIsOpen(prev => !prev);
@@ -56,6 +66,62 @@ export default function ContentCabinet({ onSelectContent }) {
 
     return true;
   });
+
+  if (embedded) {
+    return (
+      <section className="cabinet-embedded" aria-label="내 AI 저장 콘텐츠">
+        <div className="cabinet-filterTabs">
+          {[
+            ["ALL", "전체"],
+            ["AI", "AI 생성"],
+            ["ADMIN", "운영진 기본"],
+          ].map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              className={`cabinet-filterBtn ${
+                filter === key ? "cabinet-activeFilter" : ""
+              }`}
+              onClick={() => setFilter(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className="cabinet-contentList">
+          {filteredContents.length > 0 ? (
+            filteredContents.map(item => (
+              <article key={item.id} className="cabinet-contentCard">
+                <div className="cabinet-cardTop">
+                  <span
+                    className={`cabinet-typeBadge ${
+                      item.type === "AI"
+                        ? "cabinet-aiBadge"
+                        : "cabinet-adminBadge"
+                    }`}
+                  >
+                    {item.badge}
+                  </span>
+                </div>
+                <h3 className="cabinet-itemTitle">{item.title}</h3>
+                <p className="cabinet-itemPreview">{item.content}</p>
+                <div className="cabinet-tagGroup">
+                  {(item.tags ?? []).map(tag => (
+                    <span key={tag} className="cabinet-tag">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              </article>
+            ))
+          ) : (
+            <p className="cabinet-emptyText">저장된 콘텐츠가 없습니다.</p>
+          )}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <div className="cabinet-fetcherWrapper">

@@ -338,3 +338,21 @@
 .community-page {
   width: 100%;
 }
+
+.cabinet-embedded {
+  width: 100%;
+}
+
+.cabinet-embedded .cabinet-filterTabs {
+  margin-top: 0;
+}
+
+.cabinet-emptyText {
+  margin: 0;
+  padding: 32px 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink-muted);
+  text-align: center;
+}

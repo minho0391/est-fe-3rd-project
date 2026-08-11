@@ -1205,6 +1205,9 @@
   flex-wrap: wrap;
   gap: 8px;
   padding: 12px 16px;
+  position: relative;
+  z-index: 10;
+  overflow: visible;
 }
 
 .community-scope .write-quillEditor .ql-toolbar.ql-snow .ql-formats {
@@ -1346,13 +1349,6 @@
   line-height: 32px;
 }
 
-.community-scope .write-quillEditor .ql-toolbar.ql-snow button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  vertical-align: middle;
-}
-
 .community-scope .write-quillEditor .ql-toolbar.ql-snow button svg {
   display: block;
   width: 18px;
@@ -1472,9 +1468,6 @@
   padding: 16px;
   border-radius: 16px;
   line-height: 24px;
-}
-
-.community-scope .write-aiModal-error {
   background: #fff1f2;
   color: var(--danger);
 }
@@ -1704,20 +1697,6 @@
 }
 
 /* Quill toolbar: alignment + dropdown layer */
-.community-scope .write-quillEditor .ql-toolbar.ql-snow {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  position: relative;
-  z-index: 10;
-  overflow: visible;
-}
-
-.community-scope .write-quillEditor .ql-toolbar.ql-snow .ql-formats {
-  display: inline-flex;
-  align-items: center;
-}
-
 .community-scope .write-quillEditor .ql-toolbar.ql-snow .ql-picker {
   display: inline-flex;
   align-items: center;
@@ -2666,4 +2645,35 @@
 .community-scope .write-quillEditor .ql-editor video,
 .community-scope .write-quillEditor .ql-editor .ql-video {
   max-width: 100%;
+}
+
+/* 상세 게시글 삭제 */
+.post-body-headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.post-body-deleteButton {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #ff5a67;
+  border-radius: 10px;
+  background: #fff;
+  color: #e94352;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.post-body-deleteButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.post-detail-deleteError {
+  margin: 12px 0 0;
+  color: #d93025;
+  font-size: 14px;
 }

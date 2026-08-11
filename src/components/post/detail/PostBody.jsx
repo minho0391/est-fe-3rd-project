@@ -15,6 +15,9 @@ export default function PostDetailContent({
   isLiked = false,
   isLikePending = false,
   onLikeToggle,
+  canDelete = false,
+  isDeletePending = false,
+  onDelete,
 }) {
   if (!post) return null;
 
@@ -34,7 +37,19 @@ export default function PostDetailContent({
     <article className="post-body-container">
       <div className="post-body-header">
         <h1 className="post-body-title">{title}</h1>
-        <span className="post-body-boardBadge">{board}</span>
+        <div className="post-body-headerActions">
+          <span className="post-body-boardBadge">{board}</span>
+          {canDelete && (
+            <button
+              type="button"
+              className="post-body-deleteButton"
+              onClick={onDelete}
+              disabled={isDeletePending}
+            >
+              {isDeletePending ? "삭제 중..." : "게시글 삭제"}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="post-body-authorRow">
