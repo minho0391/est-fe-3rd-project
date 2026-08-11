@@ -58,23 +58,52 @@ const getPostImageStoragePaths = html => {
 };
 
 const removePostImages = async (db, paths) => {
-  if (!paths?.length) return;
+  const requestedPaths = [...new Set((paths ?? []).filter(Boolean))];
+  if (requestedPaths.length === 0) {
+    return { requestedCount: 0, removedCount: 0, complete: true };
+  }
 
-  const { error } = await db.storage.from(POST_IMAGE_BUCKET).remove(paths);
+  const { data, error } = await db.storage
+    .from(POST_IMAGE_BUCKET)
+    .remove(requestedPaths);
+
   if (error) {
     console.warn("게시글 본문 이미지 정리 실패:", error);
+    return {
+      requestedCount: requestedPaths.length,
+      removedCount: 0,
+      complete: false,
+    };
   }
+
+  const removedCount = Array.isArray(data) ? data.length : 0;
+  const complete = removedCount === requestedPaths.length;
+
+  if (!complete) {
+    console.warn("게시글 본문 이미지 정리가 일부 또는 전부 누락되었습니다.", {
+      requestedCount: requestedPaths.length,
+      removedCount,
+      requestedPaths,
+      removedObjects: data ?? [],
+    });
+  }
+
+  return {
+    requestedCount: requestedPaths.length,
+    removedCount,
+    complete,
+  };
 };
 
 // 게시판 이름 → board_id
 const resolveBoardId = async (db, boardName) => {
   const { data } = await db
     .from("boards")
-    .select("id, name")
+    .select("id, name, write_role")
     .eq("name", boardName)
     .single();
   if (!data) throw new Error(`없는 게시판입니다: ${boardName}`);
-  return data.id;
+  return data;
 };
 
 // 태그 이름 배열 → tag_id 배열 (없으면 생성)
@@ -145,12 +174,25 @@ export const createPost = async ({
 }) => {
   const db = supabase();
   const user = await requireUser(db);
-  const boardId = await resolveBoardId(db, board);
+  const boardInfo = await resolveBoardId(db, board);
+
+  if (boardInfo.write_role === "admin") {
+    const { data: profile, error: profileError } = await db
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profileError) throw profileError;
+    if (profile?.role !== "admin") {
+      throw new Error("관리자만 작성할 수 있는 게시판입니다.");
+    }
+  }
 
   const { data, error } = await db
     .from("posts")
     .insert({
-      board_id: boardId,
+      board_id: boardInfo.id,
       author_id: user.id,
       title: title.trim(),
       description: description.trim() || null,
