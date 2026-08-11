@@ -1,3 +1,6 @@
+"use client";
+
+import Link from "next/link";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Header from "@/components/layout/Header";
@@ -9,7 +12,7 @@ import GameCard from "@/components/main/GameCard";
 import { presets, types, games } from "@/lib/mainPageData";
 import { layout } from "@/lib/layout";
 
-function SectionHeading({ title, subtitle, moreLabel }) {
+function SectionHeading({ title, subtitle, moreLabel, moreHref }) {
   return (
     <Box
       sx={{
@@ -31,7 +34,11 @@ function SectionHeading({ title, subtitle, moreLabel }) {
         )}
       </Box>
 
-      {moreLabel && <Button variant="text">{moreLabel}</Button>}
+      {moreLabel && (
+        <Button variant="text" component={Link} href={moreHref}>
+          {moreLabel}
+        </Button>
+      )}
     </Box>
   );
 }
@@ -81,6 +88,8 @@ export default function MainPage() {
 
             <Button
               size="cta"
+              component={Link}
+              href="/generate"
               trailingIcon={
                 <Box component="img" src="/arrow.svg" alt="" sx={{ width: 16, height: 16 }} />
               }
@@ -103,17 +112,28 @@ export default function MainPage() {
             <SectionHeading title="프리셋 " subtitle="(상황별)" />
             <Box sx={cardRowSx}>
               {presets.map(preset => (
-                <PresetCard key={preset.id} label={preset.label} image={preset.image} />
+                <PresetCard
+                  key={preset.id}
+                  href={`/generate?preset=${preset.code}`}
+                  label={preset.label}
+                  image={preset.image}
+                />
               ))}
             </Box>
           </Box>
 
           <Box component="section" sx={sectionSx}>
-            <SectionHeading title="형식 " subtitle="(종류별)" moreLabel="더보기" />
+            <SectionHeading
+              title="형식 "
+              subtitle="(종류별)"
+              moreLabel="더보기"
+              moreHref="/formats"
+            />
             <Box sx={cardRowSx}>
               {types.map(type => (
                 <TypeCard
                   key={type.id}
+                  href={`/generate?format=${type.id}`}
                   title={type.title}
                   description={type.description}
                   icon={type.icon}

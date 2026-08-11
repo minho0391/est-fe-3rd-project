@@ -28,6 +28,7 @@ import {
   getCurrentUserProfile,
   getLikedPostsByCurrentUser,
   getPostsByAuthorId,
+  getSavedContents,
 } from "@/lib/communityQueries";
 import {
   removeAvatar,
@@ -35,6 +36,7 @@ import {
   uploadAvatar,
 } from "@/lib/communityMutations";
 import { signOut } from "@/utils/supabase/auth";
+import ContentCabinet from "@/components/post/mypage/ContentCabinet";
 
 const formatCount = value => {
   const number = Number(value ?? 0);
@@ -56,6 +58,7 @@ export default function MyPage() {
   const [myPosts, setMyPosts] = useState([]);
   const [myComments, setMyComments] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
+  const [savedContents, setSavedContents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
@@ -66,6 +69,8 @@ export default function MyPage() {
   const [profileActionError, setProfileActionError] = useState("");
   const [isProfileSaving, setIsProfileSaving] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [currentPostsPage, setCurrentPostsPage] = useState(1);
+  const POSTS_PER_PAGE = 10;
 
   useEffect(() => {
     if (!editAvatarFile) {
@@ -98,14 +103,16 @@ export default function MyPage() {
           setMyPosts([]);
           setMyComments([]);
           setLikedPosts([]);
+          setSavedContents([]);
           setLoadError("로그인이 필요합니다.");
           return;
         }
 
-        const [posts, comments, liked] = await Promise.all([
+        const [posts, comments, liked, saved] = await Promise.all([
           getPostsByAuthorId(me.id),
           getCommentsByAuthorId(me.id),
           getLikedPostsByCurrentUser(),
+          getSavedContents(),
         ]);
 
         if (!isMounted) return;
@@ -114,6 +121,7 @@ export default function MyPage() {
         setMyPosts(posts);
         setMyComments(comments);
         setLikedPosts(liked);
+        setSavedContents(saved);
       } catch (error) {
         console.error("마이페이지 데이터를 불러오지 못했습니다.", error);
 
@@ -188,7 +196,7 @@ export default function MyPage() {
 
       const refreshed = await getCurrentUserProfile();
       if (refreshed) {
-        setUserProfile({ ...refreshed, avatarUrl });
+        setUserProfile(refreshed);
       }
 
       setIsProfileEditorOpen(false);
@@ -231,6 +239,28 @@ export default function MyPage() {
 
     return posts;
   }, [myPosts, sortKey]);
+
+  useEffect(() => {
+    setCurrentPostsPage(1);
+  }, [sortKey, myPosts.length]);
+
+  const totalPostPages = Math.ceil(sortedMyPosts.length / POSTS_PER_PAGE);
+  const paginatedMyPosts = sortedMyPosts.slice(
+    (currentPostsPage - 1) * POSTS_PER_PAGE,
+    currentPostsPage * POSTS_PER_PAGE,
+  );
+
+  const PAGE_WINDOW = 5;
+  const pageWindowStart =
+    Math.floor((currentPostsPage - 1) / PAGE_WINDOW) * PAGE_WINDOW + 1;
+  const pageWindowEnd = Math.min(
+    totalPostPages,
+    pageWindowStart + PAGE_WINDOW - 1,
+  );
+  const myPostPageNumbers = Array.from(
+    { length: Math.max(0, pageWindowEnd - pageWindowStart + 1) },
+    (_, index) => pageWindowStart + index,
+  );
 
   const renderPostRows = posts => (
     <div className="mypage-postList">
@@ -420,7 +450,13 @@ export default function MyPage() {
               <span>마이페이지</span>
             </button>
 
-            <button type="button" className="mypage-menuItem">
+            <button
+              type="button"
+              className={`mypage-menuItem ${
+                activeTab === "savedContents" ? "mypage-menuItemActive" : ""
+              }`}
+              onClick={() => setActiveTab("savedContents")}
+            >
               <BookmarkBorderIcon aria-hidden="true" fontSize="small" />
               <span>내 AI 저장</span>
             </button>
@@ -551,36 +587,74 @@ export default function MyPage() {
                   </span>
                 </div>
 
-                {renderPostRows(sortedMyPosts)}
+                {renderPostRows(paginatedMyPosts)}
 
-                <nav
-                  className="mypage-pagination"
-                  aria-label="마이페이지 페이지네이션"
-                >
-                  <button type="button" aria-label="이전 페이지">
-                    <ChevronLeftIcon aria-hidden="true" />
-                  </button>
-
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(page => (
+                {totalPostPages > 0 && (
+                  <nav
+                    className="mypage-pagination"
+                    aria-label="마이페이지 페이지네이션"
+                  >
                     <button
-                      key={page}
                       type="button"
-                      className={page === 1 ? "mypage-pageActive" : ""}
-                      aria-current={page === 1 ? "page" : undefined}
+                      aria-label="이전 페이지"
+                      disabled={currentPostsPage === 1}
+                      onClick={() =>
+                        setCurrentPostsPage(page => Math.max(1, page - 1))
+                      }
                     >
-                      {page}
+                      <ChevronLeftIcon aria-hidden="true" />
                     </button>
-                  ))}
 
-                  <button type="button" aria-label="다음 페이지">
-                    <ChevronRightIcon aria-hidden="true" />
-                  </button>
-                </nav>
+                    {myPostPageNumbers.map(page => (
+                      <button
+                        key={page}
+                        type="button"
+                        className={
+                          page === currentPostsPage ? "mypage-pageActive" : ""
+                        }
+                        aria-current={
+                          page === currentPostsPage ? "page" : undefined
+                        }
+                        onClick={() => setCurrentPostsPage(page)}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                    <button
+                      type="button"
+                      aria-label="다음 페이지"
+                      disabled={currentPostsPage === totalPostPages}
+                      onClick={() =>
+                        setCurrentPostsPage(page =>
+                          Math.min(totalPostPages, page + 1),
+                        )
+                      }
+                    >
+                      <ChevronRightIcon aria-hidden="true" />
+                    </button>
+                  </nav>
+                )}
               </>
             )}
 
             {activeTab === "myComments" && renderComments()}
             {activeTab === "likedPosts" && renderPostRows(likedPosts)}
+            {activeTab === "savedContents" && (
+              <>
+                <div className="mypage-listHeader">
+                  <div>
+                    <p className="mypage-listEyebrow">MY CONTENT</p>
+                    <h2 className="mypage-listTitle">내 AI 저장</h2>
+                  </div>
+                </div>
+                <ContentCabinet
+                  contents={savedContents}
+                  embedded
+                  initialFilter="ALL"
+                />
+              </>
+            )}
           </section>
         </section>
       </div>

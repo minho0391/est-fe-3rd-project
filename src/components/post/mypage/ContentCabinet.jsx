@@ -1,7 +1,7 @@
 // [콘텐츠 보관함 영역] (AI 생성 및 운영진 기본 콘텐츠 리스트)
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import {
   AutoAwesomeIcon,
@@ -11,12 +11,44 @@ import {
   RefreshIcon,
 } from "@/images/icons";
 
-import { savedCommunityContents } from "@/data/communityPosts";
+import { getSavedContents } from "@/lib/communityQueries";
 
-export default function ContentCabinet({ onSelectContent }) {
+export default function ContentCabinet({
+  onSelectContent,
+  contents,
+  embedded = false,
+  initialFilter = "ALL",
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const [filter, setFilter] = useState("ALL"); // ALL, AI, ADMIN
+  const [filter, setFilter] = useState(initialFilter); // ALL, AI, ADMIN
+  const [savedContents, setSavedContents] = useState(contents ?? []);
+
+  useEffect(() => {
+    setFilter(initialFilter);
+  }, [initialFilter]);
+
+  useEffect(() => {
+    if (contents !== undefined) {
+      setSavedContents(contents);
+      return undefined;
+    }
+
+    let mounted = true;
+
+    getSavedContents()
+      .then(rows => {
+        if (mounted) setSavedContents(rows);
+      })
+      .catch(error => {
+        console.error("콘텐츠 보관함을 불러오지 못했습니다.", error);
+        if (mounted) setSavedContents([]);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [contents]);
 
   // 보관함 팝업 열기/닫기
   const toggleDrawer = () => setIsOpen(prev => !prev);
@@ -31,13 +63,77 @@ export default function ContentCabinet({ onSelectContent }) {
   };
 
   // 필터링된 콘텐츠 리스트
-  const filteredContents = savedCommunityContents.filter(item => {
+  const filteredContents = savedContents.filter(item => {
     if (filter === "AI") return item.type === "AI";
 
     if (filter === "ADMIN") return item.type === "ADMIN";
 
     return true;
   });
+
+  if (embedded) {
+    return (
+      <section className="cabinet-embedded" aria-label="내 AI 저장 콘텐츠">
+        <div className="cabinet-embeddedFilterBar">
+          <div
+            className="cabinet-filterTabs"
+            role="tablist"
+            aria-label="저장 콘텐츠 필터"
+          >
+            {[
+              ["ALL", "전체"],
+              ["AI", "AI 생성"],
+              ["ADMIN", "운영진 기본"],
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                className={`cabinet-filterBtn ${
+                  filter === key ? "cabinet-activeFilter" : ""
+                }`}
+                role="tab"
+                aria-selected={filter === key}
+                onClick={() => setFilter(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="cabinet-contentList">
+          {filteredContents.length > 0 ? (
+            filteredContents.map(item => (
+              <article key={item.id} className="cabinet-contentCard">
+                <div className="cabinet-cardTop">
+                  <span
+                    className={`cabinet-typeBadge ${
+                      item.type === "AI"
+                        ? "cabinet-aiBadge"
+                        : "cabinet-adminBadge"
+                    }`}
+                  >
+                    {item.badge}
+                  </span>
+                </div>
+                <h3 className="cabinet-itemTitle">{item.title}</h3>
+                <p className="cabinet-itemPreview">{item.content}</p>
+                <div className="cabinet-tagGroup">
+                  {(item.tags ?? []).map(tag => (
+                    <span key={tag} className="cabinet-tag">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              </article>
+            ))
+          ) : (
+            <p className="cabinet-emptyText">저장된 콘텐츠가 없습니다.</p>
+          )}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <div className="cabinet-fetcherWrapper">

@@ -5,35 +5,24 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import GameCardBack from "./GameCardBack";
 import CardContentResult from "./CardContentResult";
+import Button from "@/components/ui/Button";
 import { createClient } from "@/utils/supabase/client";
+import { cardFaceSx, cardRowSx, gameButtonSx, playAreaSx } from "./styles";
 
 const CARD_COUNT = 4;
 
-// 카드 앞면이 나타날 때 살짝 뒤집히는 모션
-const FLIP_DURATION = 200;
 // 카드가 돌기 시작하자마자 모달이 따라 올라오도록
 const RESULT_DELAY = 0;
 
-const cardSx = {
-  display: "flex",
-  flexDirection: "column",
-  width: 220,
-  height: 300,
-  flexShrink: 0,
+const contentCardSx = {
+  ...cardFaceSx,
   p: "25px",
-  bgcolor: "background.paper",
   border: 1,
   borderColor: "divider",
-  borderRadius: "20px",
-  "@keyframes flipIn": {
-    from: { transform: "rotateY(-70deg)", opacity: 0 },
-    to: { transform: "rotateY(0deg)", opacity: 1 },
-  },
-  animation: `flipIn ${FLIP_DURATION}ms cubic-bezier(0.2, 0.8, 0.3, 1)`,
-  "@media (prefers-reduced-motion: reduce)": {
-    animation: "none",
-  },
 };
+
+const cardTitleSx = { lineHeight: "20px", pb: 2 };
+const cardScriptSx = { lineHeight: "29px", wordBreak: "keep-all" };
 
 export default function CardContentPlay() {
   const [items, setItems] = useState([]);
@@ -76,24 +65,23 @@ export default function CardContentPlay() {
 
   const handleCloseResult = () => setResult(null);
 
+  // 뒤집은 카드를 모두 덮고 처음 상태로 되돌립니다.
+  const handleRestart = () => {
+    setOpened({});
+    setResult(null);
+  };
+
   const isReady = !error && items.length > 0;
+  const openedCount = Object.keys(opened).length;
+  const isFinished = openedCount === CARD_COUNT;
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+    <Box sx={playAreaSx}>
       <Typography component="h2" variant="h4" align="center">
-        {error || "카드를 뒤집으면 질문이 나와요"}
+        {error || (isFinished ? "카드를 모두 뒤집었어요" : "카드를 뒤집으면 질문이 나와요")}
       </Typography>
 
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          width: "100%",
-          px: 4,
-          perspective: "1200px",
-        }}
-      >
+      <Box sx={cardRowSx}>
         {Array.from({ length: CARD_COUNT }).map((_, index) => {
           const content = opened[index];
 
@@ -104,17 +92,23 @@ export default function CardContentPlay() {
           }
 
           return (
-            <Box key={index} sx={cardSx}>
-              <Typography variant="body2" color="text.disabled" sx={{ lineHeight: "20px", pb: 2 }}>
+            <Box key={index} sx={contentCardSx}>
+              <Typography variant="body2" color="text.disabled" sx={cardTitleSx}>
                 {content.title}
               </Typography>
-              <Typography variant="subtitle1" sx={{ lineHeight: "29px", wordBreak: "keep-all" }}>
+              <Typography variant="subtitle1" sx={cardScriptSx}>
                 {content.scripts?.[0]}
               </Typography>
             </Box>
           );
         })}
       </Box>
+
+      {openedCount > 0 && (
+        <Button variant="secondary" onClick={handleRestart} sx={gameButtonSx}>
+          다시 시작
+        </Button>
+      )}
 
       {result && (
         <CardContentResult

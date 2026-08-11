@@ -1,17 +1,43 @@
 // [인기 게시글 미리보기 영역]
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ChatBubbleOutlineOutlined,
   FavoriteIcon,
   LocalFireDepartmentIcon,
 } from "@/images/icons";
-import { getPopularCommunityPosts } from "@/data/communityPosts";
+import { getPopularCommunityPosts } from "@/lib/communityQueries";
 
 export default function PopularPreview({ posts = [] }) {
-  const displayPosts = posts.length > 0 ? posts : getPopularCommunityPosts(3);
+  const [fetchedPosts, setFetchedPosts] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    if (posts.length > 0) {
+      setFetchedPosts([]);
+      return () => {
+        mounted = false;
+      };
+    }
+
+    getPopularCommunityPosts(3)
+      .then(rows => {
+        if (mounted) setFetchedPosts(rows);
+      })
+      .catch(error => {
+        console.error("인기 게시글을 불러오지 못했습니다.", error);
+        if (mounted) setFetchedPosts([]);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [posts]);
+
+  const displayPosts = posts.length > 0 ? posts : fetchedPosts;
 
   return (
     <section className="popular-container">
