@@ -168,7 +168,7 @@ const buildCommunityPostPrompt = ({ title, description, keywords = [] }) => {
 요구사항
 - 사용자가 바로 수정해서 게시할 수 있는 자연스러운 한국어 글로 작성
 - 제목, 한 줄 설명, 본문, 태그를 서로 일관되게 작성
-- 본문은 HTML이 아니라 일반 텍스트로 작성
+- 본문은 HTML이나 마크다운 문법 없이 일반 텍스트로만 작성 (**굵게**, # 제목, - 목록 같은 기호를 쓰지 않기)
 - 태그는 2~5개
 - 입력 정보가 부족해도 합리적으로 보완해서 초안을 작성
 - 사실 확인이 필요한 구체적 수치나 출처는 임의로 만들지 않기
@@ -194,6 +194,21 @@ const normalizeConversationResult = result => {
   };
 };
 
+/**
+ * 프롬프트로 막아도 앨런이 마크다운 강조를 섞어 보내는 경우가 있습니다.
+ * Quill 에디터는 마크다운을 해석하지 않아 별표가 그대로 보이므로
+ * 표시용 기호만 제거하고 글자는 그대로 둡니다.
+ */
+const stripMarkdown = text =>
+  String(text ?? "")
+    .replace(/\*\*(.+?)\*\*/g, "$1") // **굵게**
+    .replace(/__(.+?)__/g, "$1") // __굵게__
+    .replace(/(^|\s)\*(?!\s)(.+?)(?<!\s)\*/g, "$1$2") // *기울임*
+    .replace(/`([^`]+)`/g, "$1") // `코드`
+    .replace(/^#{1,6}\s+/gm, "") // # 제목
+    .replace(/^\s*[-*+]\s+/gm, "") // - 목록
+    .replace(/^\s*>\s?/gm, ""); // > 인용
+
 const normalizeCommunityPostResult = (result, payload) => {
   const tags = Array.isArray(result?.tags)
     ? result.tags.filter(Boolean).slice(0, 5)
@@ -204,7 +219,7 @@ const normalizeCommunityPostResult = (result, payload) => {
   const normalized = {
     title: String(result?.title ?? payload?.title ?? "").trim(),
     description: String(result?.description ?? payload?.description ?? "").trim(),
-    content: String(result?.content ?? "").trim(),
+    content: stripMarkdown(result?.content ?? "").trim(),
     tags,
   };
 
