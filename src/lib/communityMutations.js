@@ -27,6 +27,45 @@ const toPlainText = html =>
     .replace(/\s+/g, " ")
     .trim();
 
+const POST_IMAGE_BUCKET = "post-images";
+
+const getPostImageStoragePaths = html => {
+  const paths = new Set();
+  const source = String(html ?? "");
+  const imageSrcPattern = /<img\b[^>]*?\bsrc=["']([^"']+)["'][^>]*>/gi;
+  const publicMarker = `/storage/v1/object/public/${POST_IMAGE_BUCKET}/`;
+  const signedMarker = `/storage/v1/object/sign/${POST_IMAGE_BUCKET}/`;
+
+  let match;
+  while ((match = imageSrcPattern.exec(source))) {
+    try {
+      const url = new URL(match[1], "http://localhost");
+      const marker = url.pathname.includes(publicMarker)
+        ? publicMarker
+        : signedMarker;
+      const markerIndex = url.pathname.indexOf(marker);
+      if (markerIndex < 0) continue;
+
+      const encodedPath = url.pathname.slice(markerIndex + marker.length);
+      const storagePath = decodeURIComponent(encodedPath);
+      if (storagePath) paths.add(storagePath);
+    } catch {
+      // 외부 이미지/잘못된 URL은 Storage 정리 대상이 아닙니다.
+    }
+  }
+
+  return [...paths];
+};
+
+const removePostImages = async (db, paths) => {
+  if (!paths?.length) return;
+
+  const { error } = await db.storage.from(POST_IMAGE_BUCKET).remove(paths);
+  if (error) {
+    console.warn("게시글 본문 이미지 정리 실패:", error);
+  }
+};
+
 // 게시판 이름 → board_id
 const resolveBoardId = async (db, boardName) => {
   const { data } = await db
@@ -174,7 +213,7 @@ export const uploadPostImage = async file => {
   const path = `${user.id}/${randomFileName}.${safeExt}`;
 
   const { error: uploadError } = await db.storage
-    .from("post-images")
+    .from(POST_IMAGE_BUCKET)
     .upload(path, file, {
       cacheControl: "31536000",
       upsert: false,
@@ -192,7 +231,7 @@ export const uploadPostImage = async file => {
 
   const {
     data: { publicUrl },
-  } = db.storage.from("post-images").getPublicUrl(path);
+  } = db.storage.from(POST_IMAGE_BUCKET).getPublicUrl(path);
 
   if (!publicUrl) {
     throw new Error("업로드한 이미지 URL을 가져오지 못했습니다.");
@@ -209,6 +248,17 @@ export const updatePost = async (
   const db = supabase();
   await requireUser(db);
 
+  let previousImagePaths = [];
+  if (content !== undefined) {
+    const { data: currentPost, error: currentPostError } = await db
+      .from("posts")
+      .select("content_html")
+      .eq("id", postId)
+      .single();
+    if (currentPostError) throw currentPostError;
+    previousImagePaths = getPostImageStoragePaths(currentPost?.content_html);
+  }
+
   const patch = { updated_at: new Date().toISOString() };
 
   if (board !== undefined) patch.board_id = await resolveBoardId(db, board);
@@ -223,15 +273,55 @@ export const updatePost = async (
   if (error) throw error;
 
   if (tags !== undefined) await syncPostTags(db, postId, tags);
+
+  // 에디터에서 제거된 본문 이미지는 Storage에서도 함께 정리합니다.
+  // 링크/영상은 content_html 안의 마크업이므로 별도 DB 자식 레코드가 없습니다.
+  if (content !== undefined) {
+    const nextImagePaths = new Set(getPostImageStoragePaths(content));
+    const removedImagePaths = previousImagePaths.filter(
+      path => !nextImagePaths.has(path),
+    );
+    await removePostImages(db, removedImagePaths);
+  }
 };
 
-/** 게시글 삭제 (본인 글만) */
+/**
+ * 게시글 삭제 (본인 글만).
+ * DB의 종속 레코드(comments/post_likes/post_tags/post_views)는
+ * delete_post_cascade RPC에서 함께 정리하고, 본문 이미지는 Storage에서도 제거합니다.
+ */
 export const deletePost = async postId => {
   const db = supabase();
   await requireUser(db);
 
-  const { error } = await db.from("posts").delete().eq("id", postId);
-  if (error) throw error;
+  const { data: post, error: postError } = await db
+    .from("posts")
+    .select("content_html")
+    .eq("id", postId)
+    .single();
+  if (postError) throw postError;
+
+  const imagePaths = getPostImageStoragePaths(post?.content_html);
+
+  const { error: rpcError } = await db.rpc("delete_post_cascade", {
+    p_post_id: String(postId),
+  });
+
+  if (rpcError) {
+    // 아직 migration을 적용하지 않은 환경에서도 기존 FK cascade/RLS 삭제는 시도합니다.
+    if (
+      /function .*delete_post_cascade.*does not exist/i.test(
+        rpcError.message ?? "",
+      )
+    ) {
+      const { error } = await db.from("posts").delete().eq("id", postId);
+      if (error) throw error;
+    } else {
+      throw rpcError;
+    }
+  }
+
+  await removePostImages(db, imagePaths);
 };
 
 /**
@@ -252,7 +342,7 @@ export const createComment = async (postId, content, parentId = null) => {
       content: content.trim(),
     })
     .select(
-      "id, post_id, author_id, content, created_at, profiles ( nickname, avatar_url )",
+      "id, post_id, author_id, parent_id, content, created_at, profiles ( nickname, avatar_url )",
     )
     .single();
 
@@ -262,6 +352,7 @@ export const createComment = async (postId, content, parentId = null) => {
     id: data.id,
     postId: data.post_id,
     authorId: data.author_id,
+    parentId: data.parent_id ?? null,
     author: data.profiles?.nickname ?? "",
     avatarUrl: data.profiles?.avatar_url ?? "",
     content: data.content,
@@ -269,17 +360,72 @@ export const createComment = async (postId, content, parentId = null) => {
   };
 };
 
-/** 댓글 삭제 (soft delete — 대댓글이 있어도 트리가 안 깨집니다) */
+/**
+ * 댓글 삭제.
+ * 선택한 댓글과 그 아래 모든 대댓글을 같은 시점에 물리 삭제합니다.
+ * @returns {Promise<string[]>} 삭제 처리된 댓글 id 목록
+ */
 export const deleteComment = async commentId => {
   const db = supabase();
   await requireUser(db);
 
-  const { error } = await db
-    .from("comments")
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("id", commentId);
+  const { data, error } = await db.rpc("delete_comment_tree", {
+    p_comment_id: String(commentId),
+  });
 
-  if (error) throw error;
+  if (!error) {
+    return (data ?? []).map(row => String(row.id_text ?? row.id ?? row));
+  }
+
+  // migration 미적용 환경을 위한 fallback.
+  // 같은 게시글의 parent_id 트리를 읽어 선택 댓글의 모든 하위 댓글을 함께 처리합니다.
+  if (
+    !/function .*delete_comment_tree.*does not exist/i.test(error.message ?? "")
+  ) {
+    throw error;
+  }
+
+  const { data: target, error: targetError } = await db
+    .from("comments")
+    .select("id, post_id")
+    .eq("id", commentId)
+    .single();
+  if (targetError) throw targetError;
+
+  const { data: rows, error: rowsError } = await db
+    .from("comments")
+    .select("id, parent_id")
+    .eq("post_id", target.post_id)
+    .is("deleted_at", null);
+  if (rowsError) throw rowsError;
+
+  const childrenByParent = new Map();
+  for (const row of rows ?? []) {
+    const key = row.parent_id == null ? null : String(row.parent_id);
+    const children = childrenByParent.get(key) ?? [];
+    children.push(String(row.id));
+    childrenByParent.set(key, children);
+  }
+
+  const deletedIds = [];
+  const queue = [String(commentId)];
+  const seen = new Set();
+  while (queue.length > 0) {
+    const id = queue.shift();
+    if (seen.has(id)) continue;
+    seen.add(id);
+    deletedIds.push(id);
+    queue.push(...(childrenByParent.get(id) ?? []));
+  }
+
+  // migration 미적용 fallback에서도 부모/자식 댓글을 남기지 않고 물리 삭제합니다.
+  const { error: deleteError } = await db
+    .from("comments")
+    .delete()
+    .in("id", deletedIds);
+  if (deleteError) throw deleteError;
+
+  return deletedIds;
 };
 
 /** 생성 결과를 내 보관함에 저장 */
