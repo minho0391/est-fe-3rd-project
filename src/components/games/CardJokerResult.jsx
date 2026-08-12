@@ -4,6 +4,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Dialog from "@mui/material/Dialog";
 import Button from "@/components/ui/Button";
+import { toContentLines } from "@/lib/contentFormats";
 import { dialogBackdropSx, dialogPaperBaseSx, gameButtonSx, keepAllSx } from "./styles";
 
 const paperSx = {
@@ -49,14 +50,8 @@ const penaltyBoxSx = {
   borderRadius: "16px",
 };
 
-// scripts 가 비어 있는 행은 title 이 곧 본문입니다.
-function toLines(content) {
-  const scripts = content?.scripts ?? [];
-  return scripts.length > 0 ? scripts : [content?.title].filter(Boolean);
-}
-
 export default function CardJokerResult({ penalty = null, onConfirm }) {
-  const lines = toLines(penalty);
+  const lines = toContentLines(penalty);
 
   return (
     <Dialog

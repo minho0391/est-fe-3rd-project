@@ -7,6 +7,7 @@ import GameCardBack from "./GameCardBack";
 import CardJokerResult from "./CardJokerResult";
 import Button from "@/components/ui/Button";
 import { createClient } from "@/utils/supabase/client";
+import { toContentLines } from "@/lib/contentFormats";
 import { cardFaceSx, cardRowSx, gameButtonSx, keepAllSx, playAreaSx } from "./styles";
 
 const CARD_COUNT = 4;
@@ -55,12 +56,6 @@ const penaltyBoxSx = {
 function createDeck() {
   const jokerIndex = Math.floor(Math.random() * CARD_COUNT);
   return Array.from({ length: CARD_COUNT }, (_, i) => i === jokerIndex);
-}
-
-// scripts 가 비어 있는 행은 title 이 곧 본문입니다.
-function toLines(content) {
-  const scripts = content?.scripts ?? [];
-  return scripts.length > 0 ? scripts : [content?.title].filter(Boolean);
 }
 
 export default function CardJokerPlay() {
@@ -129,7 +124,7 @@ export default function CardJokerPlay() {
             <Typography variant="body2" color="text.disabled">
               이번 판 벌칙
             </Typography>
-            {toLines(penalty).map((line, index) => (
+            {toContentLines(penalty).map((line, index) => (
               <Typography
                 key={index}
                 variant="subtitle1"

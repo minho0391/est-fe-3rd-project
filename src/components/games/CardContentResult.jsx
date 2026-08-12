@@ -5,7 +5,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Dialog from "@mui/material/Dialog";
 import Button from "@/components/ui/Button";
-import { FORMAT_LABELS } from "@/lib/contentFormats";
+import { FORMAT_LABELS, needsContentTitle, toContentLines } from "@/lib/contentFormats";
 import { dialogActionRowSx, dialogBackdropSx, keepAllSx, transparentPaperSx } from "./styles";
 
 const badgeSx = {
@@ -59,14 +59,7 @@ export default function CardContentResult({ content, onClose, onNext, hasNext = 
   const [showAnswer, setShowAnswer] = useState(false);
   const label = FORMAT_LABELS[content.format_code] ?? "뽑힌 콘텐츠";
   const answer = content.extras?.answer;
-
-  const scripts = content.scripts ?? [];
-  // scripts 가 비어 있는 행은 title 이 곧 본문입니다.
-  const lines = scripts.length > 0 ? scripts : [content.title];
-  // scripts 가 키워드 목록일 때만 title 을 주제로 함께 보여줍니다.
-  //   예) "여행 이야기" + 가본 멋진 곳 / 가보고 싶은 여행지 …
-  // scripts 가 완결된 문장이면 title 은 카테고리(관계·진행 등)라 보여주지 않습니다.
-  const needsTitle = scripts.length > 0 && scripts.every(script => script.length <= 20);
+  const lines = toContentLines(content);
 
   // 모달이 닫히지 않고 내용만 바뀌므로 정답 노출 상태를 직접 되돌립니다.
   const handleNext = () => {
@@ -96,7 +89,7 @@ export default function CardContentResult({ content, onClose, onNext, hasNext = 
           </Box>
 
           <Box sx={bodySx}>
-            {needsTitle && (
+            {needsContentTitle(content) && (
               <Typography variant="body2" color="text.disabled" align="center" sx={titleSx}>
                 {content.title}
               </Typography>
