@@ -1,0 +1,358 @@
+/* ===== Main/List table row alignment =====
+   All seven columns use the same grid in header and data rows.
+   No !important is required. */
+.community-listHeader,
+.community-tableLikeStack .post-item-itemCard {
+  grid-template-columns:
+    96px
+    minmax(320px, 1fr)
+    120px
+    128px
+    128px
+    128px
+    104px;
+  column-gap: 12px;
+}
+
+.community-listHeader {
+  min-height: 48px;
+  padding: 0 20px;
+}
+
+.community-listHeader > span {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  text-align: center;
+}
+
+.community-listHeader > span:nth-child(2) {
+  justify-content: flex-start;
+  padding-left: 8px;
+  text-align: left;
+}
+
+.community-tableLikeStack .post-item-itemCard {
+  width: 100%;
+  min-height: 88px;
+  margin: 0;
+  padding: 16px 20px;
+  display: grid;
+  align-items: center;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.community-tableLikeStack .post-item-itemCard:last-child {
+  border-bottom: 0;
+}
+
+.community-tableLikeStack .post-item-itemCard:hover {
+  background: #fafaff;
+}
+
+.community-tableLikeStack .post-item-categoryCell,
+.community-tableLikeStack .post-item-authorCell,
+.community-tableLikeStack .post-item-dateCell,
+.community-tableLikeStack .post-item-statCell {
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.community-tableLikeStack .post-item-titleCell {
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding-left: 8px;
+  text-align: left;
+}
+
+.community-tableLikeStack .post-item-boardBadge,
+.community-tableLikeStack .post-item-noticeBadge {
+  margin: 0;
+  justify-content: center;
+}
+
+.community-tableLikeStack .post-item-title {
+  width: 100%;
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  text-align: left;
+}
+
+.community-tableLikeStack .post-item-description {
+  display: none;
+}
+
+.community-tableLikeStack .post-item-author {
+  width: 100%;
+  text-align: center;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.community-tableLikeStack .post-item-date {
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.community-tableLikeStack .post-item-statItem {
+  width: 100%;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--ink-muted);
+  font-size: 12px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.community-tableLikeStack .post-item-statIcon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
+/* Card layout below desktop */
+@media (max-width: 1199px) {
+  .community-listHeader {
+    display: none;
+  }
+
+  .community-tableLikeStack {
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .community-tableLikeStack .post-item-itemCard {
+    min-height: 0;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "category date"
+      "title title"
+      "author author"
+      "views reactions";
+    row-gap: 14px;
+    column-gap: 16px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+
+  .community-tableLikeStack .post-item-categoryCell {
+    grid-area: category;
+    justify-content: flex-start;
+  }
+
+  .community-tableLikeStack .post-item-dateCell {
+    grid-area: date;
+    justify-content: flex-end;
+  }
+
+  .community-tableLikeStack .post-item-titleCell {
+    grid-area: title;
+    padding-left: 0;
+  }
+
+  .community-tableLikeStack .post-item-description {
+    display: block;
+    margin: 6px 0 0;
+  }
+
+  .community-tableLikeStack .post-item-authorCell {
+    grid-area: author;
+    justify-content: flex-start;
+  }
+
+  .community-tableLikeStack .post-item-author {
+    text-align: left;
+  }
+
+  .community-tableLikeStack .post-item-viewCell {
+    grid-area: views;
+    justify-content: flex-start;
+  }
+
+  .community-tableLikeStack .post-item-likeCell {
+    grid-area: reactions;
+    justify-self: end;
+    width: auto;
+    transform: translateX(-112px);
+  }
+
+  .community-tableLikeStack .post-item-commentCell {
+    grid-area: reactions;
+    justify-self: end;
+    width: auto;
+  }
+
+  .community-tableLikeStack .post-item-statItem {
+    width: auto;
+  }
+}
+
+@media (max-width: 767px) {
+  .community-tableLikeStack .post-item-itemCard {
+    grid-template-columns: 1fr auto;
+  }
+
+  .community-tableLikeStack .post-item-likeCell {
+    transform: translateX(-96px);
+  }
+}
+
+/* 게시글 작성 > 게시판 선택 간격 보정 */
+.community-scope .write-form .write-section:first-child {
+  padding: 28px 32px 32px;
+  gap: 12px;
+}
+
+.community-scope .write-form .write-section:first-child .write-label {
+  margin: 0;
+}
+
+.community-scope .write-form .write-section:first-child .write-select {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-height: 56px;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+@media (max-width: 767px) {
+  .community-scope .write-form .write-section:first-child {
+    padding: 24px;
+    gap: 12px;
+  }
+}
+
+/* 게시글 작성 > DB 게시판 목록 조회 오류 */
+.community-scope .write-boardError {
+  margin: 0;
+  color: var(--danger);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+/* 게시글 메인/목록 DB 조회 상태 */
+.community-listState {
+  margin: 0;
+  padding: 32px 24px;
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 14px;
+}
+
+.community-listStateError {
+  color: var(--danger);
+}
+
+.community-listStateError {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.community-listStateError span {
+  font-size: 12px;
+  font-weight: 400;
+  word-break: break-word;
+}
+
+/* Quill 본문을 상세 페이지에서도 작성 화면과 동일하게 렌더링합니다. */
+.post-body-articleBody {
+  max-width: 100%;
+  font-size: 15px;
+  line-height: 30px;
+  color: var(--ink-subtle);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.post-body-articleBody img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.post-body-articleBody iframe,
+.post-body-articleBody video,
+.post-body-articleBody .ql-video {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border: 0;
+}
+
+.post-body-articleBody a {
+  color: var(--primary);
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+
+.post-body-articleBody .ql-align-center {
+  text-align: center;
+}
+
+.post-body-articleBody .ql-align-center img,
+.post-body-articleBody .ql-align-center iframe,
+.post-body-articleBody .ql-align-center video {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.post-body-articleBody .ql-align-right {
+  text-align: right;
+}
+
+.post-body-articleBody .ql-align-right img,
+.post-body-articleBody .ql-align-right iframe,
+.post-body-articleBody .ql-align-right video {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.post-body-articleBody .ql-align-justify {
+  text-align: justify;
+}
+
+.write-submitError,
+.comments-actionError {
+  color: #b42318;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* Quill 작성 화면에서도 삽입 이미지/영상이 에디터 너비를 넘지 않도록 제한합니다. */
+.community-scope .write-quillEditor .ql-editor img {
+  max-width: 100%;
+  height: auto;
+}
+
+.community-scope .write-quillEditor .ql-editor iframe,
+.community-scope .write-quillEditor .ql-editor video,
+.community-scope .write-quillEditor .ql-editor .ql-video {
+  max-width: 100%;
+}

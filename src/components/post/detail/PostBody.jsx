@@ -1,7 +1,8 @@
 // [본문 영역] (제목, 작성자, 공유된 AI 생성 콘텐츠 내용)
 "use client";
 
-import React from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   AccountCircleIcon,
   AutoAwesomeIcon,
@@ -9,18 +10,38 @@ import {
   FavoriteIcon,
   RemoveRedEyeIcon,
 } from "@/images/icons";
+import { sanitizeCommunityHtml } from "@/lib/sanitizeCommunityHtml";
 
 export default function PostDetailContent({
   post,
   isLiked = false,
   isLikePending = false,
   onLikeToggle,
-  canDelete = false,
+  isOwner = false,
   isDeletePending = false,
   onDelete,
 }) {
-  if (!post) return null;
+  const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+  const safeContent = useMemo(
+    () => sanitizeCommunityHtml(post?.content),
+    [post?.content],
+  );
 
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+
+    const handlePointerDown = event => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [menuOpen]);
+  if (!post) return null;
   const {
     title,
     author,
@@ -29,9 +50,22 @@ export default function PostDetailContent({
     likes,
     board,
     tags,
-    content,
     isAiGenerated = false,
   } = post;
+
+  const sharePost = async () => {
+    setMenuOpen(false);
+    const url = window.location.href;
+    try {
+      if (navigator.share) await navigator.share({ title, url });
+      else {
+        await navigator.clipboard.writeText(url);
+        window.alert("게시글 링크를 복사했습니다.");
+      }
+    } catch (error) {
+      if (error?.name !== "AbortError") console.error("공유 실패", error);
+    }
+  };
 
   return (
     <article className="post-body-container">
@@ -39,16 +73,58 @@ export default function PostDetailContent({
         <h1 className="post-body-title">{title}</h1>
         <div className="post-body-headerActions">
           <span className="post-body-boardBadge">{board}</span>
-          {canDelete && (
+          <div className="community-moreWrap" ref={menuRef}>
             <button
               type="button"
-              className="post-body-deleteButton"
-              onClick={onDelete}
-              disabled={isDeletePending}
+              className="community-moreButton"
+              aria-label="게시글 더보기"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen(v => !v)}
             >
-              {isDeletePending ? "삭제 중..." : "게시글 삭제"}
+              ⋮
             </button>
-          )}
+            {menuOpen && (
+              <div className="community-moreMenu" role="menu">
+                {isOwner && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => router.push(`/post/${post.id}/edit`)}
+                  >
+                    수정하기
+                  </button>
+                )}
+                <button type="button" role="menuitem" onClick={sharePost}>
+                  공유하기
+                </button>
+                {isOwner ? (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="community-dangerMenuItem"
+                    disabled={isDeletePending}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onDelete?.();
+                    }}
+                  >
+                    {isDeletePending ? "삭제 중..." : "삭제하기"}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      window.alert("신고 기능은 준비 중입니다.");
+                    }}
+                  >
+                    신고하기
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -65,7 +141,6 @@ export default function PostDetailContent({
               <AccountCircleIcon aria-hidden="true" />
             </div>
           )}
-
           <div className="post-body-authorMeta">
             <div className="post-body-nameGroup">
               <span className="post-body-authorName">{author?.name}</span>
@@ -74,13 +149,11 @@ export default function PostDetailContent({
             <span className="post-body-postDate">{createdAt}</span>
           </div>
         </div>
-
         <div className="post-body-postStats">
           <span className="post-body-statItem">
             <RemoveRedEyeIcon aria-hidden="true" fontSize="small" />
             <span>조회수 {views}</span>
           </span>
-
           <button
             type="button"
             className={`post-body-likeButton ${isLiked ? "post-body-likeButtonActive" : ""}`}
@@ -97,9 +170,7 @@ export default function PostDetailContent({
           </button>
         </div>
       </div>
-
       <hr className="post-body-divider" />
-
       <div className="post-body-contentWrapper">
         {isAiGenerated && (
           <div className="post-body-aiBadge">
@@ -109,14 +180,12 @@ export default function PostDetailContent({
             </span>
           </div>
         )}
-
         <div
           className="post-body-articleBody"
-          dangerouslySetInnerHTML={{ __html: content }}
+          dangerouslySetInnerHTML={{ __html: safeContent }}
         />
       </div>
-
-      {tags && tags.length > 0 && (
+      {tags?.length > 0 && (
         <div className="post-body-tagList">
           {tags.map(tag => (
             <span key={tag} className="post-body-tagItem">
