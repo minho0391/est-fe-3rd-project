@@ -8,7 +8,7 @@ import GameCardBack from "./GameCardBack";
 import CardContentResult from "./CardContentResult";
 import Button from "@/components/ui/Button";
 import { createClient } from "@/utils/supabase/client";
-import { CONTENT_FORMATS, FORMAT_LABELS } from "@/lib/contentFormats";
+import { CONTENT_FORMATS, FORMAT_LABELS, toContentLines } from "@/lib/contentFormats";
 import {
   cardFaceSx,
   cardRowSx,
@@ -197,14 +197,18 @@ export default function CardContentPlay() {
             );
           }
 
-          // scripts 가 비어 있는 행은 title 이 곧 본문입니다.
-          const scripts = content.scripts ?? [];
-          const lines = scripts.length > 0 ? scripts : [content.title];
+          const lines = toContentLines(content);
+
+          // scripts 가 있으면 title 은 카테고리라 위에 두고,
+          // scripts 가 비어 title 이 본문으로 올라간 경우엔 형식 이름을 둡니다.
+          const cardLabel = content.scripts?.length
+            ? content.title
+            : FORMAT_LABELS[content.format_code];
 
           return (
             <Box key={index} sx={contentCardSx}>
               <Typography variant="body2" color="text.disabled" sx={cardLabelSx}>
-                {scripts.length > 0 ? content.title : FORMAT_LABELS[content.format_code]}
+                {cardLabel}
               </Typography>
               <Box sx={cardScriptGroupSx}>
                 {lines.map((line, lineIndex) => (
