@@ -51,6 +51,82 @@ const SAFE_IFRAME_HOSTS = new Set([
   "player.vimeo.com",
 ]);
 
+const toVideoEmbedUrl = value => {
+  try {
+    const url = new URL(String(value ?? "").trim(), window.location.origin);
+    const host = url.hostname.replace(/^www\./, "").toLowerCase();
+
+    if (host === "youtu.be") {
+      const videoId = url.pathname.split("/").filter(Boolean)[0];
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : "";
+    }
+
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      if (url.pathname === "/watch") {
+        const videoId = url.searchParams.get("v");
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : "";
+      }
+
+      const match = url.pathname.match(/^\/(?:shorts|embed)\/([^/?#]+)/);
+      return match?.[1] ? `https://www.youtube.com/embed/${match[1]}` : "";
+    }
+
+    if (host === "vimeo.com") {
+      const videoId = url.pathname.split("/").filter(Boolean)[0];
+      return /^\d+$/.test(videoId ?? "")
+        ? `https://player.vimeo.com/video/${videoId}`
+        : "";
+    }
+
+    if (host === "player.vimeo.com") {
+      const match = url.pathname.match(/^\/video\/(\d+)/);
+      return match?.[1] ? `https://player.vimeo.com/video/${match[1]}` : "";
+    }
+
+    return "";
+  } catch {
+    return "";
+  }
+};
+
+/**
+ * Quill에서 일반 링크로 남은 YouTube/Vimeo URL을 영상 iframe으로 정규화합니다.
+ * 기존 게시글 데이터도 상세 렌더링 시 정상적으로 영상으로 복구할 수 있습니다.
+ */
+export const normalizeCommunityVideoEmbeds = html => {
+  if (typeof window === "undefined" || !html) return String(html ?? "");
+
+  const doc = new DOMParser().parseFromString(String(html), "text/html");
+
+  [...doc.body.querySelectorAll("a[href]")].forEach(anchor => {
+    const embedUrl = toVideoEmbedUrl(anchor.getAttribute("href"));
+    if (!embedUrl) return;
+
+    const iframe = doc.createElement("iframe");
+    iframe.setAttribute("class", "ql-video");
+    iframe.setAttribute("src", embedUrl);
+    iframe.setAttribute("frameborder", "0");
+    iframe.setAttribute(
+      "allow",
+      "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share",
+    );
+    iframe.setAttribute("allowfullscreen", "");
+    iframe.setAttribute("title", "Embedded video");
+
+    const parent = anchor.parentElement;
+    if (
+      parent?.tagName === "P" &&
+      parent.textContent?.trim() === anchor.textContent?.trim()
+    ) {
+      parent.replaceWith(iframe);
+    } else {
+      anchor.replaceWith(iframe);
+    }
+  });
+
+  return doc.body.innerHTML;
+};
+
 const safeUrl = (value, { iframe = false } = {}) => {
   try {
     const url = new URL(value, window.location.origin);
@@ -64,7 +140,8 @@ const safeUrl = (value, { iframe = false } = {}) => {
 
 export const sanitizeCommunityHtml = html => {
   if (typeof window === "undefined" || !html) return "";
-  const doc = new DOMParser().parseFromString(String(html), "text/html");
+  const normalizedHtml = normalizeCommunityVideoEmbeds(html);
+  const doc = new DOMParser().parseFromString(normalizedHtml, "text/html");
 
   [...doc.body.querySelectorAll("*")].forEach(node => {
     if (!ALLOWED_TAGS.has(node.tagName)) {
