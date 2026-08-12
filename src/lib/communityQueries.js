@@ -215,7 +215,7 @@ export const getCommentsByPostId = async postId => {
     )
     .eq("post_id", postId)
     .is("deleted_at", null)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: false });
 
   throwQueryError("댓글 조회 실패", error);
 
