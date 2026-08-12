@@ -23,6 +23,7 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  margin-top: 24px;
 }
 
 .cabinet-filterBtn {
@@ -45,7 +46,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 32px;
+  margin-top: 16px;
 }
 
 .cabinet-tag {
@@ -105,10 +106,6 @@
   background: var(--surface);
 }
 
-.cabinet-filterTabs {
-  margin-top: 24px;
-}
-
 .cabinet-contentList {
   margin-top: 24px;
   display: flex;
@@ -145,8 +142,4 @@
   color: var(--ink-subtle);
   line-height: 24px;
   white-space: pre-line;
-}
-
-.cabinet-tagGroup {
-  margin-top: 16px;
 }
