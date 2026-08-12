@@ -1,11 +1,20 @@
 // [댓글 영역] (댓글 목록 및 입력창)
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
-import { AccountCircleIcon, DeleteOutlined } from "@/images/icons";
-import { createComment, deleteComment } from "@/lib/communityMutations";
+import {
+  AccountCircleIcon,
+  FavoriteBorderIcon,
+  FavoriteIcon,
+} from "@/images/icons";
+import {
+  createComment,
+  deleteComment,
+  toggleCommentLike,
+  updateComment,
+} from "@/lib/communityMutations";
 
 const buildLoginUrl = returnUrl =>
   `/sign-in?returnUrl=${encodeURIComponent(returnUrl || "/post")}`;
@@ -14,65 +23,241 @@ export default function CommentSection({
   postId,
   initialComments = [],
   currentUser = null,
+  postAuthorId = null,
   returnUrl = "/post",
 }) {
   const router = useRouter();
   const [comments, setComments] = useState(initialComments);
   const [commentInput, setCommentInput] = useState("");
+  const [replyTo, setReplyTo] = useState(null);
+  const [replyInput, setReplyInput] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editInput, setEditInput] = useState("");
+  const [openMenu, setOpenMenu] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionError, setActionError] = useState("");
+  useEffect(() => setComments(initialComments), [initialComments]);
+  const redirect = () => router.push(buildLoginUrl(returnUrl));
+  const roots = useMemo(() => comments.filter(c => !c.parentId), [comments]);
+  const children = id =>
+    comments.filter(c => String(c.parentId) === String(id));
 
-  useEffect(() => {
-    setComments(initialComments);
-  }, [initialComments]);
-
-  const redirectToLogin = () => {
-    router.push(buildLoginUrl(returnUrl));
-  };
-
-  const handleInputFocus = event => {
-    if (currentUser) return;
-    event.currentTarget.blur();
-    redirectToLogin();
-  };
-
-  const handleSubmit = async event => {
-    event.preventDefault();
-
+  const submit = async (e, parentId = null) => {
+    e.preventDefault();
     if (!currentUser) {
-      redirectToLogin();
+      redirect();
       return;
     }
-
-    const trimmedInput = commentInput.trim();
-    if (!trimmedInput || isSubmitting) return;
-
+    const value = (parentId ? replyInput : commentInput).trim();
+    if (!value || isSubmitting) return;
     try {
       setIsSubmitting(true);
       setActionError("");
-      const newComment = await createComment(postId, trimmedInput);
-      setComments(current => [newComment, ...current]);
-      setCommentInput("");
-    } catch (error) {
-      console.error("댓글 등록 실패", error);
-      setActionError(error?.message || "댓글 등록에 실패했습니다.");
+      const row = await createComment(postId, value, parentId);
+      setComments(v => [...v, row]);
+      if (parentId) {
+        setReplyInput("");
+        setReplyTo(null);
+      } else setCommentInput("");
+    } catch (err) {
+      setActionError(err?.message || "댓글 등록에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  const handleDelete = async commentId => {
+  const remove = async id => {
+    if (!window.confirm("삭제하시겠습니까?")) return;
     try {
-      setActionError("");
-      const deletedIds = await deleteComment(commentId);
-      const deletedIdSet = new Set((deletedIds ?? []).map(String));
-      setComments(current =>
-        current.filter(item => !deletedIdSet.has(String(item.id))),
-      );
-    } catch (error) {
-      console.error("댓글 삭제 실패", error);
-      setActionError(error?.message || "댓글 삭제에 실패했습니다.");
+      const ids = await deleteComment(id);
+      const set = new Set((ids ?? []).map(String));
+      setComments(v => v.filter(c => !set.has(String(c.id))));
+      setOpenMenu(null);
+    } catch (err) {
+      setActionError(err?.message || "삭제에 실패했습니다.");
     }
+  };
+  const saveEdit = async id => {
+    try {
+      await updateComment(id, editInput);
+      setComments(v =>
+        v.map(c =>
+          String(c.id) === String(id) ? { ...c, content: editInput.trim() } : c,
+        ),
+      );
+      setEditingId(null);
+      setOpenMenu(null);
+    } catch (err) {
+      setActionError(err?.message || "수정에 실패했습니다.");
+    }
+  };
+  const like = async c => {
+    if (!currentUser) {
+      redirect();
+      return;
+    }
+    try {
+      const liked = await toggleCommentLike(c.id);
+      setComments(v =>
+        v.map(x =>
+          String(x.id) === String(c.id)
+            ? {
+                ...x,
+                likedByCurrentUser: liked,
+                likes: Math.max(0, (x.likes || 0) + (liked ? 1 : -1)),
+              }
+            : x,
+        ),
+      );
+    } catch (err) {
+      setActionError(err?.message || "좋아요 처리에 실패했습니다.");
+    }
+  };
+
+  const Item = ({ c, depth = 0 }) => {
+    const own = c.authorId === currentUser?.id;
+    const postOwner = currentUser?.id === postAuthorId;
+    const canDelete = own || postOwner;
+    return (
+      <div
+        className={`comments-commentItem ${depth ? "comments-replyItem" : ""}`}
+      >
+        <div className="comments-avatarWrapper">
+          {c.avatarUrl ? (
+            <img
+              src={c.avatarUrl}
+              alt={`${c.author} 프로필`}
+              className="comments-avatar"
+            />
+          ) : (
+            <div className="comments-avatarPlaceholder">
+              <AccountCircleIcon aria-hidden="true" />
+            </div>
+          )}
+        </div>
+        <div className="comments-commentContentGroup">
+          <div className="comments-commentHeader">
+            <div className="comments-authorMeta">
+              <span className="comments-authorName">{c.author}</span>
+              <span className="comments-date">{c.createdAt}</span>
+            </div>
+            <div className="community-moreWrap">
+              <button
+                type="button"
+                className="community-moreButton community-moreButtonSmall"
+                aria-label="댓글 더보기"
+                onClick={() => setOpenMenu(openMenu === c.id ? null : c.id)}
+              >
+                ⋮
+              </button>
+              {openMenu === c.id && (
+                <div className="community-moreMenu comments-moreMenu">
+                  {own && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingId(c.id);
+                        setEditInput(c.content);
+                        setOpenMenu(null);
+                      }}
+                    >
+                      수정하기
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button
+                      type="button"
+                      className="community-dangerMenuItem"
+                      onClick={() => remove(c.id)}
+                    >
+                      삭제하기
+                    </button>
+                  )}
+                  {!own && !postOwner && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOpenMenu(null);
+                        window.alert(
+                          "신고가 접수되었습니다. 운영 정책에 따라 검토됩니다.",
+                        );
+                      }}
+                    >
+                      신고하기
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+          {editingId === c.id ? (
+            <div className="comments-inlineEditor">
+              <textarea
+                value={editInput}
+                onChange={e => setEditInput(e.target.value)}
+              />
+              <div>
+                <button type="button" onClick={() => setEditingId(null)}>
+                  취소
+                </button>
+                <button type="button" onClick={() => saveEdit(c.id)}>
+                  저장
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="comments-commentText">{c.content}</p>
+          )}
+          <div className="comments-commentActions">
+            <button
+              type="button"
+              onClick={() => like(c)}
+              className={c.likedByCurrentUser ? "comments-liked" : ""}
+            >
+              {c.likedByCurrentUser ? (
+                <FavoriteIcon fontSize="small" />
+              ) : (
+                <FavoriteBorderIcon fontSize="small" />
+              )}{" "}
+              좋아요 {c.likes || 0}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (!currentUser) {
+                  redirect();
+                  return;
+                }
+                setReplyTo(replyTo === c.id ? null : c.id);
+                setReplyInput("");
+              }}
+            >
+              답글
+            </button>
+          </div>
+          {replyTo === c.id && (
+            <form
+              className="comments-replyForm"
+              onSubmit={e => submit(e, c.id)}
+            >
+              <textarea
+                value={replyInput}
+                onChange={e => setReplyInput(e.target.value)}
+                placeholder="답글을 입력해주세요."
+              />
+              <button
+                type="submit"
+                disabled={!replyInput.trim() || isSubmitting}
+              >
+                등록
+              </button>
+            </form>
+          )}
+          {children(c.id).map(child => (
+            <Item key={child.id} c={child} depth={depth + 1} />
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -82,87 +267,42 @@ export default function CommentSection({
           댓글 <span className="comments-count">{comments.length}</span>
         </h3>
       </div>
-
-      <form onSubmit={handleSubmit} className="comments-inputForm">
+      <form onSubmit={e => submit(e)} className="comments-inputForm">
         <textarea
           value={commentInput}
-          onChange={event => setCommentInput(event.target.value)}
-          onFocus={handleInputFocus}
-          onClick={() => {
-            if (!currentUser) redirectToLogin();
+          onChange={e => setCommentInput(e.target.value)}
+          onFocus={e => {
+            if (!currentUser) {
+              e.currentTarget.blur();
+              redirect();
+            }
           }}
-          placeholder="따뜻한 댓글을 남겨주세요."
+          placeholder="내용을 입력해주세요."
           className="comments-textarea"
           rows={3}
           readOnly={!currentUser}
         />
-
         {actionError && (
           <p className="comments-actionError" role="alert">
             {actionError}
           </p>
         )}
-
         <div className="comments-inputActionRow">
           <Button
             type="submit"
             variant="primary"
             size="md"
-            disabled={
-              isSubmitting || (Boolean(currentUser) && !commentInput.trim())
-            }
+            disabled={isSubmitting || !commentInput.trim()}
           >
-            {isSubmitting ? "등록 중..." : "댓글 등록"}
+            {isSubmitting ? "등록 중..." : "등록"}
           </Button>
         </div>
       </form>
-
       <div className="comments-commentList">
-        {comments.length === 0 ? (
+        {roots.length === 0 ? (
           <p className="comments-emptyMessage">첫 번째 댓글을 남겨보세요!</p>
         ) : (
-          comments.map(comment => (
-            <div key={comment.id} className="comments-commentItem">
-              <div className="comments-avatarWrapper">
-                {comment.avatarUrl ? (
-                  <img
-                    src={comment.avatarUrl}
-                    alt={`${comment.author} 프로필`}
-                    className="comments-avatar"
-                  />
-                ) : (
-                  <div className="comments-avatarPlaceholder">
-                    <AccountCircleIcon aria-hidden="true" />
-                  </div>
-                )}
-              </div>
-
-              <div className="comments-commentContentGroup">
-                <div className="comments-commentHeader">
-                  <div className="comments-authorMeta">
-                    <span className="comments-authorName">
-                      {comment.author}
-                    </span>
-                    <span className="comments-date">{comment.createdAt}</span>
-                  </div>
-
-                  {comment.authorId === currentUser?.id && (
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(comment.id)}
-                      className="comments-deleteBtn"
-                      aria-label="댓글 삭제"
-                    >
-                      <DeleteOutlined aria-hidden="true" fontSize="small" />
-                      <span>삭제</span>
-                    </button>
-                  )}
-                </div>
-
-                <p className="comments-commentText">{comment.content}</p>
-              </div>
-            </div>
-          ))
+          roots.map(c => <Item key={c.id} c={c} />)
         )}
       </div>
     </section>
