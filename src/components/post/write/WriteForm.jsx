@@ -19,6 +19,7 @@ import {
   updatePost,
   uploadPostImage,
 } from "@/lib/communityMutations";
+import { normalizeCommunityVideoEmbeds } from "@/lib/sanitizeCommunityHtml";
 
 // React Quill SSR 이슈 방지를 위한 Dynamic Import
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -371,15 +372,25 @@ export default function WriteForm({ initialValues = null, postId = null }) {
       setIsSubmitting(true);
       setSubmitError("");
 
+      // 과거 데이터나 일반 링크 형태로 남은 YouTube/Vimeo URL도
+      // 저장 전에 Quill 영상 iframe 마크업으로 통일합니다.
+      const normalizedContent = normalizeCommunityVideoEmbeds(content);
+
       if (isEditMode) {
-        await updatePost(postId, { board, title, description, content, tags });
+        await updatePost(postId, {
+          board,
+          title,
+          description,
+          content: normalizedContent,
+          tags,
+        });
         router.push(`/post/${postId}`);
       } else {
         const createdPostId = await createPost({
           board,
           title,
           description,
-          content,
+          content: normalizedContent,
           tags,
           isAiGenerated: contentSource === "AI",
         });
