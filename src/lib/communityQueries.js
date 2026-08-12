@@ -203,14 +203,19 @@ export const getPopularCommunityPosts = async (limit = 3) => {
 
 /** 게시글의 댓글 */
 export const getCommentsByPostId = async postId => {
-  const { data, error } = await supabase()
+  const db = supabase();
+  const {
+    data: { session },
+  } = await db.auth.getSession();
+  const currentUserId = session?.user?.id ?? null;
+  const { data, error } = await db
     .from("comments")
     .select(
-      "id, post_id, author_id, content, created_at, profiles ( nickname, avatar_url )",
+      "id, post_id, author_id, parent_id, content, created_at, profiles ( nickname, avatar_url ), comment_likes ( user_id )",
     )
     .eq("post_id", postId)
     .is("deleted_at", null)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: false });
 
   throwQueryError("댓글 조회 실패", error);
 
@@ -218,6 +223,11 @@ export const getCommentsByPostId = async postId => {
     id: c.id,
     postId: c.post_id,
     authorId: c.author_id,
+    parentId: c.parent_id ?? null,
+    likes: (c.comment_likes ?? []).length,
+    likedByCurrentUser:
+      Boolean(currentUserId) &&
+      (c.comment_likes ?? []).some(like => like.user_id === currentUserId),
     author: c.profiles?.nickname ?? "탈퇴한 사용자",
     avatarUrl: c.profiles?.avatar_url ?? "",
     content: c.content,

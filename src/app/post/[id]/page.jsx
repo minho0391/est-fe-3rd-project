@@ -198,7 +198,7 @@ export default function PostDetailPage() {
         isLiked={Boolean(basePost.likedByCurrentUser)}
         isLikePending={isLikePending}
         onLikeToggle={handleLikeToggle}
-        canDelete={Boolean(
+        isOwner={Boolean(
           currentUser?.id && currentUser.id === basePost.authorId,
         )}
         isDeletePending={isDeletePending}
@@ -215,6 +215,7 @@ export default function PostDetailPage() {
         postId={basePost.id}
         initialComments={comments}
         currentUser={currentUser}
+        postAuthorId={basePost.authorId}
         returnUrl={pathname}
       />
     </main>

@@ -1,0 +1,659 @@
+/* 
+게시글 공통 핵심 스타일
+ - 게시글 목록 / 상세 / 작성 화면에서 공통으로 사용하는 기본 스타일입니다.
+*/
+.detail-page-container,
+.top-three-topThreeContainer,
+.post-filter-filterWrapper,
+.post-item-itemCard,
+.feature-container,
+.popular-container,
+.write-container {
+  width: min(calc(100% - 48px), var(--container));
+  margin-inline: auto;
+}
+
+.detail-page-container,
+.write-form {
+  padding-block: 64px;
+}
+
+.popular-moreBtn,
+.detail-page-backBtn {
+  min-height: 56px;
+  border-radius: 16px;
+  padding: 0 24px;
+  border: 1px solid var(--line);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 700;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.popular-moreBtn:hover,
+.detail-page-backBtn:hover {
+  background: var(--surface-soft);
+}
+
+:is(.popular-moreBtn, .detail-page-backBtn):disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.top-three-topThreeContainer {
+  padding-top: 64px;
+}
+
+.top-three-compact {
+  width: 100%;
+  padding-top: 0;
+}
+
+.top-three-header,
+.popular-header,
+.feature-header,
+.post-body-header,
+.comments-header,
+.post-item-headerRow,
+.post-item-footerRow,
+.popular-cardHeader,
+.popular-cardFooter,
+.top-three-cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.top-three-header {
+  margin-bottom: 24px;
+}
+
+.top-three-sectionTitle {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 800;
+}
+
+.top-three-sectionSubtitle {
+  font-size: 14px;
+  line-height: 24px;
+  color: var(--ink-muted);
+}
+
+.top-three-cardGrid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 24px;
+}
+
+.top-three-rankCard {
+  grid-column: span 4;
+  min-height: 176px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.top-three-rankCard:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-8px);
+}
+
+.top-three-medalBadge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.top-three-medalIcon {
+  font-size: 24px;
+}
+
+.top-three-rankText,
+.post-item-boardBadge,
+.post-item-noticeBadge,
+.popular-boardBadge,
+.post-body-boardBadge,
+.post-body-roleBadge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 32px;
+  padding: 0 16px;
+  border-radius: 16px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.top-three-cardFooter {
+  margin-top: auto;
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+
+.top-three-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.post-filter-filterWrapper {
+  padding-top: 48px;
+}
+
+.post-filter-tabGroup {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.post-filter-tabBtn {
+  min-height: 56px;
+  padding: 0 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink-subtle);
+  font-weight: 700;
+}
+
+.post-filter-active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.post-item-itemCard {
+  margin-top: 16px;
+  padding: 24px 32px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.post-item-noticeCard {
+  background: var(--surface-tint);
+}
+
+.post-item-date,
+.post-item-description,
+.post-item-statItem {
+  color: var(--ink-muted);
+  font-size: 14px;
+  line-height: 24px;
+}
+
+.post-item-contentGroup {
+  padding-block: 24px;
+}
+
+.post-item-title {
+  font-size: 18px;
+  line-height: 32px;
+  font-weight: 800;
+}
+
+.post-item-noticeText {
+  color: var(--danger);
+}
+
+.post-item-footerRow {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+
+.post-item-author {
+  font-weight: 700;
+}
+
+.post-item-statsGroup {
+  display: flex;
+  gap: 24px;
+}
+
+.detail-page-navigationRow {
+  margin-bottom: 24px;
+}
+
+.post-body-container {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 48px;
+}
+
+.post-body-title {
+  font-size: 32px;
+  line-height: 48px;
+  font-weight: 800;
+}
+
+.post-body-authorRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.post-body-authorInfo,
+.post-body-nameGroup,
+.comments-authorMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.post-body-avatar,
+.post-body-avatarPlaceholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: grid;
+  place-items: center;
+  background: var(--surface-soft);
+}
+
+.post-body-authorMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.post-body-authorName,
+.comments-authorName {
+  font-weight: 800;
+}
+
+.post-body-postDate,
+.comments-date {
+  color: var(--ink-muted);
+  font-size: 14px;
+  line-height: 24px;
+}
+
+.community-scope .post-body-postStats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: var(--ink-muted);
+  font-size: 14px;
+  line-height: 24px;
+}
+
+.community-scope .post-body-statItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.post-body-divider {
+  margin: 32px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.post-body-contentWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.post-body-aiBadge {
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.community-scope .post-body-aiBadge > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.post-body-articleBody h3 {
+  margin-top: 32px;
+  color: var(--ink);
+}
+
+.post-body-articleBody ul {
+  padding-left: 24px;
+}
+
+.post-body-articleBody blockquote {
+  margin: 24px 0;
+  padding: 24px;
+  border-left: 8px solid var(--primary);
+  background: var(--surface-soft);
+}
+
+.post-body-tagList,
+.write-tagContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 32px;
+}
+
+.post-body-tagItem,
+.write-tagChip {
+  min-height: 32px;
+  padding: 0 16px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-tint);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.comments-count {
+  color: var(--primary);
+}
+
+.write-textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  outline: none;
+}
+
+.comments-textarea:focus,
+.write-textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+
+.comments-inputActionRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.comments-commentContentGroup {
+  flex: 1;
+}
+
+.comments-commentHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.comments-deleteBtn {
+  border: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  padding: 8px;
+}
+
+.comments-emptyMessage {
+  padding: 48px;
+  text-align: center;
+  color: var(--ink-muted);
+}
+
+.write-form {
+  background: var(--surface-soft);
+}
+
+.write-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.write-headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 32px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.write-titleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.write-pageTitle {
+  font-size: 32px;
+  line-height: 48px;
+  font-weight: 800;
+}
+
+.write-pageSubtitle {
+  color: var(--ink-muted);
+  line-height: 24px;
+}
+
+.write-container > .write-form {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.write-section {
+  padding: 32px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.write-label {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 800;
+}
+
+.write-input,
+.write-select,
+.write-tagInput {
+  width: 100%;
+  min-height: 56px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  outline: 0;
+}
+
+.write-input:focus,
+.write-select:focus,
+.write-tagInput:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+
+.write-editorWrapper {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.write-tagContainer {
+  margin-top: 0;
+}
+
+.write-tagInputWrapper {
+  flex: 1;
+  min-width: 240px;
+}
+
+.write-tagRemoveBtn {
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.write-actionRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.write-noticeCard {
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--surface-tint);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.write-noticeTitle {
+  font-weight: 800;
+}
+
+.write-noticeText {
+  color: var(--ink-subtle);
+  line-height: 24px;
+}
+
+.feature-container,
+.popular-container {
+  padding-block: 64px;
+}
+
+.feature-header {
+  align-items: end;
+  margin-bottom: 24px;
+}
+
+.feature-title,
+.popular-title {
+  font-size: 24px;
+  line-height: 32px;
+}
+
+.feature-subtitle {
+  color: var(--ink-muted);
+}
+
+.feature-cardGrid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 24px;
+}
+
+.feature-card {
+  grid-column: span 6;
+  padding: 32px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.feature-aiCard {
+  background: var(--surface-tint);
+}
+
+.feature-cardHeader,
+.feature-cardAction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.feature-iconBox {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+}
+
+.feature-badge {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.feature-cardTitle {
+  font-size: 24px;
+  line-height: 32px;
+}
+
+.feature-cardDesc {
+  margin-top: 16px;
+  color: var(--ink-subtle);
+  line-height: 24px;
+}
+
+.feature-cardAction {
+  font-weight: 800;
+}
+
+.popular-titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.popular-postList {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.popular-postCard {
+  grid-column: span 4;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.popular-time,
+.popular-statItem {
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+
+.popular-postTitle {
+  margin: 24px 0;
+  font-size: 18px;
+  line-height: 32px;
+}
+
+.popular-statGroup {
+  display: flex;
+  gap: 16px;
+}

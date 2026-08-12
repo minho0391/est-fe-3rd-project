@@ -1,0 +1,545 @@
+/* 
+게시글 데스크톱 목록 및 상세 스타일
+ - Desktop 목록 테이블 / 상세 본문 / 댓글 영역의 밀도와 배치를 관리합니다.
+*/
+
+/* Shared page density */
+.community-scope.community-main-page,
+.community-scope.post-list-page {
+  background: #f7f8fc;
+}
+
+.community-main-container,
+.post-list-container {
+  padding-top: 48px;
+  padding-bottom: 72px;
+}
+
+/* TOP 3: closer to the desktop design — compact, flat, information-first */
+.community-main-rankingGrid,
+.post-list-rankingGrid {
+  gap: 32px;
+}
+
+.community-main-rankingGrid .top-three-header,
+.post-list-rankingGrid .top-three-header {
+  margin-bottom: 16px;
+}
+
+.community-main-rankingGrid .top-three-sectionTitle,
+.post-list-rankingGrid .top-three-sectionTitle {
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.community-main-rankingGrid .top-three-sectionSubtitle,
+.post-list-rankingGrid .top-three-sectionSubtitle {
+  display: none;
+}
+
+.community-main-rankingGrid .top-three-cardGrid,
+.post-list-rankingGrid .top-three-cardGrid {
+  gap: 12px;
+}
+
+.community-main-rankingGrid .top-three-rankCard,
+.post-list-rankingGrid .top-three-rankCard {
+  min-height: 148px;
+  padding: 18px;
+  gap: 14px;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.community-main-rankingGrid .top-three-rankCard:hover,
+.post-list-rankingGrid .top-three-rankCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(33, 32, 64, 0.06);
+}
+
+.community-main-rankingGrid .top-three-medalIcon,
+.post-list-rankingGrid .top-three-medalIcon {
+  font-size: 18px;
+}
+
+.community-main-rankingGrid .top-three-rankText,
+.post-list-rankingGrid .top-three-rankText {
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 8px;
+}
+
+.community-main-rankingGrid .top-three-postTitle,
+.post-list-rankingGrid .top-three-postTitle {
+  font-size: 15px;
+  line-height: 22px;
+}
+
+.community-main-rankingGrid .top-three-cardFooter,
+.post-list-rankingGrid .top-three-cardFooter {
+  font-size: 12px;
+}
+
+/* Main latest / list board shells */
+.community-latest-section,
+.post-list-boardSection {
+  margin-top: 40px;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.community-latest-section .community-section-heading,
+.post-list-boardSection .community-section-heading {
+  margin: 0;
+  padding: 24px 24px 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.community-section-title {
+  font-size: 22px;
+  line-height: 30px;
+}
+
+.community-section-description {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+/* Table-like row heading matching the PDF information structure */
+.community-listHeader {
+  display: grid;
+  grid-template-columns:
+    minmax(72px, 0.7fr)
+    minmax(260px, 3.6fr)
+    minmax(90px, 1fr)
+    minmax(110px, 1.15fr)
+    minmax(78px, 0.8fr)
+    minmax(78px, 0.8fr)
+    minmax(64px, 0.65fr);
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 20px;
+  background: #f4f2ff;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-subtle);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.community-listHeader span:not(:nth-child(2)) {
+  text-align: center;
+}
+
+.community-tableLikeStack {
+  gap: 0;
+}
+
+/* Re-map existing PostItem markup into a desktop table-like row */
+.community-tableLikeStack .post-item-itemCard {
+  position: relative;
+  width: 100%;
+  min-height: 72px;
+  margin: 0;
+  padding: 14px 20px;
+  display: grid;
+  grid-template-columns:
+    minmax(72px, 0.7fr)
+    minmax(260px, 3.6fr)
+    minmax(90px, 1fr)
+    minmax(110px, 1.15fr)
+    minmax(78px, 0.8fr)
+    minmax(78px, 0.8fr)
+    minmax(64px, 0.65fr);
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+}
+
+.community-tableLikeStack .post-item-headerRow,
+.community-tableLikeStack .post-item-contentGroup,
+.community-tableLikeStack .post-item-footerRow {
+  display: contents;
+}
+
+.community-tableLikeStack .post-item-boardBadge,
+.community-tableLikeStack .post-item-noticeBadge {
+  grid-column: 1;
+  justify-self: center;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 7px;
+  font-size: 11px;
+}
+
+.community-tableLikeStack .post-item-contentGroup {
+  padding: 0;
+}
+
+.community-tableLikeStack .post-item-title {
+  grid-column: 2;
+  margin: 0;
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 700;
+}
+
+.community-tableLikeStack .post-item-author {
+  grid-column: 3;
+  justify-self: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.community-tableLikeStack .post-item-date {
+  grid-column: 4;
+  justify-self: center;
+  font-size: 12px;
+}
+
+.community-tableLikeStack .post-item-footerRow {
+  padding: 0;
+  border: 0;
+}
+
+.community-tableLikeStack .post-item-statsGroup {
+  display: contents;
+}
+
+.community-tableLikeStack .post-item-statItem {
+  justify-self: center;
+  gap: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.community-tableLikeStack .post-item-statItem:nth-child(1) {
+  grid-column: 5;
+}
+
+.community-tableLikeStack .post-item-statItem:nth-child(2) {
+  grid-column: 6;
+}
+
+.community-tableLikeStack .post-item-statItem:nth-child(3) {
+  grid-column: 7;
+}
+
+.community-tableLikeStack .post-item-statIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.community-tableLikeStack .post-item-statItem::after {
+  font-size: 12px;
+}
+
+.community-tableLikeStack .post-item-statItem:nth-child(1)::after {
+  content: attr(data-value);
+}
+
+/* Keep numeric text visible without changing data markup */
+.community-tableLikeStack .post-item-statItem svg + text {
+  display: none;
+}
+
+/* Main table is slightly lighter and more compact */
+.community-main-page .community-tableLikeStack .post-item-itemCard {
+  min-height: 68px;
+}
+
+/* List toolbar / search aligns with design */
+.post-list-boardSection .post-list-toolbar {
+  margin: 0;
+  padding: 20px 24px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+}
+
+.post-list-boardSection .post-filter-filterWrapper {
+  width: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.post-list-boardSection .post-filter-tabGroup {
+  gap: 6px;
+}
+
+.post-list-boardSection .post-filter-tabBtn {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.post-list-searchInput {
+  width: 300px;
+  min-height: 42px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.post-list-writeLink {
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.post-list-pagination {
+  margin: 0;
+  padding: 22px;
+  border-top: 1px solid var(--line);
+}
+
+.post-list-pageButton {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+/* Detail page: flatter hierarchy and PDF-like content rhythm */
+.detail-page-container {
+  width: min(calc(100% - 48px), 1180px);
+  padding-top: 48px;
+  padding-bottom: 72px;
+}
+
+.detail-page-navigationRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.detail-page-backBtn {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.post-body-container {
+  padding: 36px 40px;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.post-body-header {
+  align-items: flex-start;
+}
+
+.post-body-title {
+  font-size: 28px;
+  line-height: 40px;
+}
+
+.post-body-boardBadge,
+.post-body-roleBadge {
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 11px;
+}
+
+.post-body-authorRow {
+  margin-top: 24px;
+}
+
+.post-body-avatar,
+.post-body-avatarPlaceholder {
+  width: 40px;
+  height: 40px;
+}
+
+.community-scope .post-body-postStats {
+  gap: 12px;
+  font-size: 13px;
+}
+
+.community-scope .post-body-likeButton {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+}
+
+.post-body-divider {
+  margin: 24px 0 30px;
+}
+
+.post-body-tagList {
+  margin-top: 24px;
+}
+
+.post-body-tagItem {
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+/* 댓글 영역: 데스크톱 기본 스타일을 한 곳에서 관리합니다. */
+.comments-container {
+  margin-top: 20px;
+  padding: 32px 40px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.comments-avatar,
+.comments-avatarPlaceholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: grid;
+  place-items: center;
+  background: var(--surface-soft);
+}
+
+.comments-title {
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.comments-inputForm {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.comments-textarea {
+  width: 100%;
+  min-height: 100px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  outline: none;
+}
+
+.comments-commentList {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.comments-commentItem {
+  display: flex;
+  gap: 16px;
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+}
+
+.comments-commentText {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 24px;
+  color: var(--ink-subtle);
+}
+
+/* Responsive fallback: rows become cards below desktop */
+@media (max-width: 1199px) {
+  .community-tableLikeStack .post-item-itemCard {
+    display: block;
+    min-height: 0;
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+
+  .community-tableLikeStack .post-item-headerRow,
+  .community-tableLikeStack .post-item-footerRow {
+    display: flex;
+  }
+
+  .community-tableLikeStack .post-item-contentGroup {
+    display: block;
+    padding: 18px 0;
+  }
+
+  .community-tableLikeStack .post-item-description {
+    display: block;
+  }
+
+  .community-tableLikeStack .post-item-statsGroup {
+    display: flex;
+  }
+
+  .community-tableLikeStack .post-item-statItem {
+    font-size: 12px;
+  }
+
+  .post-list-boardSection .post-list-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .post-list-searchGroup {
+    width: 100%;
+  }
+
+  .post-list-searchInput {
+    flex: 1;
+    width: auto;
+  }
+}
+
+@media (max-width: 767px) {
+  .community-main-container,
+  .post-list-container {
+    width: min(calc(100% - 32px), var(--container));
+    padding-top: 32px;
+    padding-bottom: 48px;
+  }
+
+  .community-main-rankingGrid,
+  .post-list-rankingGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .community-latest-section,
+  .post-list-boardSection {
+    margin-top: 28px;
+  }
+
+  .community-latest-section .community-section-heading,
+  .post-list-boardSection .community-section-heading {
+    padding: 20px;
+  }
+
+  .post-list-searchGroup {
+    flex-wrap: wrap;
+  }
+
+  .post-list-searchInput {
+    flex-basis: 100%;
+  }
+
+  .detail-page-container {
+    width: min(calc(100% - 32px), 100%);
+  }
+
+  .post-body-container,
+  .comments-container {
+    padding: 24px 20px;
+  }
+
+  .post-body-title {
+    font-size: 24px;
+    line-height: 34px;
+  }
+}

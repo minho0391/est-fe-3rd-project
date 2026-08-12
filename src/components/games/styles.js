@@ -84,3 +84,14 @@ export const dialogActionRowSx = {
 
 /** 한글 줄바꿈이 어색해지지 않도록 */
 export const keepAllSx = { wordBreak: "keep-all" };
+
+/** 형식 선택 칩이 놓이는 줄 */
+export const formatFilterRowSx = {
+  display: "flex",
+  flexWrap: "wrap",
+  justifyContent: "center",
+  gap: 1,
+};
+
+/** 형식 선택 칩 (전체 / 질문 / 밸런스 …) */
+export const formatChipSx = { borderRadius: 5, px: 1, py: 2 };

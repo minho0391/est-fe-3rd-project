@@ -4,7 +4,8 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Dialog from "@mui/material/Dialog";
 import Button from "@/components/ui/Button";
-import { dialogBackdropSx, dialogPaperBaseSx, gameButtonSx } from "./styles";
+import { toContentLines } from "@/lib/contentFormats";
+import { dialogBackdropSx, dialogPaperBaseSx, gameButtonSx, keepAllSx } from "./styles";
 
 const paperSx = {
   ...dialogPaperBaseSx,
@@ -17,7 +18,7 @@ const bodySx = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  gap: 6,
+  gap: 5,
   py: 3,
 };
 
@@ -38,7 +39,20 @@ const textGroupSx = {
   textAlign: "center",
 };
 
-export default function CardJokerResult({ onConfirm }) {
+const penaltyBoxSx = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 0.5,
+  width: "100%",
+  px: 3,
+  py: 2.5,
+  bgcolor: "momentalk.typeCard",
+  borderRadius: "16px",
+};
+
+export default function CardJokerResult({ penalty = null, onConfirm }) {
+  const lines = toContentLines(penalty);
+
   return (
     <Dialog
       open
@@ -63,6 +77,32 @@ export default function CardJokerResult({ onConfirm }) {
             아쉽지만 벌칙을 수행해 주세요
           </Typography>
         </Box>
+
+        {lines.length > 0 && (
+          <Box sx={penaltyBoxSx}>
+            {lines.map((line, index) => (
+              <Typography key={index} variant="h5" align="center" sx={keepAllSx}>
+                {line}
+              </Typography>
+            ))}
+
+            {penalty?.tips?.length > 0 && (
+              <Box sx={{ mt: 1 }}>
+                {penalty.tips.map((tip, index) => (
+                  <Typography
+                    key={index}
+                    variant="body2"
+                    color="text.secondary"
+                    align="center"
+                    sx={keepAllSx}
+                  >
+                    {tip}
+                  </Typography>
+                ))}
+              </Box>
+            )}
+          </Box>
+        )}
 
         <Button onClick={onConfirm} sx={gameButtonSx}>
           확인

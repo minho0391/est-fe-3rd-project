@@ -1,19 +1,25 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import ButtonBase from "@mui/material/ButtonBase";
+import Chip from "@mui/material/Chip";
 import GameHeader from "@/components/layout/GameHeader";
 import Footer from "@/components/layout/Footer";
 import RandomPickResult from "./RandomPickResult";
 import { createClient } from "@/utils/supabase/client";
-import { balls, RANDOM_PICK_FORMATS } from "@/lib/randomPickData";
+import { balls } from "@/lib/randomPickData";
+import { CONTENT_FORMATS, FORMAT_LABELS } from "@/lib/contentFormats";
 import { layout } from "@/lib/layout";
+import { formatChipSx, formatFilterRowSx } from "./styles";
 
 const BALL_SIZE = 80;
 const SHUFFLE_STEPS = 4;
 const STEP_DURATION = 600;
+
+// 형식 필터에서 "전체"를 나타내는 값
+const ALL_FORMATS = "";
 
 const cardSx = {
   bgcolor: "background.paper",
@@ -50,6 +56,7 @@ export default function RandomPick() {
   const [pool, setPool] = useState([]);
   const [loadError, setLoadError] = useState(false);
   const [result, setResult] = useState(null);
+  const [selectedFormat, setSelectedFormat] = useState(ALL_FORMATS);
   const [gap, setGap] = useState(0);
   const timers = useRef([]);
   const rowRef = useRef(null);
@@ -86,15 +93,17 @@ export default function RandomPick() {
 
   // TODO: 추후 Edge Function으로 AI 생성 콘텐츠를 받아오도록 변경 예정.
   // 현재는 default_contents 조회로 유지.
+  // 형식 필터는 매번 다시 조회하지 않고 받아온 목록에서 걸러 씁니다.
   useEffect(() => {
     let alive = true;
 
     (async () => {
       const { data, error } = await createClient()
         .from("default_contents")
-        .select("id, title, scripts, tips, format_code")
-        .in("format_code", RANDOM_PICK_FORMATS)
-        .limit(300);
+        .select("id, title, scripts, tips, extras, format_code")
+        .in("format_code", CONTENT_FORMATS)
+        .eq("is_active", true)
+        .limit(500);
 
       if (!alive) return;
       if (error || !data || data.length === 0) {
@@ -109,10 +118,24 @@ export default function RandomPick() {
     };
   }, []);
 
+  // 실제로 콘텐츠가 있는 형식만 칩으로 보여줍니다.
+  const availableFormats = useMemo(() => {
+    const codes = new Set(pool.map(item => item.format_code));
+    return CONTENT_FORMATS.filter(code => codes.has(code));
+  }, [pool]);
+
+  const filteredPool = useMemo(
+    () =>
+      selectedFormat === ALL_FORMATS
+        ? pool
+        : pool.filter(item => item.format_code === selectedFormat),
+    [pool, selectedFormat],
+  );
+
   const pickRandom = previousId => {
-    const candidates = pool.filter(item => item.id !== previousId);
-    const list = candidates.length > 0 ? candidates : pool;
-    return list[Math.floor(Math.random() * list.length)];
+    const candidates = filteredPool.filter(item => item.id !== previousId);
+    const list = candidates.length > 0 ? candidates : filteredPool;
+    return list.length > 0 ? list[Math.floor(Math.random() * list.length)] : null;
   };
 
   const skipShuffle = () => {
@@ -126,12 +149,13 @@ export default function RandomPick() {
   const handleRepick = () => setResult(prev => pickRandom(prev?.id));
   const handleClose = () => setResult(null);
 
-  const isReady = !isShuffling && pool.length > 0;
+  const isReady = !isShuffling && filteredPool.length > 0;
 
   let titleText = "마음에 드는 공을 하나 고르세요";
   if (isShuffling) titleText = "공을 섞는 중이에요";
   else if (loadError) titleText = "콘텐츠를 불러오지 못했어요";
   else if (pool.length === 0) titleText = "콘텐츠를 불러오는 중이에요";
+  else if (filteredPool.length === 0) titleText = "이 형식에는 콘텐츠가 없어요";
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", width: "100%", flex: 1 }}>
@@ -164,6 +188,28 @@ export default function RandomPick() {
           <Typography component="h2" variant="h2" align="center" sx={{ letterSpacing: "-0.64px" }}>
             {titleText}
           </Typography>
+
+          {availableFormats.length > 0 && (
+            <Box sx={formatFilterRowSx}>
+              <Chip
+                label="전체"
+                onClick={() => setSelectedFormat(ALL_FORMATS)}
+                variant={selectedFormat === ALL_FORMATS ? "filled" : "outlined"}
+                color={selectedFormat === ALL_FORMATS ? "primary" : "default"}
+                sx={formatChipSx}
+              />
+              {availableFormats.map(code => (
+                <Chip
+                  key={code}
+                  label={FORMAT_LABELS[code] ?? code}
+                  onClick={() => setSelectedFormat(code)}
+                  variant={selectedFormat === code ? "filled" : "outlined"}
+                  color={selectedFormat === code ? "primary" : "default"}
+                  sx={formatChipSx}
+                />
+              ))}
+            </Box>
+          )}
 
           <Box
             sx={{
@@ -243,6 +289,7 @@ export default function RandomPick() {
               </ButtonBase>
             </Box>
           )}
+
           {loadError && (
             <Typography variant="body2" color="text.secondary" align="center">
               잠시 후 새로고침해 주세요.

@@ -1,9 +1,10 @@
 /**
  * 앨런 API 공통 호출 모듈.
  *
- * 대화 생성(/api/generate)과 커뮤니티 초안 생성(/api/generate-community-post)이
- * 함께 사용합니다. 프롬프트는 각 라우트에서 만들고,
- * 이 파일은 호출·파싱·에러 처리만 담당합니다.
+ * 현재는 커뮤니티 초안 생성(/api/generate-community-post)이 사용합니다.
+ * 대화 생성은 Supabase Edge Function(supabase/functions/generate)으로 옮겨가
+ * 자체 앨런 호출을 씁니다 — 런타임이 Deno 라 이 모듈을 공유할 수 없습니다.
+ * 프롬프트는 각 라우트에서 만들고, 이 파일은 호출·파싱·에러 처리만 담당합니다.
  *
  * 서버 전용입니다. 클라이언트 컴포넌트에서 import 하지 마세요.
  * (ALAN_CLIENT_ID는 NEXT_PUBLIC_ 접두사 없는 서버 환경변수입니다)
@@ -125,8 +126,11 @@ export const askAlan = async (prompt, { reset = true, timeoutMs = 60000 } = {}) 
 
 /**
  * 앨런을 사용하는 기능 구분값.
- * 두 API Route 모두 같은 공통 함수(generateAlanContent)를 호출하고,
+ * 같은 공통 함수(generateAlanContent)를 호출하고,
  * task 값에 따라 프롬프트와 결과 스키마를 분리합니다.
+ *
+ * CONVERSATION 은 대화 생성이 Edge Function 으로 옮겨가면서 현재 호출부가 없습니다.
+ * Next.js API Route 로 되돌릴 가능성이 있어 남겨둡니다.
  */
 export const ALAN_TASK = {
   CONVERSATION: "conversation",
@@ -168,7 +172,7 @@ const buildCommunityPostPrompt = ({ title, description, keywords = [] }) => {
 요구사항
 - 사용자가 바로 수정해서 게시할 수 있는 자연스러운 한국어 글로 작성
 - 제목, 한 줄 설명, 본문, 태그를 서로 일관되게 작성
-- 본문은 HTML이 아니라 일반 텍스트로 작성
+- 본문은 HTML이나 마크다운 문법 없이 일반 텍스트로만 작성 (**굵게**, # 제목, - 목록 같은 기호를 쓰지 않기)
 - 태그는 2~5개
 - 입력 정보가 부족해도 합리적으로 보완해서 초안을 작성
 - 사실 확인이 필요한 구체적 수치나 출처는 임의로 만들지 않기
@@ -194,6 +198,21 @@ const normalizeConversationResult = result => {
   };
 };
 
+/**
+ * 프롬프트로 막아도 앨런이 마크다운 강조를 섞어 보내는 경우가 있습니다.
+ * Quill 에디터는 마크다운을 해석하지 않아 별표가 그대로 보이므로
+ * 표시용 기호만 제거하고 글자는 그대로 둡니다.
+ */
+const stripMarkdown = text =>
+  String(text ?? "")
+    .replace(/\*\*(.+?)\*\*/g, "$1") // **굵게**
+    .replace(/__(.+?)__/g, "$1") // __굵게__
+    .replace(/(^|\s)\*(?!\s)(.+?)(?<!\s)\*/g, "$1$2") // *기울임*
+    .replace(/`([^`]+)`/g, "$1") // `코드`
+    .replace(/^#{1,6}\s+/gm, "") // # 제목
+    .replace(/^\s*[-*+]\s+/gm, "") // - 목록
+    .replace(/^\s*>\s?/gm, ""); // > 인용
+
 const normalizeCommunityPostResult = (result, payload) => {
   const tags = Array.isArray(result?.tags)
     ? result.tags.filter(Boolean).slice(0, 5)
@@ -204,7 +223,7 @@ const normalizeCommunityPostResult = (result, payload) => {
   const normalized = {
     title: String(result?.title ?? payload?.title ?? "").trim(),
     description: String(result?.description ?? payload?.description ?? "").trim(),
-    content: String(result?.content ?? "").trim(),
+    content: stripMarkdown(result?.content ?? "").trim(),
     tags,
   };
 

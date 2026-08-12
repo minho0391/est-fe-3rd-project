@@ -1,0 +1,180 @@
+/* 
+Community 공통 반응형 스타일
+ - 공용 컴포넌트와 에디터의 모바일 대응을 관리합니다. 
+*/
+@media (max-width: 767px) {
+  .cabinet-fetcherWrapper {
+    width: 100%;
+  }
+
+  .cabinet-triggerButton {
+    flex: 1 1 100%;
+  }
+
+  .cabinet-filterBtn {
+    flex: 1 1 auto;
+    padding-inline: 16px;
+  }
+
+  .cabinet-modalOverlay {
+    padding: 16px;
+  }
+
+  .cabinet-drawerCard {
+    padding: 24px;
+    max-height: calc(100vh - 32px);
+  }
+
+  .cabinet-drawerHeader {
+    align-items: flex-start;
+  }
+}
+
+.cabinet-aiBadge {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.community-scope .write-quillEditor .ql-container {
+  position: relative;
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 280px;
+  margin: 0;
+  border: 0;
+  font-family: var(--font);
+  font-size: 16px;
+}
+
+.community-scope .write-quillEditor .ql-container.ql-disabled .ql-tooltip {
+  visibility: hidden;
+}
+
+.community-scope .write-quillEditor .ql-editor {
+  box-sizing: border-box;
+  min-height: 280px;
+  padding: 24px;
+  overflow-y: auto;
+  outline: none;
+  tab-size: 4;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.community-scope .write-quillEditor .ql-editor > * {
+  cursor: text;
+}
+
+.community-scope .write-quillEditor .ql-editor p,
+.community-scope .write-quillEditor .ql-editor ol,
+.community-scope .write-quillEditor .ql-editor ul,
+.community-scope .write-quillEditor .ql-editor pre,
+.community-scope .write-quillEditor .ql-editor blockquote,
+.community-scope .write-quillEditor .ql-editor h1,
+.community-scope .write-quillEditor .ql-editor h2,
+.community-scope .write-quillEditor .ql-editor h3 {
+  margin: 0 0 16px;
+}
+
+.community-scope .write-quillEditor .ql-editor ol,
+.community-scope .write-quillEditor .ql-editor ul {
+  padding-left: 24px;
+}
+
+.community-scope .write-quillEditor .ql-toolbar {
+  box-sizing: border-box;
+  padding: 16px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-soft);
+  font-family: var(--font);
+}
+
+.community-scope .write-quillEditor .ql-toolbar::after,
+.community-scope .write-quillEditor .ql-container::after {
+  display: table;
+  clear: both;
+  content: "";
+}
+
+.community-scope .write-quillEditor .ql-toolbar button,
+.community-scope .write-quillEditor .ql-toolbar .ql-picker-label {
+  width: 32px;
+  height: 32px;
+  padding: 8px;
+  border: 0;
+  background: transparent;
+}
+
+.community-scope .write-quillEditor .ql-toolbar button:hover,
+.community-scope .write-quillEditor .ql-toolbar button:focus,
+.community-scope .write-quillEditor .ql-toolbar button.ql-active,
+.community-scope .write-quillEditor .ql-toolbar .ql-picker-label:hover,
+.community-scope .write-quillEditor .ql-toolbar .ql-picker-label.ql-active {
+  color: var(--primary);
+  outline: none;
+}
+
+.community-scope .write-quillEditor .ql-snow .ql-tooltip {
+  position: absolute;
+  z-index: 10;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.community-scope .write-quillEditor .ql-snow .ql-tooltip input[type="text"] {
+  min-height: 56px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.community-scope .write-quillEditor .ql-clipboard {
+  position: absolute;
+  left: -100000px;
+  top: 50%;
+  height: 1px;
+  overflow-y: hidden;
+}
+
+.community-page {
+  width: 100%;
+}
+
+.cabinet-embedded {
+  width: 100%;
+}
+
+.cabinet-embeddedFilterBar {
+  padding: 0 20px 16px;
+}
+
+.cabinet-embedded .cabinet-filterTabs {
+  margin-top: 0;
+}
+
+.cabinet-embedded .cabinet-contentList {
+  margin-top: 0;
+  padding: 0 20px 20px;
+  gap: 12px;
+}
+
+.cabinet-embedded .cabinet-contentCard {
+  width: 100%;
+  background: var(--surface);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(35, 29, 75, 0.045);
+}
+
+.cabinet-emptyText {
+  margin: 0;
+  padding: 32px 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink-muted);
+  text-align: center;
+}

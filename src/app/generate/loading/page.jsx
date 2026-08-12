@@ -11,7 +11,7 @@ import Box from "@mui/material/Box";
 import { useTheme } from "@mui/material/styles";
 
 import { styles } from "./_components/styles";
-import { mockGenerateGuide } from "@/lib/mockGenerateGuide";
+import { generateGuide } from "@/lib/generateApi";
 import LoadingView from "./_components/LoadingView";
 import ErrorView from "./_components/ErrorView";
 
@@ -29,20 +29,48 @@ function LoadingContent() {
 
     const progressTimer = setInterval(() => {
       setProgress(prev => {
+        // 실제 응답은 10~20초(최대 60초) 걸리므로 95%까지 천천히 채운다.
         if (prev >= 95) return prev;
-        return prev + (Math.random() * 3 + 2);
+        return prev + (Math.random() * 1.5 + 0.5);
       });
-    }, 100);
+    }, 300);
 
-    mockGenerateGuide(searchParams)
-      .then(() => {
+    const raw = sessionStorage.getItem("generate-payload");
+    const payload = raw ? JSON.parse(raw) : null;
+
+    // 개발 환경(development)에서만 ?forceError=true 조건 동작
+    const isDev = process.env.NODE_ENV === "development";
+    const isForcedError = isDev && searchParams.get("forceError") === "true";
+
+    const run =
+      isForcedError || !payload
+        ? Promise.reject(new Error(payload ? "강제 에러 테스트" : "생성 조건이 없습니다. 다시 시도해주세요."))
+        : generateGuide(payload);
+
+    run
+      .then(data => {
         clearInterval(progressTimer);
         setProgress(100);
         setTimeout(() => {
-          router.push(`/generate/result?${searchParams.toString()}`);
-        }, 2000);
+          // "다른 주제 생성하기"(재생성)가 같은 조건으로 다시 호출할 수 있도록 보관
+          if (payload) sessionStorage.setItem("generate-last-payload", JSON.stringify(payload));
+
+          sessionStorage.removeItem("generate-payload");
+
+          if (data.generationId) {
+            // 로그인/비로그인 모두 DB에 저장됨(비로그인은 user_id: null) →
+            // 항상 id로 결과 페이지 진입 (새로고침·공유해도 안전)
+            router.push(`/generate/result?id=${data.generationId}`);
+          } else {
+            // 극히 예외적으로 DB 저장 자체가 실패한 경우의 폴백:
+            // 세션에 결과를 그대로 담아 1회성으로 보여준다.
+            sessionStorage.setItem("generate-result", JSON.stringify(data));
+            router.push("/generate/result");
+          }
+        }, 1000);
       })
-      .catch(() => {
+      .catch(err => {
+        console.error("generate 실패:", err);
         clearInterval(progressTimer);
         setStatus("error");
       });

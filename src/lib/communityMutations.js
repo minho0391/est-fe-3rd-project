@@ -419,6 +419,47 @@ export const createComment = async (postId, content, parentId = null) => {
   };
 };
 
+/** 댓글 수정 (작성자 본인만, RLS로 최종 검증) */
+export const updateComment = async (commentId, content) => {
+  const db = supabase();
+  const user = await requireUser(db);
+  const next = String(content ?? "").trim();
+  if (!next) throw new Error("댓글 내용을 입력해 주세요.");
+  const { error } = await db
+    .from("comments")
+    .update({ content: next })
+    .eq("id", commentId)
+    .eq("author_id", user.id);
+  if (error) throw error;
+};
+
+/** 댓글/답글 좋아요 토글 */
+export const toggleCommentLike = async commentId => {
+  const db = supabase();
+  const user = await requireUser(db);
+  const { data: existing, error: findError } = await db
+    .from("comment_likes")
+    .select("comment_id")
+    .eq("comment_id", commentId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (findError) throw findError;
+  if (existing) {
+    const { error } = await db
+      .from("comment_likes")
+      .delete()
+      .eq("comment_id", commentId)
+      .eq("user_id", user.id);
+    if (error) throw error;
+    return false;
+  }
+  const { error } = await db
+    .from("comment_likes")
+    .insert({ comment_id: commentId, user_id: user.id });
+  if (error) throw error;
+  return true;
+};
+
 /**
  * 댓글 삭제.
  * 선택한 댓글과 그 아래 모든 대댓글을 같은 시점에 물리 삭제합니다.

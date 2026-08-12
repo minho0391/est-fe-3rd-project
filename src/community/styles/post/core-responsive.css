@@ -1,0 +1,166 @@
+/* 
+게시글 공통 반응형 스타일
+ - Tablet / Mobile / Desktop 구간의 기본 반응형 규칙을 관리합니다.
+*/
+@media (min-width: 768px) and (max-width: 1199px) {
+  .top-three-rankCard {
+    grid-column: span 4;
+  }
+
+  .top-three-rankCard:last-child {
+    grid-column: span 8;
+  }
+
+  .feature-card {
+    grid-column: span 4;
+  }
+
+  .popular-postCard {
+    grid-column: span 4;
+  }
+
+  .popular-postCard:last-child {
+    grid-column: span 8;
+  }
+}
+
+.community-scope {
+  --write-placeholder-x: 24px;
+  --write-placeholder-y: 24px;
+}
+
+@media (max-width: 767px) {
+  .detail-page-container,
+  .top-three-topThreeContainer,
+  .post-filter-filterWrapper,
+  .post-item-itemCard,
+  .feature-container,
+  .popular-container,
+  .write-container {
+    width: min(calc(100% - 32px), var(--container));
+  }
+
+  .detail-page-container,
+  .write-form,
+  .feature-container,
+  .popular-container {
+    padding-block: 32px;
+  }
+
+  .top-three-topThreeContainer {
+    padding-top: 32px;
+  }
+
+  .top-three-cardGrid,
+  .feature-cardGrid,
+  .popular-postList {
+    grid-template-columns: repeat(var(--columns-mobile), minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .top-three-rankCard,
+  .feature-card,
+  .popular-postCard {
+    grid-column: span 4;
+  }
+
+  .top-three-header,
+  .feature-header,
+  .write-headerRow,
+  .post-body-header,
+  .post-body-authorRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .write-fetcher-fetcherWrapper,
+  .write-fetcherGroup {
+    width: 100%;
+  }
+
+  .write-fetcher-actionButton {
+    flex: 1 1 100%;
+  }
+
+  .post-body-container,
+  .comments-container,
+  .write-section,
+  .write-headerRow {
+    padding: 24px;
+  }
+
+  .post-body-title,
+  .write-pageTitle {
+    font-size: 24px;
+    line-height: 32px;
+  }
+
+  .post-body-postStats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .comments-commentItem {
+    flex-direction: column;
+  }
+
+  .post-filter-tabBtn {
+    flex: 1 1 auto;
+    padding-inline: 16px;
+  }
+
+  .post-item-itemCard {
+    padding: 24px;
+  }
+
+  .post-item-footerRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .post-item-statsGroup {
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+}
+
+.top-three-author,
+.comments-avatarWrapper,
+.feature-cardBody {
+  min-width: 0;
+}
+
+.write-fetcher-fetcherWrapper {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.feature-communityCard {
+  background: var(--surface);
+}
+
+.feature-arrow,
+.popular-fireIcon,
+.write-infoIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 1200px) {
+  .top-three-cardGrid,
+  .feature-cardGrid,
+  .popular-postList {
+    grid-template-columns: repeat(var(--columns-desktop), minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  .top-three-cardGrid,
+  .feature-cardGrid,
+  .popular-postList {
+    grid-template-columns: repeat(var(--columns-tablet), minmax(0, 1fr));
+  }
+}

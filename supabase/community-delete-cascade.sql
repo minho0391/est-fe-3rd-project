@@ -93,6 +93,7 @@ revoke all on function public.delete_post_cascade(text) from public;
 grant execute on function public.delete_post_cascade(text) to authenticated;
 
 -- comments의 물리 삭제/legacy soft-delete 상태와 posts.comment_count를 항상 동기화합니다.
+-- 집계 기준은 상세페이지와 동일하게 "삭제되지 않은 모든 댓글"이며, 최상위 댓글과 답글을 모두 포함합니다.
 create or replace function public.sync_post_comment_count()
 returns trigger
 language plpgsql
@@ -161,7 +162,7 @@ delete from public.comments c
 using stale_tree s
 where c.id = s.id;
 
--- 기존 데이터의 comment_count도 실제 남은 댓글 기준으로 재계산합니다.
+-- 기존 데이터의 comment_count도 동일한 기준(최상위 댓글 + 답글, deleted_at is null)으로 재계산합니다.
 update public.posts p
 set comment_count = (
   select count(*)::integer
