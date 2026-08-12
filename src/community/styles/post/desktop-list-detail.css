@@ -1,7 +1,7 @@
-/* ==========================================================================
-   Community design alignment — main / list / detail
-   UI-only refinement. Existing data flow and interactions remain unchanged.
-   ========================================================================== */
+/* 
+게시글 데스크톱 목록 및 상세 스타일
+ - Desktop 목록 테이블 / 상세 본문 / 댓글 영역의 밀도와 배치를 관리합니다.
+*/
 
 /* Shared page density */
 .community-scope.community-main-page,
