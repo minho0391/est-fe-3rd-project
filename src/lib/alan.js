@@ -1,9 +1,10 @@
 /**
  * 앨런 API 공통 호출 모듈.
  *
- * 대화 생성(/api/generate)과 커뮤니티 초안 생성(/api/generate-community-post)이
- * 함께 사용합니다. 프롬프트는 각 라우트에서 만들고,
- * 이 파일은 호출·파싱·에러 처리만 담당합니다.
+ * 현재는 커뮤니티 초안 생성(/api/generate-community-post)이 사용합니다.
+ * 대화 생성은 Supabase Edge Function(supabase/functions/generate)으로 옮겨가
+ * 자체 앨런 호출을 씁니다 — 런타임이 Deno 라 이 모듈을 공유할 수 없습니다.
+ * 프롬프트는 각 라우트에서 만들고, 이 파일은 호출·파싱·에러 처리만 담당합니다.
  *
  * 서버 전용입니다. 클라이언트 컴포넌트에서 import 하지 마세요.
  * (ALAN_CLIENT_ID는 NEXT_PUBLIC_ 접두사 없는 서버 환경변수입니다)
@@ -125,8 +126,11 @@ export const askAlan = async (prompt, { reset = true, timeoutMs = 60000 } = {}) 
 
 /**
  * 앨런을 사용하는 기능 구분값.
- * 두 API Route 모두 같은 공통 함수(generateAlanContent)를 호출하고,
+ * 같은 공통 함수(generateAlanContent)를 호출하고,
  * task 값에 따라 프롬프트와 결과 스키마를 분리합니다.
+ *
+ * CONVERSATION 은 대화 생성이 Edge Function 으로 옮겨가면서 현재 호출부가 없습니다.
+ * Next.js API Route 로 되돌릴 가능성이 있어 남겨둡니다.
  */
 export const ALAN_TASK = {
   CONVERSATION: "conversation",
