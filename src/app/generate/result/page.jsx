@@ -111,7 +111,7 @@ function ResultContent() {
 
     setSaveState("saving");
     try {
-      await Promise.all(items.map(item => saveGenerationItem(item, user.id)));
+      await Promise.all(items.map(item => saveGenerationItem(item.id)));
       setSaveState("saved");
       setIsSaveModalOpen(true);
     } catch (e) {
