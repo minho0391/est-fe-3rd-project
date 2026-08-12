@@ -2652,3 +2652,111 @@
   color: #d93025;
   font-size: 14px;
 }
+
+/* 게시글/댓글 더보기 메뉴 및 답글 */
+.community-moreWrap {
+  position: relative;
+}
+.community-moreButton {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+.community-moreButton:hover {
+  background: var(--surface-soft);
+}
+.community-moreButtonSmall {
+  width: 32px;
+  height: 32px;
+  font-size: 20px;
+}
+.community-moreMenu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 160px;
+  padding: 6px 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgba(20, 24, 40, 0.14);
+  overflow: hidden;
+}
+.community-moreMenu button {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-subtle);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.community-moreMenu button:hover {
+  background: var(--surface-soft);
+}
+.community-moreMenu .community-dangerMenuItem {
+  color: #d93025;
+}
+.comments-moreMenu {
+  min-width: 140px;
+}
+.comments-commentActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+.comments-commentActions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.comments-commentActions .comments-liked {
+  color: var(--primary);
+}
+.comments-replyItem {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+.comments-replyForm,
+.comments-inlineEditor {
+  margin-top: 12px;
+}
+.comments-replyForm textarea,
+.comments-inlineEditor textarea {
+  width: 100%;
+  min-height: 72px;
+  resize: vertical;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font: inherit;
+}
+.comments-replyForm button,
+.comments-inlineEditor button {
+  min-height: 32px;
+  margin-top: 8px;
+  margin-right: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+}
