@@ -1,4 +1,7 @@
-/* My Page — unified layout. Existing data flow and interactions are preserved. */
+/* 
+마이페이지 기본 레이아웃
+ - 프로필 / 활동 영역 / 통계 등 마이페이지의 기본 구조를 관리합니다.
+*/
 .mypage-page {
   min-height: calc(100vh - 160px);
   padding: 48px 0 80px;
