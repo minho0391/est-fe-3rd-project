@@ -1,0 +1,152 @@
+/* Shared community components */
+.cabinet-drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cabinet-typeBadge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 32px;
+  padding: 0 16px;
+  border-radius: 16px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.cabinet-filterTabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cabinet-filterBtn {
+  min-height: 56px;
+  padding: 0 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink-subtle);
+  font-weight: 700;
+}
+
+.cabinet-activeFilter {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.cabinet-tagGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 32px;
+}
+
+.cabinet-tag {
+  min-height: 32px;
+  padding: 0 16px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-tint);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cabinet-fetcherWrapper {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cabinet-modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  padding: 24px;
+  background: rgba(23, 23, 28, 0.48);
+  display: grid;
+  place-items: center;
+}
+
+.cabinet-drawerCard {
+  width: min(100%, 800px);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  padding: 32px;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.cabinet-drawerTitle {
+  font-size: 24px;
+  line-height: 32px;
+}
+
+.cabinet-drawerSubtitle {
+  margin-top: 8px;
+  color: var(--ink-muted);
+}
+
+.cabinet-closeBtn {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.cabinet-filterTabs {
+  margin-top: 24px;
+}
+
+.cabinet-contentList {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cabinet-contentCard {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.cabinet-cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cabinet-adminBadge {
+  background: #fff4e8;
+  color: #9a5b18;
+}
+
+.cabinet-itemTitle {
+  margin-top: 24px;
+  font-size: 18px;
+  line-height: 24px;
+}
+
+.cabinet-itemPreview {
+  margin-top: 16px;
+  color: var(--ink-subtle);
+  line-height: 24px;
+  white-space: pre-line;
+}
+
+.cabinet-tagGroup {
+  margin-top: 16px;
+}
