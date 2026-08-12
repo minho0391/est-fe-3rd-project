@@ -194,7 +194,10 @@ export default {
         });
     }
 
-    // 7-1. 생성 이력 저장 (로그인 사용자만, 실패해도 화면은 유지)
+    // 7-1. 생성 이력 저장 (로그인/비로그인 모두, 실패해도 화면은 유지)
+    //      비로그인 사용자는 user_id: null 로 저장한다. 이렇게 해야 결과 페이지가
+    //      항상 ?id= 로 새로고침에 안전하게 열리고, 나중에 로그인하면 이 행의
+    //      user_id를 그 사용자로 바꿔치기(claim)만 하면 되어 재생성이 필요 없다.
     //      generationId / 결과별 item id를 함께 돌려줘야 프론트의
     //      "가이드 저장하기"(saveGenerationItem)가 쓸 id를 가질 수 있다.
     type SaveResult = {
@@ -214,12 +217,11 @@ export default {
 
       try {
         const { data: { user } } = await db.auth.getUser();
-        if (!user) return empty;
 
         const { data: gen, error: genError } = await db
           .from("generations")
           .insert({
-            user_id: user.id,
+            user_id: user?.id ?? null,
             preset_id: params.presetId,
             format_code,
             conditions: params.conditions,
