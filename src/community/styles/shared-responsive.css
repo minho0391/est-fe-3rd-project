@@ -1,4 +1,7 @@
-/* Shared community responsive rules */
+/* 
+Community 공통 반응형 스타일
+ - 공용 컴포넌트와 에디터의 모바일 대응을 관리합니다. 
+*/
 @media (max-width: 767px) {
   .cabinet-fetcherWrapper {
     width: 100%;

@@ -1,4 +1,7 @@
-/* Modular CSS entrypoint. Existing imports remain unchanged. */
+/* 
+Community 게시글 스타일 진입점
+ - 목록 / 상세 / 작성 / 댓글 관련 모듈을 불러옵니다.
+*/
 @import "./styles/post/core.css";
 @import "./styles/post/core-responsive.css";
 @import "./styles/post/page-layouts.css";

@@ -1,6 +1,6 @@
 /* 
-게시글 공통 반응형 스타일 - Tablet / Mobile / Desktop 구간의 
-기본 반응형 규칙을 관리합니다. 
+게시글 공통 반응형 스타일
+ - Tablet / Mobile / Desktop 구간의 기본 반응형 규칙을 관리합니다.
 */
 @media (min-width: 768px) and (max-width: 1199px) {
   .top-three-rankCard {
