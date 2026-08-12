@@ -1,4 +1,7 @@
-/* Profile edit interactions */
+/* 
+마이페이지 프로필 편집 스타일
+ - 프로필 수정 모달 / 입력 필드 / 버튼 / 모바일 대응을 관리합니다.
+*/
 .mypage-avatarImage {
   width: 100%;
   height: 100%;
