@@ -1851,14 +1851,6 @@
   box-shadow: none;
 }
 
-.community-tableLikeStack .post-item-itemCard:last-child {
-  border-bottom: 0;
-}
-
-.community-tableLikeStack .post-item-itemCard:hover {
-  background: #fafaff;
-}
-
 .community-tableLikeStack .post-item-headerRow,
 .community-tableLikeStack .post-item-contentGroup,
 .community-tableLikeStack .post-item-footerRow {
@@ -1885,10 +1877,6 @@
   font-size: 14px;
   line-height: 22px;
   font-weight: 700;
-}
-
-.community-tableLikeStack .post-item-description {
-  display: none;
 }
 
 .community-tableLikeStack .post-item-author {
@@ -2163,15 +2151,6 @@
 
 /* Responsive fallback: rows become cards below desktop */
 @media (max-width: 1199px) {
-  .community-listHeader {
-    display: none;
-  }
-
-  .community-tableLikeStack {
-    gap: 12px;
-    padding: 16px;
-  }
-
   .community-tableLikeStack .post-item-itemCard {
     display: block;
     min-height: 0;
@@ -2759,4 +2738,9 @@
   border-radius: 8px;
   background: var(--surface);
   cursor: pointer;
+}
+
+/* Main community page list header: explicit JSX class connection. */
+.community-listHeaderMain {
+  width: 100%;
 }
