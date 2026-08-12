@@ -1,4 +1,7 @@
-/* Posts */
+/* 
+마이페이지 활동 및 반응형 스타일
+ - 작성글 / 좋아요 / 댓글 활동 목록과 반응형 배치를 관리합니다.
+*/
 .mypage-postList {
   display: flex;
   flex-direction: column;

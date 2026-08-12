@@ -263,13 +263,10 @@
 }
 
 .community-listStateError {
-  color: var(--danger);
-}
-
-.community-listStateError {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  color: var(--danger);
 }
 
 .community-listStateError span {
