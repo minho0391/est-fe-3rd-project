@@ -237,10 +237,6 @@
   height: 16px;
 }
 
-.community-tableLikeStack .post-item-statItem {
-  font-size: 0;
-}
-
 .community-tableLikeStack .post-item-statItem::after {
   font-size: 12px;
 }
@@ -250,9 +246,6 @@
 }
 
 /* Keep numeric text visible without changing data markup */
-.community-tableLikeStack .post-item-statItem {
-  font-size: 12px;
-}
 .community-tableLikeStack .post-item-statItem svg + text {
   display: none;
 }
@@ -336,12 +329,9 @@
 }
 
 .post-body-container {
+  padding: 36px 40px;
   border-radius: 8px;
   box-shadow: none;
-}
-
-.post-body-container {
-  padding: 36px 40px;
 }
 
 .post-body-header {
