@@ -1,6 +1,6 @@
 /* 
-게시글 페이지 레이아웃
- - 게시글 목록 / 작성 / 좋아요 / 빈 상태 등 페이지 단위 레이아웃을 관리합니다.
+게시글 콘텐츠 및 반응형 보정
+ - 목록 테이블 행 정렬과 상세 본문의 Quill HTML 렌더링 및 반응형 처리를 관리합니다.
 */
 .community-listHeader,
 .community-tableLikeStack .post-item-itemCard {
