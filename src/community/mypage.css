@@ -1,4 +1,7 @@
-/* Modular CSS entrypoint. Existing imports remain unchanged. */
+/* 
+Community 마이페이지 스타일 진입점
+ - 기본 레이아웃 / 활동 / 프로필 편집 / 사용자 프로필을 불러옵니다.
+*/
 @import "./styles/mypage/base.css";
 @import "./styles/mypage/activity-responsive.css";
 @import "./styles/mypage/profile-editor.css";
