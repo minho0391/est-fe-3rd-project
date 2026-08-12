@@ -1,4 +1,7 @@
-/* 상세 게시글 삭제 */
+/* 
+게시글 액션 및 댓글 스타일
+ - 게시글 삭제 / 케밥 메뉴 / 댓글 액션 / 답글 / 수정 에디터를 관리합니다.
+*/
 .post-body-headerActions {
   display: flex;
   align-items: center;
