@@ -1,7 +1,7 @@
 // 저장 위치: src/app/generate/result/page.jsx
 // loading/page.jsx 에서 생성 성공 시 넘어오게 됨.
-// - 로그인 사용자: /generate/result?id=xxx  (DB에서 다시 조회, 새로고침해도 안전)
-// - 비로그인 사용자: /generate/result       (sessionStorage("generate-result")에서 읽음, 1회성)
+// - 기본: /generate/result?id=xxx  (로그인/비로그인 모두 DB에 저장됨, 새로고침해도 안전)
+// - 예외 폴백: /generate/result    (DB 저장 자체가 실패한 경우, sessionStorage 1회성 표시)
 
 "use client";
 
@@ -21,7 +21,6 @@ import { useTheme, alpha } from "@mui/material/styles";
 
 import { createClient } from "@/utils/supabase/client";
 import { getGenerationById, saveGenerationItem } from "@/lib/generateQueries";
-import { generateGuide } from "@/lib/generateApi";
 import { styles } from "./_components/styles";
 
 // 비로그인 상태에서 "가이드 저장하기"를 눌렀을 때, 로그인 후 결과 페이지로
@@ -107,56 +106,31 @@ function ResultContent() {
     router.push("/generate");
   };
 
-  // 이미 DB에 저장된(=generationId가 있는) 결과의 항목들을 보관함에 저장.
-  const saveItems = async items => {
+  // 비로그인 상태에서 만든 결과도 이제 DB에 저장돼 있다(user_id: null).
+  // 로그인 후에는 재생성할 필요 없이, 그 행의 소유권만 지금 사용자로 옮기면(claim) 된다.
+  // 이미 로그인 상태로 만든 결과(=user_id가 이미 내 것)라면 대상 행이 없어 0건으로
+  // 조용히 지나가므로, 아래 claimAndSave는 로그인 후 저장 경로에 항상 써도 안전하다.
+  const claimAndSave = async () => {
+    const items = data?.results ?? [];
+    if (!data?.generationId || items.length === 0) return;
+
     setSaveState("saving");
     try {
+      const db = createClient();
+      const { error } = await db
+        .from("generations")
+        .update({ user_id: user.id })
+        .eq("id", data.generationId)
+        .is("user_id", null);
+
+      if (error) throw error;
+
       await Promise.all(items.map(item => saveGenerationItem(item.id)));
       setSaveState("saved");
       setIsSaveModalOpen(true);
     } catch (e) {
       // TODO(디버깅용): 원인 파악되면 console.error는 제거해도 됩니다.
-      console.error("[가이드 저장 실패] saveItems:", e);
-      setSaveState("error");
-      if (String(e.message).includes("로그인")) {
-        goToSignIn();
-      } else {
-        alert(`저장에 실패했습니다: ${e.message ?? "알 수 없는 오류"}`);
-      }
-    }
-  };
-
-  // 비로그인 상태에서 생성된 결과는 DB에 남아있지 않아 항목 id가 없다.
-  // (generationId가 없는 경우) 로그인된 지금 같은 조건으로 다시 생성해
-  // DB에 저장한 뒤, 그 결과를 이어서 저장한다.
-  const regenerateAndSaveUnderAuth = async () => {
-    const raw = sessionStorage.getItem("generate-last-payload");
-    if (!raw) {
-      alert("저장할 생성 정보를 찾을 수 없습니다. 새로 생성해주세요.");
-      return;
-    }
-
-    setSaveState("saving");
-    try {
-      const payload = JSON.parse(raw);
-      const fresh = await generateGuide(payload);
-
-      if (!fresh.generationId) {
-        // 로그인 상태인데도 저장되지 않았다면 다른 문제(서버 오류 등)이므로 재시도 유도.
-        throw new Error("생성 결과가 저장되지 않았습니다. (generationId 없음)");
-      }
-
-      setData(fresh);
-      sessionStorage.removeItem("generate-result");
-      // 새로 생성된 id로 URL을 맞춰, 새로고침해도 이 결과를 그대로 다시 볼 수 있게 한다.
-      router.replace(`/generate/result?id=${fresh.generationId}`);
-
-      await Promise.all((fresh.results ?? []).map(item => saveGenerationItem(item.id)));
-      setSaveState("saved");
-      setIsSaveModalOpen(true);
-    } catch (e) {
-      // TODO(디버깅용): 원인 파악되면 console.error는 제거해도 됩니다.
-      console.error("[가이드 저장 실패] regenerateAndSaveUnderAuth:", e);
+      console.error("[가이드 저장 실패] claimAndSave:", e);
       setSaveState("error");
       alert(`저장에 실패했습니다: ${e.message ?? "알 수 없는 오류"}`);
     }
@@ -170,16 +144,13 @@ function ResultContent() {
       return;
     }
 
-    const items = data?.results ?? [];
-    if (items.length === 0) return;
-
-    if (data?.generationId) {
-      await saveItems(items);
-    } else {
-      // 비로그인으로 생성했다가 이 화면에서 바로 로그인한 경우 등,
-      // 로그인 상태인데도 DB에 저장된 적 없는 결과일 수 있음.
-      await regenerateAndSaveUnderAuth();
+    if (!data?.generationId) {
+      // 극히 예외적으로(DB 저장 자체가 실패해서) id가 없는 경우엔 저장할 대상이 없다.
+      alert("저장할 생성 정보를 찾을 수 없습니다. 새로 생성해주세요.");
+      return;
     }
+
+    await claimAndSave();
   };
 
   // 저장을 누르고 로그인하러 갔다가 돌아온 경우, 자동으로 저장을 이어서 처리한다.
@@ -188,12 +159,7 @@ function ResultContent() {
     if (sessionStorage.getItem(PENDING_SAVE_KEY) !== "1") return;
 
     sessionStorage.removeItem(PENDING_SAVE_KEY);
-
-    if (data?.generationId) {
-      saveItems(data.results ?? []);
-    } else {
-      regenerateAndSaveUnderAuth();
-    }
+    claimAndSave();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthLoading, user, state]);
 
