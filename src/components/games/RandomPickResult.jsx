@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Dialog from "@mui/material/Dialog";
@@ -55,7 +56,15 @@ const tipListSx = {
 };
 
 export default function RandomPickResult({ content, onClose, onRepick }) {
+  // 퀴즈 형식은 정답이 extras 에 들어 있어 눌렀을 때만 보여줍니다.
+  const [showAnswer, setShowAnswer] = useState(false);
   const label = FORMAT_LABELS[content.format_code] ?? "뽑힌 콘텐츠";
+  const answer = content.extras?.answer;
+
+  const handleRepick = () => {
+    setShowAnswer(false);
+    onRepick();
+  };
 
   return (
     <Dialog
@@ -85,6 +94,17 @@ export default function RandomPickResult({ content, onClose, onRepick }) {
             ))}
           </Box>
 
+          {answer &&
+            (showAnswer ? (
+              <Typography variant="h5" color="primary.main" align="center" sx={keepAllSx}>
+                정답: {answer}
+              </Typography>
+            ) : (
+              <Button variant="secondary" onClick={() => setShowAnswer(true)}>
+                정답 보기
+              </Button>
+            ))}
+
           {content.tips?.length > 0 && (
             <Box component="ul" sx={tipListSx}>
               {content.tips.map((tip, index) => (
@@ -106,15 +126,11 @@ export default function RandomPickResult({ content, onClose, onRepick }) {
             <Button variant="secondary" onClick={onClose}>
               닫기
             </Button>
-            <Button variant="primary" onClick={onRepick}>
+            <Button variant="primary" onClick={handleRepick}>
               다시 뽑기
             </Button>
           </Box>
         </Box>
-
-        <Typography variant="body2" color="text.disabled" align="center">
-          새로운 주제를 원하시면 다시 뽑기 버튼을 눌러주세요.
-        </Typography>
       </Box>
     </Dialog>
   );
