@@ -40,6 +40,8 @@ export default function CommentSection({
   const [actionError, setActionError] = useState("");
   useEffect(() => setComments(initialComments), [initialComments]);
   const redirect = () => router.push(buildLoginUrl(returnUrl));
+  // 댓글 수는 최상위 댓글 + 답글을 모두 포함한 active 댓글 수로 통일합니다.
+  const totalCommentCount = comments.length;
   const roots = useMemo(() => comments.filter(c => !c.parentId), [comments]);
   const children = id =>
     comments.filter(c => String(c.parentId) === String(id));
@@ -56,7 +58,8 @@ export default function CommentSection({
       setIsSubmitting(true);
       setActionError("");
       const row = await createComment(postId, value, parentId);
-      setComments(v => [...v, row]);
+      // 조회 기준이 최신순(created_at DESC)이므로 새 댓글/답글도 같은 위치 규칙으로 반영합니다.
+      setComments(v => [row, ...v]);
       if (parentId) {
         setReplyInput("");
         setReplyTo(null);
@@ -268,7 +271,7 @@ export default function CommentSection({
     <section className="comments-container">
       <div className="comments-header">
         <h3 className="comments-title">
-          댓글 <span className="comments-count">{comments.length}</span>
+          댓글 <span className="comments-count">{totalCommentCount}</span>
         </h3>
       </div>
       <form onSubmit={e => submit(e)} className="comments-inputForm">
