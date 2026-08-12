@@ -5,7 +5,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Dialog from "@mui/material/Dialog";
 import Button from "@/components/ui/Button";
-import { FORMAT_LABELS } from "@/lib/randomPickData";
+import { FORMAT_LABELS } from "@/lib/contentFormats";
 import { dialogActionRowSx, dialogBackdropSx, keepAllSx, transparentPaperSx } from "./styles";
 
 const badgeSx = {
@@ -61,6 +61,14 @@ export default function RandomPickResult({ content, onClose, onRepick }) {
   const label = FORMAT_LABELS[content.format_code] ?? "뽑힌 콘텐츠";
   const answer = content.extras?.answer;
 
+  const scripts = content.scripts ?? [];
+  // scripts 가 비어 있는 행은 title 이 곧 본문입니다.
+  const lines = scripts.length > 0 ? scripts : [content.title];
+  // scripts 가 키워드 목록일 때만 title 을 주제로 함께 보여줍니다.
+  //   예) "편의점에서 궁금했던 신제품 이야기" + 간식 / 음료 / 간편식
+  // scripts 가 완결된 문장이면 title 은 카테고리(관계·진행 등)라 보여주지 않습니다.
+  const needsTitle = scripts.length > 0 && scripts.every(script => script.length <= 20);
+
   const handleRepick = () => {
     setShowAnswer(false);
     onRepick();
@@ -86,10 +94,16 @@ export default function RandomPickResult({ content, onClose, onRepick }) {
             {label}
           </Typography>
 
+          {needsTitle && (
+            <Typography variant="body2" color="text.disabled" align="center" sx={keepAllSx}>
+              {content.title}
+            </Typography>
+          )}
+
           <Box sx={scriptGroupSx}>
-            {content.scripts?.map((script, index) => (
+            {lines.map((line, index) => (
               <Typography key={index} variant="h3" align="center" sx={keepAllSx}>
-                {script}
+                {line}
               </Typography>
             ))}
           </Box>

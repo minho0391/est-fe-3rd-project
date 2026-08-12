@@ -9,7 +9,8 @@ import GameHeader from "@/components/layout/GameHeader";
 import Footer from "@/components/layout/Footer";
 import RandomPickResult from "./RandomPickResult";
 import { createClient } from "@/utils/supabase/client";
-import { balls, FORMAT_LABELS, RANDOM_PICK_FORMATS } from "@/lib/randomPickData";
+import { balls } from "@/lib/randomPickData";
+import { CONTENT_FORMATS, FORMAT_LABELS } from "@/lib/contentFormats";
 import { layout } from "@/lib/layout";
 import { formatChipSx, formatFilterRowSx } from "./styles";
 
@@ -100,7 +101,7 @@ export default function RandomPick() {
       const { data, error } = await createClient()
         .from("default_contents")
         .select("id, title, scripts, tips, extras, format_code")
-        .in("format_code", RANDOM_PICK_FORMATS)
+        .in("format_code", CONTENT_FORMATS)
         .eq("is_active", true)
         .limit(500);
 
@@ -120,7 +121,7 @@ export default function RandomPick() {
   // 실제로 콘텐츠가 있는 형식만 칩으로 보여줍니다.
   const availableFormats = useMemo(() => {
     const codes = new Set(pool.map(item => item.format_code));
-    return RANDOM_PICK_FORMATS.filter(code => codes.has(code));
+    return CONTENT_FORMATS.filter(code => codes.has(code));
   }, [pool]);
 
   const filteredPool = useMemo(
@@ -288,6 +289,7 @@ export default function RandomPick() {
               </ButtonBase>
             </Box>
           )}
+
           {loadError && (
             <Typography variant="body2" color="text.secondary" align="center">
               잠시 후 새로고침해 주세요.
