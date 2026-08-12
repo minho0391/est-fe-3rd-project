@@ -96,7 +96,7 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
-export default {
+export default async function handleGenerateRequest(req, ctx)  {
   fetch: withSupabase({ auth: "publishable" }, async (req, ctx) => {
     // 1. CORS 사전 요청 처리
     // withSupabase가 OPTIONS 요청과 CORS 헤더를 자동으로 처리
