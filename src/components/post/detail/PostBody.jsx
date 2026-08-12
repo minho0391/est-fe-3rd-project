@@ -1,7 +1,7 @@
 // [본문 영역] (제목, 작성자, 공유된 AI 생성 콘텐츠 내용)
 "use client";
 
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AccountCircleIcon,
@@ -28,6 +28,19 @@ export default function PostDetailContent({
     () => sanitizeCommunityHtml(post?.content),
     [post?.content],
   );
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+
+    const handlePointerDown = event => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [menuOpen]);
   if (!post) return null;
   const {
     title,
@@ -103,9 +116,7 @@ export default function PostDetailContent({
                     role="menuitem"
                     onClick={() => {
                       setMenuOpen(false);
-                      window.alert(
-                        "신고가 접수되었습니다. 운영 정책에 따라 검토됩니다.",
-                      );
+                      window.alert("신고 기능은 준비 중입니다.");
                     }}
                   >
                     신고하기
