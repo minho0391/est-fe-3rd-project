@@ -19,6 +19,8 @@ import {
 const buildLoginUrl = returnUrl =>
   `/sign-in?returnUrl=${encodeURIComponent(returnUrl || "/post")}`;
 
+const MAX_REPLY_DEPTH = 1;
+
 export default function CommentSection({
   postId,
   initialComments = [],
@@ -113,12 +115,15 @@ export default function CommentSection({
     }
   };
 
-  const Item = ({ c, depth = 0 }) => {
+  const renderItem = (c, depth = 0) => {
     const own = c.authorId === currentUser?.id;
     const postOwner = currentUser?.id === postAuthorId;
     const canDelete = own || postOwner;
+    const canReply = depth < MAX_REPLY_DEPTH;
+
     return (
       <div
+        key={c.id}
         className={`comments-commentItem ${depth ? "comments-replyItem" : ""}`}
       >
         <div className="comments-avatarWrapper">
@@ -177,9 +182,7 @@ export default function CommentSection({
                       type="button"
                       onClick={() => {
                         setOpenMenu(null);
-                        window.alert(
-                          "신고가 접수되었습니다. 운영 정책에 따라 검토됩니다.",
-                        );
+                        window.alert("신고 기능은 준비 중입니다.");
                       }}
                     >
                       신고하기
@@ -220,21 +223,23 @@ export default function CommentSection({
               )}{" "}
               좋아요 {c.likes || 0}
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (!currentUser) {
-                  redirect();
-                  return;
-                }
-                setReplyTo(replyTo === c.id ? null : c.id);
-                setReplyInput("");
-              }}
-            >
-              답글
-            </button>
+            {canReply && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (!currentUser) {
+                    redirect();
+                    return;
+                  }
+                  setReplyTo(replyTo === c.id ? null : c.id);
+                  setReplyInput("");
+                }}
+              >
+                답글
+              </button>
+            )}
           </div>
-          {replyTo === c.id && (
+          {canReply && replyTo === c.id && (
             <form
               className="comments-replyForm"
               onSubmit={e => submit(e, c.id)}
@@ -252,9 +257,8 @@ export default function CommentSection({
               </button>
             </form>
           )}
-          {children(c.id).map(child => (
-            <Item key={child.id} c={child} depth={depth + 1} />
-          ))}
+          {depth < MAX_REPLY_DEPTH &&
+            children(c.id).map(child => renderItem(child, depth + 1))}
         </div>
       </div>
     );
@@ -302,7 +306,7 @@ export default function CommentSection({
         {roots.length === 0 ? (
           <p className="comments-emptyMessage">첫 번째 댓글을 남겨보세요!</p>
         ) : (
-          roots.map(c => <Item key={c.id} c={c} />)
+          roots.map(c => renderItem(c))
         )}
       </div>
     </section>
