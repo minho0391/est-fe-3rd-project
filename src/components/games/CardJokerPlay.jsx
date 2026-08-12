@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import GameCardBack from "./GameCardBack";
 import CardJokerResult from "./CardJokerResult";
 import Button from "@/components/ui/Button";
-import { cardFaceSx, cardRowSx, gameButtonSx, playAreaSx } from "./styles";
+import { createClient } from "@/utils/supabase/client";
+import { cardFaceSx, cardRowSx, gameButtonSx, keepAllSx, playAreaSx } from "./styles";
 
 const CARD_COUNT = 4;
 
@@ -31,15 +32,67 @@ const cardIconWrapSx = {
 
 const cardIconSx = { width: 80, height: 80 };
 
+const headGroupSx = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: 2,
+  width: "100%",
+};
+
+const penaltyBoxSx = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: 0.5,
+  maxWidth: 480,
+  px: 3,
+  py: 2,
+  bgcolor: "momentalk.presetCard",
+  borderRadius: "16px",
+};
+
 function createDeck() {
   const jokerIndex = Math.floor(Math.random() * CARD_COUNT);
   return Array.from({ length: CARD_COUNT }, (_, i) => i === jokerIndex);
+}
+
+// scripts 가 비어 있는 행은 title 이 곧 본문입니다.
+function toLines(content) {
+  const scripts = content?.scripts ?? [];
+  return scripts.length > 0 ? scripts : [content?.title].filter(Boolean);
 }
 
 export default function CardJokerPlay() {
   const [deck, setDeck] = useState(createDeck);
   const [opened, setOpened] = useState([]);
   const [showResult, setShowResult] = useState(false);
+  const [penalties, setPenalties] = useState([]);
+  const [penalty, setPenalty] = useState(null);
+
+  // TODO: 추후 Edge Function으로 AI 생성 콘텐츠를 받아오도록 변경 예정.
+  // 현재는 default_contents 조회로 유지.
+  useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      const { data, error } = await createClient()
+        .from("default_contents")
+        .select("id, title, scripts, tips, format_code")
+        .eq("format_code", "penalty")
+        .eq("is_active", true)
+        .limit(100);
+
+      if (!alive || error || !data || data.length === 0) return;
+
+      setPenalties(data);
+      setPenalty(data[Math.floor(Math.random() * data.length)]);
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const isFinished = opened.some(index => deck[index]);
 
@@ -52,18 +105,44 @@ export default function CardJokerPlay() {
     if (deck[index]) setTimeout(() => setShowResult(true), RESULT_DELAY);
   };
 
-  // 조커 위치를 새로 뽑고 카드를 전부 덮습니다.
+  // 조커 위치와 벌칙을 새로 뽑고 카드를 전부 덮습니다.
   const handleRestart = () => {
     setDeck(createDeck());
     setOpened([]);
     setShowResult(false);
+
+    if (penalties.length === 0) return;
+    const candidates = penalties.filter(item => item.id !== penalty?.id);
+    const list = candidates.length > 0 ? candidates : penalties;
+    setPenalty(list[Math.floor(Math.random() * list.length)]);
   };
 
   return (
     <Box sx={playAreaSx}>
-      <Typography component="h2" variant="h4" align="center">
-        번갈아 뒤집어서 조커를 피하세요
-      </Typography>
+      <Box sx={headGroupSx}>
+        <Typography component="h2" variant="h4" align="center">
+          번갈아 뒤집어서 조커를 피하세요
+        </Typography>
+
+        {penalty && (
+          <Box sx={penaltyBoxSx}>
+            <Typography variant="body2" color="text.disabled">
+              이번 판 벌칙
+            </Typography>
+            {toLines(penalty).map((line, index) => (
+              <Typography
+                key={index}
+                variant="subtitle1"
+                color="primary.main"
+                align="center"
+                sx={keepAllSx}
+              >
+                {line}
+              </Typography>
+            ))}
+          </Box>
+        )}
+      </Box>
 
       <Box sx={cardRowSx}>
         {deck.map((isJoker, index) => {
@@ -100,7 +179,7 @@ export default function CardJokerPlay() {
         </Button>
       )}
 
-      {showResult && <CardJokerResult onConfirm={handleRestart} />}
+      {showResult && <CardJokerResult penalty={penalty} onConfirm={handleRestart} />}
     </Box>
   );
 }
