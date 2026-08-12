@@ -27,6 +27,7 @@
     "@playwright/test": "^1.62.1",
     "@types/node": "26.1.2",
     "@types/react": "19.2.18",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
     "supabase": "^2.113.0"
