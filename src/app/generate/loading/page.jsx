@@ -55,14 +55,16 @@ function LoadingContent() {
           // "다른 주제 생성하기"(재생성)가 같은 조건으로 다시 호출할 수 있도록 보관
           if (payload) sessionStorage.setItem("generate-last-payload", JSON.stringify(payload));
 
+          sessionStorage.removeItem("generate-payload");
+
           if (data.generationId) {
-            // 로그인 사용자: DB에 저장됨 → id로 결과 페이지 진입 (새로고침해도 안전)
-            sessionStorage.removeItem("generate-payload");
+            // 로그인/비로그인 모두 DB에 저장됨(비로그인은 user_id: null) →
+            // 항상 id로 결과 페이지 진입 (새로고침·공유해도 안전)
             router.push(`/generate/result?id=${data.generationId}`);
           } else {
-            // 비로그인 사용자: 저장 안 됨 → 세션에 결과를 그대로 담아 전달
+            // 극히 예외적으로 DB 저장 자체가 실패한 경우의 폴백:
+            // 세션에 결과를 그대로 담아 1회성으로 보여준다.
             sessionStorage.setItem("generate-result", JSON.stringify(data));
-            sessionStorage.removeItem("generate-payload");
             router.push("/generate/result");
           }
         }, 1000);
