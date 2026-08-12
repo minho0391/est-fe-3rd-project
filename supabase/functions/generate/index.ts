@@ -1,5 +1,4 @@
 import { withSupabase } from "@supabase/server";
-import { createClient } from "@supabase/supabase-js";
 
 // 환경변수 가져오기
 const ALAN_CLIENT_ID = Deno.env.get("ALAN_CLIENT_ID");
@@ -96,8 +95,11 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
-export default async function handleGenerateRequest(req, ctx)  {
-  fetch: withSupabase({ auth: "publishable" }, async (req, ctx) => {
+export default {
+  // "user"를 먼저 시도해 로그인 요청은 사용자 스코프로, 실패하면(=JWT 없음)
+  // "publishable"로 넘어가 비로그인 요청도 그대로 받는다. (verify_jwt = false는
+  // publishable을 쓰는 한 그대로 유지해야 한다. config.toml 참고)
+  fetch: withSupabase({ auth: ["user", "publishable"] }, async function handleGenerateRequest(req, ctx) {
     // 1. CORS 사전 요청 처리
     // withSupabase가 OPTIONS 요청과 CORS 헤더를 자동으로 처리
 
@@ -147,16 +149,14 @@ export default async function handleGenerateRequest(req, ctx)  {
       );
     }
 
-    // 6. Supabase 클라이언트 가져오기 (호출자 권한 — RLS 적용됨)
+    // 6. Supabase 클라이언트 가져오기.
+    //    auth: ["user", "publishable"] 이라 로그인 요청은 ctx.supabase가 이미
+    //    해당 사용자로 RLS 스코프되어 있고(auth: "user" 매칭), 비로그인 요청은
+    //    익명 클라이언트(auth: "publishable" 매칭)가 된다. 따로 Authorization
+    //    헤더를 파싱해 별도 클라이언트를 만들 필요가 없다.
+    //    (예전엔 SUPABASE_ANON_KEY를 직접 읽어 별도 클라이언트를 만들었는데, 새 API 키
+    //    체계에서는 이 값이 더 이상 자동 주입되지 않아 항상 로그인 판정에 실패했다.)
     const db = ctx.supabase;
-
-    // 6-1. 호출자 세션이 실린 클라이언트 (저장용)
-    const authHeader = req.headers.get("Authorization") ?? "";
-    const userClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } },
-    );
 
     // 6-2. 응답 시간 측정 시작
     const startedAt = Date.now();
@@ -213,10 +213,10 @@ export default async function handleGenerateRequest(req, ctx)  {
       const empty: SaveResult = { saved: false, generationId: null, itemIds: [] };
 
       try {
-        const { data: { user } } = await userClient.auth.getUser();
+        const { data: { user } } = await db.auth.getUser();
         if (!user) return empty;
 
-        const { data: gen, error: genError } = await userClient
+        const { data: gen, error: genError } = await db
           .from("generations")
           .insert({
             user_id: user.id,
@@ -250,7 +250,7 @@ export default async function handleGenerateRequest(req, ctx)  {
           extras: r.extras ?? {},
         }));
 
-        const { data: savedItems, error: itemError } = await userClient
+        const { data: savedItems, error: itemError } = await db
           .from("generation_items")
           .insert(items)
           .select("id, position")
