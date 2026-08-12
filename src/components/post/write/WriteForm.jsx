@@ -14,7 +14,11 @@ import {
   getCommunityBoards,
   getCurrentCommunityUser,
 } from "@/lib/communityQueries";
-import { createPost, uploadPostImage } from "@/lib/communityMutations";
+import {
+  createPost,
+  updatePost,
+  uploadPostImage,
+} from "@/lib/communityMutations";
 
 // React Quill SSR 이슈 방지를 위한 Dynamic Import
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -93,18 +97,21 @@ const formats = [
   "video",
 ];
 
-export default function WriteForm() {
+export default function WriteForm({ initialValues = null, postId = null }) {
   const router = useRouter();
   const editorWrapperRef = useRef(null);
-  const [board, setBoard] = useState("자유게시판");
+  const isEditMode = Boolean(postId);
+  const [board, setBoard] = useState(initialValues?.board ?? "자유게시판");
   const [boards, setBoards] = useState([]);
   const [boardsError, setBoardsError] = useState("");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState(""); // 추가 설명 State
-  const [content, setContent] = useState("");
+  const [title, setTitle] = useState(initialValues?.title ?? "");
+  const [description, setDescription] = useState(
+    initialValues?.description ?? "",
+  ); // 추가 설명 State
+  const [content, setContent] = useState(initialValues?.content ?? "");
   const [isEditorFocused, setIsEditorFocused] = useState(false);
   const [contentSource, setContentSource] = useState("MANUAL");
-  const [tags, setTags] = useState([]);
+  const [tags, setTags] = useState(initialValues?.tags ?? []);
   const [tagInput, setTagInput] = useState("");
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isExistingModalOpen, setIsExistingModalOpen] = useState(false);
@@ -364,20 +371,30 @@ export default function WriteForm() {
       setIsSubmitting(true);
       setSubmitError("");
 
-      const postId = await createPost({
-        board,
-        title,
-        description,
-        content,
-        tags,
-        isAiGenerated: contentSource === "AI",
-      });
-
-      router.push(`/post/${postId}`);
+      if (isEditMode) {
+        await updatePost(postId, { board, title, description, content, tags });
+        router.push(`/post/${postId}`);
+      } else {
+        const createdPostId = await createPost({
+          board,
+          title,
+          description,
+          content,
+          tags,
+          isAiGenerated: contentSource === "AI",
+        });
+        router.push(`/post/${createdPostId}`);
+      }
     } catch (error) {
-      console.error("게시글 등록 실패", error);
+      console.error(
+        isEditMode ? "게시글 수정 실패" : "게시글 등록 실패",
+        error,
+      );
       setSubmitError(
-        error?.message || "게시글 등록에 실패했습니다. 다시 시도해 주세요.",
+        error?.message ||
+          (isEditMode
+            ? "게시글 수정에 실패했습니다. 다시 시도해 주세요."
+            : "게시글 등록에 실패했습니다. 다시 시도해 주세요."),
       );
     } finally {
       setIsSubmitting(false);
@@ -390,10 +407,14 @@ export default function WriteForm() {
         {/* Header Area */}
         <div className="write-headerRow">
           <div className="write-titleGroup">
-            <h1 className="write-pageTitle">커뮤니티 글 작성</h1>
+            <h1 className="write-pageTitle">
+              {isEditMode ? "게시글 수정" : "커뮤니티 글 작성"}
+            </h1>
 
             <p className="write-pageSubtitle">
-              소중한 순간을 커뮤니티와 함께 나누어 보세요.
+              {isEditMode
+                ? "작성한 게시글의 내용을 수정할 수 있습니다."
+                : "소중한 순간을 커뮤니티와 함께 나누어 보세요."}
             </p>
           </div>
 
@@ -526,7 +547,13 @@ export default function WriteForm() {
               size="md"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "등록 중..." : "등록"}
+              {isSubmitting
+                ? isEditMode
+                  ? "수정 중..."
+                  : "등록 중..."
+                : isEditMode
+                  ? "수정하기"
+                  : "등록"}
             </Button>
           </div>
 
