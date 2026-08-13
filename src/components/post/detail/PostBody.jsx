@@ -11,6 +11,7 @@ import {
   RemoveRedEyeIcon,
 } from "@/images/icons";
 import { sanitizeCommunityHtml } from "@/lib/sanitizeCommunityHtml";
+import { submitCommunityReport } from "@/lib/communityMutations";
 
 export default function PostDetailContent({
   post,
@@ -114,9 +115,27 @@ export default function PostDetailContent({
                   <button
                     type="button"
                     role="menuitem"
-                    onClick={() => {
+                    onClick={async () => {
                       setMenuOpen(false);
-                      window.alert("신고 기능은 준비 중입니다.");
+                      const reason = window.prompt(
+                        "신고 사유를 입력해 주세요. (2~300자)",
+                      );
+                      if (reason == null) return;
+
+                      try {
+                        await submitCommunityReport({
+                          targetType: "post",
+                          targetId: post.id,
+                          reason,
+                        });
+                        window.alert(
+                          "신고가 접수되었습니다. 운영진 검토 후 필요한 조치를 진행합니다.",
+                        );
+                      } catch (error) {
+                        window.alert(
+                          error?.message || "신고 접수에 실패했습니다.",
+                        );
+                      }
                     }}
                   >
                     신고하기
