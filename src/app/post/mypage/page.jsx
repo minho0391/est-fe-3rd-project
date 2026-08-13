@@ -112,7 +112,7 @@ export default function MyPage() {
           getPostsByAuthorId(me.id),
           getCommentsByAuthorId(me.id),
           getLikedPostsByCurrentUser(),
-          getSavedContents(),
+          getSavedContents({ includeDefaults: false }),
         ]);
 
         if (!isMounted) return;
