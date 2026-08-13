@@ -648,11 +648,7 @@ export default function MyPage() {
                     <h2 className="mypage-listTitle">내 AI 저장</h2>
                   </div>
                 </div>
-                <ContentCabinet
-                  contents={savedContents}
-                  embedded
-                  initialFilter="ALL"
-                />
+                <ContentCabinet contents={savedContents} />
               </>
             )}
           </section>
