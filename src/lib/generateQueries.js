@@ -34,7 +34,8 @@ const mapItem = row => ({
 // (generate 함수의 labelOf 와 동일한 로직)
 const buildLabelOf = async db => {
   const { data: options } = await db.from("options").select("category, code, label");
-  return (category, code) => options?.find(o => o.category === category && o.code === code)?.label ?? null;
+  return (category, code) =>
+    options?.find(o => o.category === category && o.code === code)?.label ?? null;
 };
 
 // generations 행 + labelOf → meta ({ situation, format, level, mood })
@@ -43,7 +44,7 @@ const buildMeta = (row, labelOf) => {
   return {
     relation: labelOf("relation", cond.relation) ?? cond.relation ?? "",
     target: labelOf("target", cond.target) ?? cond.target ?? "",
-    situation: labelOf("situation", cond.situation) ?? "모임",
+    situation: labelOf("situation", cond.situation) ?? "커스텀",
     format: labelOf("format", row.format_code) ?? row.format_code,
     level: cond.level ?? 1,
     mood: labelOf("mood", cond.mood),
