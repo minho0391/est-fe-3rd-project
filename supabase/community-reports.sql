@@ -153,6 +153,8 @@ grant execute on function public.review_community_report(bigint, text, text, tex
 to authenticated;
 
 -- - 운영진 신고 대상 실제 삭제
+-- - community-delete-cascade.sql의 delete_post_cascade / delete_comment_tree를 재사용합니다.
+-- - 적용 순서: community-delete-cascade.sql 실행 후 이 파일을 실행하세요.
 -- - 게시글: 댓글/좋아요/태그 연결/조회 기록과 게시글을 함께 삭제
 -- - 댓글: 선택 댓글과 모든 하위 답글을 함께 삭제
 -- - 삭제 후 같은 대상을 가리키는 신고는 모두 처리 완료/content_deleted로 기록
@@ -183,47 +185,15 @@ begin
     raise exception '신고 내역을 찾을 수 없습니다.';
   end if;
 
+  -- 삭제 규칙은 community-delete-cascade.sql의 공용 RPC만 사용합니다.
+  -- 본인 삭제와 관리자 신고 삭제가 항상 같은 cascade 동작을 공유하도록 중복 DELETE를 두지 않습니다.
   if report_row.target_type = 'post' then
-    if exists (
-      select 1 from public.posts p where p.id = report_row.target_id
-    ) then
-      -- 게시글 자식 데이터를 먼저 제거합니다.
-      -- comments 삭제 시 comment_likes는 FK cascade로 함께 정리됩니다.
-      delete from public.comments
-      where post_id = report_row.target_id;
-
-      delete from public.post_likes
-      where post_id = report_row.target_id;
-
-      delete from public.post_tags
-      where post_id = report_row.target_id;
-
-      delete from public.post_views
-      where post_id = report_row.target_id;
-
-      delete from public.posts
-      where id = report_row.target_id;
-    end if;
-
+    perform public.delete_post_cascade(report_row.target_id::text);
     deleted_kind := 'post';
 
   elsif report_row.target_type = 'comment' then
-    -- 부모 댓글 신고라면 그 아래 답글까지 같은 SQL 문장에서 함께 삭제합니다.
-    with recursive comment_tree as (
-      select c.id
-      from public.comments c
-      where c.id = report_row.target_id
-
-      union all
-
-      select child.id
-      from public.comments child
-      join comment_tree parent on child.parent_id = parent.id
-    )
-    delete from public.comments c
-    using comment_tree t
-    where c.id = t.id;
-
+    perform *
+    from public.delete_comment_tree(report_row.target_id::text);
     deleted_kind := 'comment';
 
   else
