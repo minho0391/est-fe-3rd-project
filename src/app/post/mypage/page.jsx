@@ -483,6 +483,16 @@ export default function MyPage() {
               <span>댓글</span>
             </button>
 
+            {userProfile.role === "관리자" && (
+              <Link href="/post/admin/reports" className="mypage-menuItem">
+                <ManageAccountsOutlinedIcon
+                  aria-hidden="true"
+                  fontSize="small"
+                />
+                <span>신고 관리</span>
+              </Link>
+            )}
+
             <button
               type="button"
               className="mypage-menuItem"
