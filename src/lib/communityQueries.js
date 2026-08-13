@@ -394,12 +394,10 @@ export const getCommunityBoards = async () => {
 };
 
 /**
- * 저장 콘텐츠 목록.
- *
- * 기본값은 사용자가 직접 저장한 saved_contents만 반환합니다.
- * 운영진 기본 콘텐츠가 필요한 화면에서만 includeDefaults: true를 명시합니다.
+ * 내 AI 저장 콘텐츠 목록.
+ * 사용자가 직접 저장한 saved_contents만 반환합니다.
  */
-export const getSavedContents = async ({ includeDefaults = false } = {}) => {
+export const getSavedContents = async () => {
   const db = supabase();
   const {
     data: { user },
@@ -417,7 +415,7 @@ export const getSavedContents = async ({ includeDefaults = false } = {}) => {
 
   throwQueryError("보관함 조회 실패", savedResult.error);
 
-  const savedItems = (savedResult.data ?? []).map(s => ({
+  return (savedResult.data ?? []).map(s => ({
     id: `saved-${s.id}`,
     type: "AI",
     badge: "AI 생성",
@@ -427,30 +425,6 @@ export const getSavedContents = async ({ includeDefaults = false } = {}) => {
     memo: s.memo,
     createdAt: toDateLabel(s.created_at),
   }));
-
-  if (!includeDefaults) return savedItems;
-
-  const defaultResult = await db
-    .from("default_contents")
-    .select("id, format_code, title, scripts, tips, situation_codes")
-    .eq("is_active", true)
-    .order("weight", { ascending: false })
-    .limit(50);
-
-  throwQueryError("기본 콘텐츠 조회 실패", defaultResult.error);
-
-  const defaultItems = (defaultResult.data ?? []).map(d => ({
-    id: `default-${d.id}`,
-    type: "ADMIN",
-    badge: "운영진",
-    title: d.title,
-    content: (d.scripts ?? []).join("\n"),
-    tags: [d.situation_codes?.[0], d.format_code].filter(Boolean),
-    memo: null,
-    createdAt: "",
-  }));
-
-  return [...savedItems, ...defaultItems];
 };
 
 /** 좋아요 토글 */
