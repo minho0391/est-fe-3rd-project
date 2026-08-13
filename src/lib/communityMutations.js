@@ -57,7 +57,7 @@ const getPostImageStoragePaths = html => {
   return [...paths];
 };
 
-const removePostImages = async (db, paths) => {
+const removePostImages = async (db, paths, { verify = false } = {}) => {
   const requestedPaths = [...new Set((paths ?? []).filter(Boolean))];
   if (requestedPaths.length === 0) {
     return { requestedCount: 0, removedCount: 0, complete: true };
@@ -68,11 +68,69 @@ const removePostImages = async (db, paths) => {
     .remove(requestedPaths);
 
   if (error) {
+    if (verify) {
+      throw new Error(
+        `게시글 본문 이미지 삭제에 실패했습니다: ${error.message ?? "Storage 오류"}`,
+      );
+    }
+
     console.warn("게시글 본문 이미지 정리 실패:", error);
     return {
       requestedCount: requestedPaths.length,
       removedCount: 0,
       complete: false,
+    };
+  }
+
+  // Storage remove()가 정책 차단 상황에서 빈 결과를 반환하더라도 성공으로 오인하지 않도록
+  // verify=true일 때는 삭제 후 각 폴더를 다시 조회해 대상 파일이 남아 있는지 확인합니다.
+  if (verify) {
+    const pathsByFolder = new Map();
+
+    for (const path of requestedPaths) {
+      const parts = String(path).split("/");
+      const fileName = parts.pop();
+      const folder = parts.join("/");
+      const names = pathsByFolder.get(folder) ?? [];
+      names.push(fileName);
+      pathsByFolder.set(folder, names);
+    }
+
+    const remainingPaths = [];
+
+    for (const [folder, fileNames] of pathsByFolder.entries()) {
+      for (const fileName of fileNames) {
+        const { data: listed, error: listError } = await db.storage
+          .from(POST_IMAGE_BUCKET)
+          .list(folder, {
+            limit: 10,
+            search: fileName,
+          });
+
+        if (listError) {
+          throw new Error(
+            `게시글 본문 이미지 삭제 확인에 실패했습니다: ${
+              listError.message ?? "Storage 조회 오류"
+            }`,
+          );
+        }
+
+        if ((listed ?? []).some(item => item.name === fileName)) {
+          remainingPaths.push(folder ? `${folder}/${fileName}` : fileName);
+        }
+      }
+    }
+
+    if (remainingPaths.length > 0) {
+      throw new Error(
+        `게시글은 삭제되었지만 Storage 이미지 ${remainingPaths.length}개가 남아 있습니다. 관리자 Storage 정책을 확인해 주세요.`,
+      );
+    }
+
+    return {
+      requestedCount: requestedPaths.length,
+      removedCount: requestedPaths.length,
+      complete: true,
     };
   }
 
@@ -512,7 +570,9 @@ export const deleteReportedCommunityContent = async ({
   if (error) throw error;
 
   if (report?.target_type === "post" && imagePaths.length > 0) {
-    await removePostImages(db, imagePaths);
+    // 신고 삭제는 대부분 타인 게시글이므로 관리자 Storage 정책을 사용하며,
+    // remove() 반환값만 믿지 않고 실제 파일이 남았는지까지 검증합니다.
+    await removePostImages(db, imagePaths, { verify: true });
   }
 
   return data;
