@@ -35,3 +35,8 @@ supabase/temp
 
 body.json
 result.json
+
+# playwright
+test-results/
+playwright-report/
+playwright/.auth/
