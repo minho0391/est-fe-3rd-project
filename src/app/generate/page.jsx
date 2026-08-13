@@ -144,14 +144,6 @@ function GeneratePageInner() {
     }
   }, []);
 
-  useEffect(() => {
-    const preset = searchParams.get("preset");
-    const format = searchParams.get("format");
-
-    if (preset) setSelectedSituation(preset);
-    if (format) setSelectedFormat(format);
-  }, [searchParams]);
-
   const goToLoading = payload => {
     sessionStorage.setItem("generate-payload", JSON.stringify(payload));
     router.push("/generate/loading");
@@ -163,6 +155,22 @@ function GeneratePageInner() {
     setModalLevel(1);
     setIsModalOpen(true);
   };
+
+  useEffect(() => {
+    const preset = searchParams.get("preset");
+    const format = searchParams.get("format");
+
+    if (preset) {
+      // 상황 칩도 함께 선택해 둡니다.
+      // 모달을 닫아도 조건이 남아 있어야 이어서 고를 수 있습니다.
+      setSelectedSituation(preset);
+
+      const template = TEMPLATES.find(item => item.id === preset);
+      if (template) handleCardClick(template);
+    }
+
+    if (format) setSelectedFormat(format);
+  }, [searchParams]);
 
   const handleSendTemplate = () => {
     if (!modalFormat) {
@@ -195,6 +203,8 @@ function GeneratePageInner() {
   const currentTabOptions = options[currentTabKey];
 
   const labelOf = (category, code) => options[category]?.find(o => o.code === code)?.label ?? code;
+
+  const canGenerate = Boolean((selectedSituation || customInput.trim()) && selectedFormat);
 
   const handleGenerate = () => {
     const trimmedCustom = customInput.trim();
@@ -418,12 +428,17 @@ function GeneratePageInner() {
               size="md"
               fullWidth
               onClick={handleGenerate}
-              disabled={(!selectedSituation && !customInput.trim()) || !selectedFormat}
+              disabled={!canGenerate}
               trailingIcon={<Box component="img" src="/assets/icons/bolt_icon.svg" alt="" sx={styles.icon24} />}
               sx={{ fontSize: "1rem" }}
             >
               AI 대화 생성하기
             </Button>
+            {!canGenerate && (
+              <Typography variant="caption" sx={{ mt: 1, display: "block", textAlign: "center" }}>
+                상황을 선택하거나 직접 입력하고, 형식을 선택해주세요.
+              </Typography>
+            )}
           </Paper>
 
           {/* 템플릿 클릭 시 형식/레벨 선택 모달 */}
