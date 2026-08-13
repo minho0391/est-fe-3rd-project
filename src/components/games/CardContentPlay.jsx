@@ -15,6 +15,7 @@ import {
   formatChipSx,
   formatFilterRowSx,
   gameButtonSx,
+  headGroupSx,
   playAreaSx,
 } from "./styles";
 
@@ -28,23 +29,20 @@ const ALL_FORMATS = "";
 
 const contentCardSx = {
   ...cardFaceSx,
-  p: "25px",
+  p: { xs: "14px", lg: "25px" },
   border: 1,
   borderColor: "divider",
   overflow: "hidden",
 };
 
-const headGroupSx = {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  gap: 2,
-  width: "100%",
-};
-
-const cardLabelSx = { lineHeight: "20px", pb: 2 };
+// 카드가 작아지는 만큼 라벨·본문 글자도 함께 줄입니다.
+const cardLabelSx = { fontSize: { xs: 12, lg: 14 }, lineHeight: "20px", pb: { xs: 1, lg: 2 } };
 const cardScriptGroupSx = { display: "flex", flexDirection: "column", gap: 1 };
-const cardScriptSx = { lineHeight: "29px", wordBreak: "keep-all" };
+const cardScriptSx = {
+  fontSize: { xs: 13, lg: 18 },
+  lineHeight: { xs: "20px", lg: "29px" },
+  wordBreak: "keep-all",
+};
 
 export default function CardContentPlay() {
   const [items, setItems] = useState([]);

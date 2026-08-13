@@ -57,10 +57,16 @@ const getPostImageStoragePaths = html => {
   return [...paths];
 };
 
-const removePostImages = async (db, paths) => {
+const removePostImages = async (db, paths, { verify = false } = {}) => {
   const requestedPaths = [...new Set((paths ?? []).filter(Boolean))];
   if (requestedPaths.length === 0) {
-    return { requestedCount: 0, removedCount: 0, complete: true };
+    return {
+      requestedCount: 0,
+      removedCount: 0,
+      remainingCount: 0,
+      complete: true,
+      warning: "",
+    };
   }
 
   const { data, error } = await db.storage
@@ -68,11 +74,90 @@ const removePostImages = async (db, paths) => {
     .remove(requestedPaths);
 
   if (error) {
+    const warning = `게시글 본문 이미지 삭제에 실패했습니다: ${
+      error.message ?? "Storage 오류"
+    }`;
+
     console.warn("게시글 본문 이미지 정리 실패:", error);
+
     return {
       requestedCount: requestedPaths.length,
       removedCount: 0,
+      remainingCount: requestedPaths.length,
       complete: false,
+      warning,
+    };
+  }
+
+  // Storage remove()가 정책 차단 상황에서 빈 결과를 반환하더라도 성공으로 오인하지 않도록
+  // verify=true일 때는 삭제 후 각 폴더를 다시 조회해 대상 파일이 남아 있는지 확인합니다.
+  if (verify) {
+    const pathsByFolder = new Map();
+
+    for (const path of requestedPaths) {
+      const parts = String(path).split("/");
+      const fileName = parts.pop();
+      const folder = parts.join("/");
+      const names = pathsByFolder.get(folder) ?? [];
+      names.push(fileName);
+      pathsByFolder.set(folder, names);
+    }
+
+    const remainingPaths = [];
+
+    for (const [folder, fileNames] of pathsByFolder.entries()) {
+      for (const fileName of fileNames) {
+        const { data: listed, error: listError } = await db.storage
+          .from(POST_IMAGE_BUCKET)
+          .list(folder, {
+            limit: 10,
+            search: fileName,
+          });
+
+        if (listError) {
+          const warning = `게시글 본문 이미지 삭제 확인에 실패했습니다: ${
+            listError.message ?? "Storage 조회 오류"
+          }`;
+
+          console.warn("게시글 본문 이미지 삭제 확인 실패:", listError);
+
+          return {
+            requestedCount: requestedPaths.length,
+            removedCount: Array.isArray(data) ? data.length : 0,
+            remainingCount: null,
+            complete: false,
+            warning,
+          };
+        }
+
+        if ((listed ?? []).some(item => item.name === fileName)) {
+          remainingPaths.push(folder ? `${folder}/${fileName}` : fileName);
+        }
+      }
+    }
+
+    if (remainingPaths.length > 0) {
+      const warning = `삭제됐지만 Storage 이미지 ${remainingPaths.length}개가 남아 있습니다. 관리자 Storage 정책을 확인해 주세요.`;
+
+      console.warn("게시글 본문 이미지가 일부 남아 있습니다.", {
+        remainingPaths,
+      });
+
+      return {
+        requestedCount: requestedPaths.length,
+        removedCount: requestedPaths.length - remainingPaths.length,
+        remainingCount: remainingPaths.length,
+        complete: false,
+        warning,
+      };
+    }
+
+    return {
+      requestedCount: requestedPaths.length,
+      removedCount: requestedPaths.length,
+      remainingCount: 0,
+      complete: true,
+      warning: "",
     };
   }
 
@@ -91,7 +176,9 @@ const removePostImages = async (db, paths) => {
   return {
     requestedCount: requestedPaths.length,
     removedCount,
+    remainingCount: Math.max(requestedPaths.length - removedCount, 0),
     complete,
+    warning: "",
   };
 };
 
@@ -381,6 +468,154 @@ export const deletePost = async postId => {
   }
 
   await removePostImages(db, imagePaths);
+};
+
+const isMissingCommunityReportsTable = error => {
+  const code = String(error?.code ?? "");
+  const message = String(error?.message ?? "");
+  const details = String(error?.details ?? "");
+  const hint = String(error?.hint ?? "");
+  const combined = `${message} ${details} ${hint}`;
+
+  // PostgreSQL 직접 오류(42P01)와 PostgREST schema cache 오류(PGRST205)를 모두 처리합니다.
+  return (
+    code === "42P01" ||
+    code === "PGRST205" ||
+    (/community_reports/i.test(combined) &&
+      /(does not exist|could not find|schema cache|not found)/i.test(combined))
+  );
+};
+
+/**
+ * 커뮤니티 신고 접수.
+ *
+ * 신고 데이터는 게시글/댓글 트리와 분리된 단일 reports 테이블에 저장합니다.
+ * 부모-자식 신고 관계는 만들지 않으며, 검토/제재 상태만 reports 한 행에서 관리합니다.
+ */
+export const submitCommunityReport = async ({
+  targetType,
+  targetId,
+  reason,
+}) => {
+  const db = supabase();
+  const user = await requireUser(db);
+  const normalizedType = String(targetType ?? "").trim();
+  const normalizedReason = String(reason ?? "").trim();
+
+  if (!["post", "comment"].includes(normalizedType)) {
+    throw new Error("신고 대상을 확인할 수 없습니다.");
+  }
+  if (!targetId) throw new Error("신고 대상을 확인할 수 없습니다.");
+  if (normalizedReason.length < 2) {
+    throw new Error("신고 사유를 2자 이상 입력해 주세요.");
+  }
+  if (normalizedReason.length > 300) {
+    throw new Error("신고 사유는 300자 이하로 입력해 주세요.");
+  }
+
+  const { error } = await db.from("community_reports").insert({
+    reporter_id: user.id,
+    target_type: normalizedType,
+    target_id: targetId,
+    reason: normalizedReason,
+  });
+
+  if (error) {
+    if (error.code === "23505") {
+      throw new Error("이미 신고한 콘텐츠입니다.");
+    }
+    if (isMissingCommunityReportsTable(error)) {
+      throw new Error("신고 기능 DB가 아직 준비되지 않았습니다.");
+    }
+    throw error;
+  }
+};
+
+/**
+ * 운영진 신고 검토/조치 기록.
+ * 실제 콘텐츠 삭제나 자동 제재는 수행하지 않고 검토 상태와 조치 이력만 기록합니다.
+ */
+export const reviewCommunityReport = async ({
+  reportId,
+  status,
+  action = "none",
+  note = "",
+}) => {
+  const db = supabase();
+  await requireUser(db);
+
+  const { error } = await db.rpc("review_community_report", {
+    p_report_id: Number(reportId),
+    p_status: status,
+    p_action: action,
+    p_note: String(note ?? "").trim() || null,
+  });
+
+  if (error) throw error;
+};
+
+/**
+ * 운영진 신고 대상 실제 삭제.
+ *
+ * community_reports의 report id를 기준으로 DB RPC가 관리자 권한과 실제 대상을 다시 검증합니다.
+ * 게시글은 댓글/좋아요/태그 연결/조회 기록까지 함께 삭제하고,
+ * 댓글은 선택 댓글과 그 아래 답글 트리를 함께 삭제합니다.
+ * 처리된 같은 대상의 신고들은 모두 resolved/content_deleted로 기록됩니다.
+ */
+export const deleteReportedCommunityContent = async ({
+  reportId,
+  note = "",
+}) => {
+  const db = supabase();
+  await requireUser(db);
+
+  // 게시글인 경우 DB 삭제 전에 Storage 이미지 경로를 확보합니다.
+  // 이미지 정리에 실패해도 신고 대상 DB 삭제 자체는 완료되도록 별도로 처리합니다.
+  const { data: report, error: reportError } = await db
+    .from("community_reports")
+    .select("target_type, target_id")
+    .eq("id", Number(reportId))
+    .single();
+
+  if (reportError) throw reportError;
+
+  let imagePaths = [];
+  if (report?.target_type === "post") {
+    const { data: post, error: postError } = await db
+      .from("posts")
+      .select("content_html")
+      .eq("id", report.target_id)
+      .maybeSingle();
+
+    if (postError) throw postError;
+    imagePaths = getPostImageStoragePaths(post?.content_html);
+  }
+
+  const { data, error } = await db.rpc("delete_reported_community_content", {
+    p_report_id: Number(reportId),
+    p_note: String(note ?? "").trim() || null,
+  });
+
+  if (error) throw error;
+
+  let imageCleanup = {
+    requestedCount: 0,
+    removedCount: 0,
+    remainingCount: 0,
+    complete: true,
+    warning: "",
+  };
+
+  if (report?.target_type === "post" && imagePaths.length > 0) {
+    // 신고 대상 DB 삭제는 RPC에서 이미 완료된 상태입니다.
+    // 따라서 이미지 정리/검증 실패는 예외로 되돌리지 않고 경고 결과로 반환합니다.
+    imageCleanup = await removePostImages(db, imagePaths, { verify: true });
+  }
+
+  return {
+    deletedKind: data,
+    imageCleanup,
+  };
 };
 
 /**

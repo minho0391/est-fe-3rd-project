@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
@@ -79,9 +79,10 @@ const TABS = [
 
 const EMPTY_OPTIONS = { situation: [], relation: [], target: [], mood: [], format: [] };
 
-export default function GeneratePage() {
+function GeneratePageInner() {
   const router = useRouter();
   const theme = useTheme();
+  const searchParams = useSearchParams();
 
   // DB에서 불러온 선택지 (situation / relation / target / mood / format)
   const [options, setOptions] = useState(EMPTY_OPTIONS);
@@ -155,6 +156,22 @@ export default function GeneratePage() {
     setIsModalOpen(true);
   };
 
+  useEffect(() => {
+    const preset = searchParams.get("preset");
+    const format = searchParams.get("format");
+
+    if (preset) {
+      // 상황 칩도 함께 선택해 둡니다.
+      // 모달을 닫아도 조건이 남아 있어야 이어서 고를 수 있습니다.
+      setSelectedSituation(preset);
+
+      const template = TEMPLATES.find(item => item.id === preset);
+      if (template) handleCardClick(template);
+    }
+
+    if (format) setSelectedFormat(format);
+  }, [searchParams]);
+
   const handleSendTemplate = () => {
     if (!modalFormat) {
       alert("형식을 선택해주세요.");
@@ -187,18 +204,10 @@ export default function GeneratePage() {
 
   const labelOf = (category, code) => options[category]?.find(o => o.code === code)?.label ?? code;
 
+  const canGenerate = Boolean((selectedSituation || customInput.trim()) && selectedFormat);
+
   const handleGenerate = () => {
     const trimmedCustom = customInput.trim();
-
-    // 둘 다 비어있을 때만 경고
-    if (!selectedSituation && !trimmedCustom) {
-      alert("상황을 선택하거나 직접 입력해주세요.");
-      return;
-    }
-    if (!selectedFormat) {
-      alert("형식을 선택해주세요.");
-      return;
-    }
 
     // 1. 둘 다 있을 경우: "[선택상황] (상세 내용)" 형태로 통합
     // 2. 하나만 있을 경우: 해당 값 채택
@@ -289,12 +298,12 @@ export default function GeneratePage() {
               />
               <Box sx={styles.chipRow}>
                 {options.situation.map(item => {
-                  const isSelected = selectedSituation === item.code || selectedSituation === item.label;
+                  const isSelected = selectedSituation === item.code;
                   return (
                     <Chip
                       key={item.code}
                       label={item.label}
-                      onClick={() => setSelectedSituation(prev => (prev === item.label ? "" : item.label))}
+                      onClick={() => setSelectedSituation(prev => (prev === item.code ? "" : item.code))}
                       variant={isSelected ? "filled" : "outlined"}
                       color={isSelected ? "primary" : "default"}
                       sx={styles.chip}
@@ -419,11 +428,17 @@ export default function GeneratePage() {
               size="md"
               fullWidth
               onClick={handleGenerate}
+              disabled={!canGenerate}
               trailingIcon={<Box component="img" src="/assets/icons/bolt_icon.svg" alt="" sx={styles.icon24} />}
               sx={{ fontSize: "1rem" }}
             >
               AI 대화 생성하기
             </Button>
+            {!canGenerate && (
+              <Typography variant="caption" sx={{ mt: 1, display: "block", textAlign: "center" }}>
+                상황을 선택하거나 직접 입력하고, 형식을 선택해주세요.
+              </Typography>
+            )}
           </Paper>
 
           {/* 템플릿 클릭 시 형식/레벨 선택 모달 */}
@@ -508,5 +523,12 @@ export default function GeneratePage() {
       </Box>
       <Footer />
     </>
+  );
+}
+export default function GeneratePage() {
+  return (
+    <Suspense fallback={null}>
+      <GeneratePageInner />
+    </Suspense>
   );
 }

@@ -483,6 +483,16 @@ export default function MyPage() {
               <span>댓글</span>
             </button>
 
+            {userProfile.role === "관리자" && (
+              <Link href="/post/admin/reports" className="mypage-menuItem">
+                <ManageAccountsOutlinedIcon
+                  aria-hidden="true"
+                  fontSize="small"
+                />
+                <span>신고 관리</span>
+              </Link>
+            )}
+
             <button
               type="button"
               className="mypage-menuItem"
@@ -648,11 +658,7 @@ export default function MyPage() {
                     <h2 className="mypage-listTitle">내 AI 저장</h2>
                   </div>
                 </div>
-                <ContentCabinet
-                  contents={savedContents}
-                  embedded
-                  initialFilter="ALL"
-                />
+                <ContentCabinet contents={savedContents} />
               </>
             )}
           </section>

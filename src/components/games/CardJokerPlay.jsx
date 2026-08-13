@@ -8,7 +8,7 @@ import CardJokerResult from "./CardJokerResult";
 import Button from "@/components/ui/Button";
 import { createClient } from "@/utils/supabase/client";
 import { toContentLines } from "@/lib/contentFormats";
-import { cardFaceSx, cardRowSx, gameButtonSx, keepAllSx, playAreaSx } from "./styles";
+import { cardFaceSx, cardRowSx, gameButtonSx, headGroupSx, keepAllSx, playAreaSx } from "./styles";
 
 const CARD_COUNT = 4;
 
@@ -19,7 +19,7 @@ const jokerCardSx = {
   ...cardFaceSx,
   alignItems: "center",
   justifyContent: "space-between",
-  p: "18px",
+  p: { xs: "12px", lg: "18px" },
   border: 2,
   filter: "drop-shadow(0px 1px 1px rgba(0, 0, 0, 0.05))",
 };
@@ -31,15 +31,10 @@ const cardIconWrapSx = {
   flex: 1,
 };
 
-const cardIconSx = { width: 80, height: 80 };
+const cardIconSx = { width: { xs: 56, lg: 80 }, height: { xs: 56, lg: 80 } };
 
-const headGroupSx = {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  gap: 2,
-  width: "100%",
-};
+// 카드가 작아지면 상태 라벨도 함께 줄입니다.
+const cardStateLabelSx = { fontSize: { xs: 15, lg: 20 }, pb: { xs: 1, lg: 2 } };
 
 const penaltyBoxSx = {
   display: "flex",
@@ -47,7 +42,7 @@ const penaltyBoxSx = {
   alignItems: "center",
   gap: 0.5,
   maxWidth: 480,
-  px: 3,
+  px: { xs: 2, lg: 3 },
   py: 2,
   bgcolor: "momentalk.presetCard",
   borderRadius: "16px",
@@ -160,7 +155,7 @@ export default function CardJokerPlay() {
                 />
               </Box>
 
-              <Typography variant="h5" color={stateColor} sx={{ pb: 2 }}>
+              <Typography variant="h5" color={stateColor} sx={cardStateLabelSx}>
                 {isJoker ? "조커! 벌칙" : "세이프"}
               </Typography>
             </Box>

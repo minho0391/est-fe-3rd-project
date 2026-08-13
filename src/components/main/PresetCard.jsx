@@ -25,7 +25,13 @@ const cardSx = {
   },
 };
 
-const thumbWrapSx = { position: "relative", width: "100%", height: 272, overflow: "hidden" };
+// 피그마 기준 카드 높이: PC 272 / 모바일 154
+const thumbWrapSx = {
+  position: "relative",
+  width: "100%",
+  height: { xs: 154, lg: 272 },
+  overflow: "hidden",
+};
 
 const thumbSx = {
   position: "absolute",
@@ -41,7 +47,7 @@ const overlaySx = {
   inset: 0,
   display: "flex",
   alignItems: "flex-end",
-  p: 3,
+  p: { xs: 2, lg: 3 },
   background: "linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0))",
 };
 
@@ -51,7 +57,15 @@ export default function PresetCard({ label, image, href }) {
   return (
     <Box component={href ? Link : "article"} href={href} sx={cardSx}>
       <Box sx={thumbWrapSx}>
-        <Box component="img" src={image} alt="" sx={thumbSx} />
+        {/* 장식이 아니라 상황을 나타내는 콘텐츠 이미지라 alt 를 채웁니다. */}
+        <Box
+          component="img"
+          src={image}
+          alt={`${label} 분위기의 모임 사진`}
+          loading="lazy"
+          decoding="async"
+          sx={thumbSx}
+        />
       </Box>
 
       <Box sx={overlaySx}>

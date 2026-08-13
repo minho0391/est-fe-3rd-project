@@ -39,7 +39,11 @@ export async function generateGuide(payload) {
       /* body가 JSON이 아닐 수도 있음 */
     }
     console.error("generateGuide 실패:", { payload, status: error.context?.status, detail, error });
-    throw new Error(detail?.error ?? detail?.message ?? error.message ?? "대화 가이드 생성에 실패했습니다.");
+    // message 는 사용자에게 보여줄 한글 문구, error 는 기계용 코드다.
+    // 레이트리밋(429)처럼 안내 문구가 있는 응답은 그 문구를 그대로 쓴다.
+    throw new Error(
+      detail?.message ?? detail?.error ?? error.message ?? "대화 가이드 생성에 실패했습니다.",
+    );
   }
 
   return data;

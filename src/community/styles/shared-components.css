@@ -2,12 +2,6 @@
 Community 공용 컴포넌트
  - Cabinet / Drawer / Filter 등 여러 화면에서 재사용하는 스타일입니다.
 */
-.cabinet-drawerHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
 
 .cabinet-typeBadge {
   display: inline-flex;
@@ -20,29 +14,6 @@ Community 공용 컴포넌트
   color: var(--primary);
   font-size: 12px;
   font-weight: 800;
-}
-
-.cabinet-filterTabs {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 24px;
-}
-
-.cabinet-filterBtn {
-  min-height: 56px;
-  padding: 0 24px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--surface);
-  color: var(--ink-subtle);
-  font-weight: 700;
-}
-
-.cabinet-activeFilter {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary);
 }
 
 .cabinet-tagGroup {
@@ -65,50 +36,6 @@ Community 공용 컴포넌트
   font-weight: 700;
 }
 
-.cabinet-fetcherWrapper {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.cabinet-modalOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  padding: 24px;
-  background: rgba(23, 23, 28, 0.48);
-  display: grid;
-  place-items: center;
-}
-
-.cabinet-drawerCard {
-  width: min(100%, 800px);
-  max-height: calc(100vh - 48px);
-  overflow: auto;
-  padding: 32px;
-  border-radius: 16px;
-  background: var(--surface);
-  box-shadow: var(--shadow);
-}
-
-.cabinet-drawerTitle {
-  font-size: 24px;
-  line-height: 32px;
-}
-
-.cabinet-drawerSubtitle {
-  margin-top: 8px;
-  color: var(--ink-muted);
-}
-
-.cabinet-closeBtn {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-}
-
 .cabinet-contentList {
   margin-top: 24px;
   display: flex;
@@ -129,11 +56,6 @@ Community 공용 컴포넌트
   gap: 16px;
 }
 
-.cabinet-adminBadge {
-  background: #fff4e8;
-  color: #9a5b18;
-}
-
 .cabinet-itemTitle {
   margin-top: 24px;
   font-size: 18px;
@@ -145,4 +67,37 @@ Community 공용 컴포넌트
   color: var(--ink-subtle);
   line-height: 24px;
   white-space: pre-line;
+}
+
+/* ---------- 마이페이지 내 AI 저장 콘텐츠 ---------- */
+.cabinet-aiBadge {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.cabinet-embedded {
+  width: 100%;
+}
+
+.cabinet-embedded .cabinet-contentList {
+  margin-top: 0;
+  padding: 0 20px 20px;
+  gap: 12px;
+}
+
+.cabinet-embedded .cabinet-contentCard {
+  width: 100%;
+  background: var(--surface);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(35, 29, 75, 0.045);
+}
+
+.cabinet-emptyText {
+  margin: 0;
+  padding: 32px 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink-muted);
+  text-align: center;
 }

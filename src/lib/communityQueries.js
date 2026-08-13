@@ -86,6 +86,7 @@ const mapPost = (row, currentUserId = null) => {
     authorRole: profile?.role === "admin" ? "관리자" : "정회원",
     authorAvatarUrl: profile?.avatar_url ?? "",
     createdAt: toDateLabel(row.created_at),
+    createdAtTimestamp: row.created_at ? Date.parse(row.created_at) : 0,
     views: row.view_count ?? 0,
     likes: row.like_count ?? 0,
     commentsCount: row.comment_count ?? 0,
@@ -117,24 +118,38 @@ const withLikes = async rows => mapPosts(rows);
 
 /**
  * 최신순 비교 함수.
- * createdAt은 mapPost()에서 "YYYY.MM.DD" 형태로 정규화됩니다.
+ * 화면 표시용 createdAt(YYYY.MM.DD)이 아니라 DB created_at의 원본 시각을 우선 사용해
+ * 같은 날짜에 작성된 글도 실제 작성 시각 기준으로 정렬합니다.
  */
 export const compareCommunityPostCreatedAtDesc = (a, b) => {
-  const toTimestamp = value => {
+  const fallbackTimestamp = value => {
     const normalized = String(value ?? "")
       .trim()
       .replace(/\.+$/, "")
       .replaceAll(".", "-");
     const timestamp = Date.parse(normalized);
-
     return Number.isNaN(timestamp) ? 0 : timestamp;
   };
 
-  const dateDifference = toTimestamp(b?.createdAt) - toTimestamp(a?.createdAt);
+  const aTimestamp =
+    Number(a?.createdAtTimestamp) || fallbackTimestamp(a?.createdAt);
+  const bTimestamp =
+    Number(b?.createdAtTimestamp) || fallbackTimestamp(b?.createdAt);
 
-  return (
-    dateDifference || String(b?.id ?? "").localeCompare(String(a?.id ?? ""))
-  );
+  const dateDifference = bTimestamp - aTimestamp;
+
+  return dateDifference || Number(b?.id ?? 0) - Number(a?.id ?? 0);
+};
+
+/**
+ * TOP 3 공용 정렬 함수.
+ * 1차: 지정 metric(views / likes) 내림차순
+ * 2차: 동점이면 최신 글 우선
+ */
+export const compareCommunityPostMetricDesc = metric => (a, b) => {
+  const metricDifference = Number(b?.[metric] ?? 0) - Number(a?.[metric] ?? 0);
+
+  return metricDifference || compareCommunityPostCreatedAtDesc(a, b);
 };
 
 /** 공지 포함 전체 게시글 (최신순) */
@@ -379,11 +394,8 @@ export const getCommunityBoards = async () => {
 };
 
 /**
- * 마이페이지 보관함 목록.
- *
- * 내가 저장한 AI 생성물(saved_contents)과
- * 운영진이 등록한 기본 콘텐츠(default_contents)를 합쳐서 돌려줍니다.
- * 화면의 필터는 type 값("AI" / "ADMIN")으로 구분합니다.
+ * 내 AI 저장 콘텐츠 목록.
+ * 사용자가 직접 저장한 saved_contents만 반환합니다.
  */
 export const getSavedContents = async () => {
   const db = supabase();
@@ -391,29 +403,19 @@ export const getSavedContents = async () => {
     data: { user },
   } = await db.auth.getUser();
 
-  // 운영진 콘텐츠는 로그인 여부와 무관하게 보여줍니다.
-  const [savedResult, defaultResult] = await Promise.all([
-    user
-      ? db
-          .from("saved_contents")
-          .select(
-            "id, format_code, title, scripts, tips, extras, conditions, memo, created_at",
-          )
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
-      : Promise.resolve({ data: [], error: null }),
-    db
-      .from("default_contents")
-      .select("id, format_code, title, scripts, tips, situation_codes")
-      .eq("is_active", true)
-      .order("weight", { ascending: false })
-      .limit(50),
-  ]);
+  const savedResult = user
+    ? await db
+        .from("saved_contents")
+        .select(
+          "id, format_code, title, scripts, tips, extras, conditions, memo, created_at",
+        )
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+    : { data: [], error: null };
 
   throwQueryError("보관함 조회 실패", savedResult.error);
-  throwQueryError("기본 콘텐츠 조회 실패", defaultResult.error);
 
-  const savedItems = (savedResult.data ?? []).map(s => ({
+  return (savedResult.data ?? []).map(s => ({
     id: `saved-${s.id}`,
     type: "AI",
     badge: "AI 생성",
@@ -423,19 +425,109 @@ export const getSavedContents = async () => {
     memo: s.memo,
     createdAt: toDateLabel(s.created_at),
   }));
+};
 
-  const defaultItems = (defaultResult.data ?? []).map(d => ({
-    id: `default-${d.id}`,
-    type: "ADMIN",
-    badge: "운영진",
-    title: d.title,
-    content: (d.scripts ?? []).join("\n"),
-    tags: [d.situation_codes?.[0], d.format_code].filter(Boolean),
-    memo: null,
-    createdAt: "",
-  }));
+/**
+ * 운영진 신고 목록.
+ * community_reports 자체는 RLS가 관리자 여부를 최종 검증합니다.
+ * 대상 게시글/댓글과 신고자 닉네임은 화면 표시용으로 별도 조회해 결합합니다.
+ */
+export const getCommunityReportsForAdmin = async () => {
+  const db = supabase();
+  const me = await getCurrentCommunityUser();
 
-  return [...savedItems, ...defaultItems];
+  if (!me || me.role !== "관리자") {
+    throw new Error("관리자만 신고 내역을 확인할 수 있습니다.");
+  }
+
+  const { data: reports, error: reportError } = await db
+    .from("community_reports")
+    .select(
+      "id, reporter_id, target_type, target_id, reason, status, moderation_action, reviewer_id, review_note, reviewed_at, created_at, updated_at",
+    )
+    .order("created_at", { ascending: false });
+
+  throwQueryError("신고 목록 조회 실패", reportError);
+
+  const rows = reports ?? [];
+  if (rows.length === 0) return [];
+
+  const reporterIds = [
+    ...new Set(rows.map(row => row.reporter_id).filter(Boolean)),
+  ];
+  const postIds = [
+    ...new Set(
+      rows.filter(row => row.target_type === "post").map(row => row.target_id),
+    ),
+  ];
+  const commentIds = [
+    ...new Set(
+      rows
+        .filter(row => row.target_type === "comment")
+        .map(row => row.target_id),
+    ),
+  ];
+
+  const [profileResult, postResult, commentResult] = await Promise.all([
+    reporterIds.length
+      ? db.from("profiles").select("id, nickname").in("id", reporterIds)
+      : Promise.resolve({ data: [], error: null }),
+    postIds.length
+      ? db.from("posts").select("id, title").in("id", postIds)
+      : Promise.resolve({ data: [], error: null }),
+    commentIds.length
+      ? db.from("comments").select("id, post_id, content").in("id", commentIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  throwQueryError("신고자 정보 조회 실패", profileResult.error);
+  throwQueryError("신고 게시글 조회 실패", postResult.error);
+  throwQueryError("신고 댓글 조회 실패", commentResult.error);
+
+  const profilesById = new Map(
+    (profileResult.data ?? []).map(profile => [profile.id, profile]),
+  );
+  const postsById = new Map(
+    (postResult.data ?? []).map(post => [String(post.id), post]),
+  );
+  const commentsById = new Map(
+    (commentResult.data ?? []).map(comment => [String(comment.id), comment]),
+  );
+
+  return rows.map(row => {
+    const targetId = String(row.target_id);
+    const post = row.target_type === "post" ? postsById.get(targetId) : null;
+    const comment =
+      row.target_type === "comment" ? commentsById.get(targetId) : null;
+
+    return {
+      id: row.id,
+      reporterId: row.reporter_id,
+      reporterName: profilesById.get(row.reporter_id)?.nickname ?? "사용자",
+      targetType: row.target_type,
+      targetId: row.target_id,
+      targetExists:
+        row.target_type === "post" ? Boolean(post) : Boolean(comment),
+      targetPostId:
+        row.target_type === "post"
+          ? post
+            ? row.target_id
+            : null
+          : (comment?.post_id ?? null),
+      targetLabel:
+        row.target_type === "post"
+          ? (post?.title ?? `삭제된 게시글 #${targetId}`)
+          : (comment?.content ?? `삭제된 댓글 #${targetId}`),
+      reason: row.reason,
+      status: row.status,
+      moderationAction: row.moderation_action,
+      reviewerId: row.reviewer_id,
+      reviewNote: row.review_note ?? "",
+      reviewedAt: row.reviewed_at,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
+  });
 };
 
 /** 좋아요 토글 */

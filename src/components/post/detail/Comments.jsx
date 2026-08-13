@@ -1,7 +1,7 @@
 // [댓글 영역] (댓글 목록 및 입력창)
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import {
@@ -12,6 +12,7 @@ import {
 import {
   createComment,
   deleteComment,
+  submitCommunityReport,
   toggleCommentLike,
   updateComment,
 } from "@/lib/communityMutations";
@@ -36,9 +37,42 @@ export default function CommentSection({
   const [editingId, setEditingId] = useState(null);
   const [editInput, setEditInput] = useState("");
   const [openMenu, setOpenMenu] = useState(null);
+  const openMenuRef = useRef(null);
+  const menuOwnerId = "comments-more";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionError, setActionError] = useState("");
   useEffect(() => setComments(initialComments), [initialComments]);
+
+  // 게시글/다른 댓글의 더보기 메뉴가 열리면 현재 댓글 메뉴를 닫습니다.
+  useEffect(() => {
+    const handleOtherMenuOpen = event => {
+      if (event.detail?.ownerId !== menuOwnerId) {
+        setOpenMenu(null);
+      }
+    };
+
+    window.addEventListener("community:more-menu-open", handleOtherMenuOpen);
+    return () =>
+      window.removeEventListener(
+        "community:more-menu-open",
+        handleOtherMenuOpen,
+      );
+  }, []);
+
+  // 댓글 메뉴 바깥 영역을 클릭하면 열린 메뉴를 닫습니다.
+  useEffect(() => {
+    if (openMenu == null) return undefined;
+
+    const handlePointerDown = event => {
+      if (openMenuRef.current && !openMenuRef.current.contains(event.target)) {
+        setOpenMenu(null);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [openMenu]);
+
   const redirect = () => router.push(buildLoginUrl(returnUrl));
   // 댓글 수는 최상위 댓글 + 답글을 모두 포함한 active 댓글 수로 통일합니다.
   const totalCommentCount = comments.length;
@@ -148,12 +182,25 @@ export default function CommentSection({
               <span className="comments-authorName">{c.author}</span>
               <span className="comments-date">{c.createdAt}</span>
             </div>
-            <div className="community-moreWrap">
+            <div
+              className="community-moreWrap"
+              ref={openMenu === c.id ? openMenuRef : null}
+            >
               <button
                 type="button"
                 className="community-moreButton community-moreButtonSmall"
                 aria-label="댓글 더보기"
-                onClick={() => setOpenMenu(openMenu === c.id ? null : c.id)}
+                onClick={() => {
+                  const nextOpen = openMenu === c.id ? null : c.id;
+                  setOpenMenu(nextOpen);
+                  if (nextOpen != null) {
+                    window.dispatchEvent(
+                      new CustomEvent("community:more-menu-open", {
+                        detail: { ownerId: menuOwnerId },
+                      }),
+                    );
+                  }
+                }}
               >
                 ⋮
               </button>
@@ -183,9 +230,32 @@ export default function CommentSection({
                   {!own && !postOwner && (
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={async () => {
                         setOpenMenu(null);
-                        window.alert("신고 기능은 준비 중입니다.");
+                        if (!currentUser) {
+                          redirect();
+                          return;
+                        }
+
+                        const reason = window.prompt(
+                          "신고 사유를 입력해 주세요. (2~300자)",
+                        );
+                        if (reason == null) return;
+
+                        try {
+                          await submitCommunityReport({
+                            targetType: "comment",
+                            targetId: c.id,
+                            reason,
+                          });
+                          window.alert(
+                            "신고가 접수되었습니다. 운영진 검토 후 필요한 조치를 진행합니다.",
+                          );
+                        } catch (error) {
+                          setActionError(
+                            error?.message || "신고 접수에 실패했습니다.",
+                          );
+                        }
                       }}
                     >
                       신고하기

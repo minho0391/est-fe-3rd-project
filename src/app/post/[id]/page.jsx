@@ -203,6 +203,8 @@ export default function PostDetailPage() {
         )}
         isDeletePending={isDeletePending}
         onDelete={handleDeletePost}
+        currentUser={currentUser}
+        returnUrl={pathname}
       />
 
       {deleteError && (

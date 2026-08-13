@@ -8,7 +8,7 @@ import Footer from "@/components/layout/Footer";
 import QuizSetup from "./QuizSetup";
 import QuizPlay from "./QuizPlay";
 import QuizAnswer from "./QuizAnswer";
-import { layout } from "@/lib/layout";
+import { gameContentSx, gamePageSx } from "./styles";
 
 export default function ChosungQuiz() {
   const router = useRouter();
@@ -38,19 +38,8 @@ export default function ChosungQuiz() {
     <Box sx={{ display: "flex", flexDirection: "column", width: "100%", flex: 1 }}>
       <GameHeader title="초성 퀴즈" onBack={handleBack} />
 
-      <Box
-        component="main"
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          flex: 1,
-          width: "100%",
-          px: `${layout.gutter}px`,
-          py: 6,
-        }}
-      >
-        <Box sx={{ width: "100%", maxWidth: `${layout.maxWidth}px` }}>
+      <Box component="main" sx={{ ...gamePageSx, py: { xs: 4, lg: 6 } }}>
+        <Box sx={gameContentSx}>
           {step === "setup" && <QuizSetup onSubmit={handleSubmit} />}
           {step === "play" && <QuizPlay quiz={quiz} onReveal={handleReveal} />}
           {step === "answer" && <QuizAnswer quiz={quiz} onNext={handleNext} />}

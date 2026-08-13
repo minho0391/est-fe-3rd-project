@@ -39,6 +39,14 @@ type ResultItem = {
   extras: Record<string, unknown>;
 };
 
+// check_generation_rate_limit RPC 반환값
+type RateLimitResult = {
+  allowed: boolean;
+  reason?: string;
+  message?: string;
+  retryAfterSeconds?: number;
+};
+
 // 형식별 출력 규칙
 const FORMAT_RULE: Record<string, string> = {
   question: "각 결과는 질문 1개. scripts에 질문 1개만 넣어.",
@@ -88,10 +96,14 @@ const BANNED_BY_SITUATION: Record<string, string> = {
 const BANNED_DEFAULT = "정치, 종교, 외모 평가, 사생활 추궁";
 
 // JSON 응답 함수 만들기
-function jsonResponse(body: unknown, status = 200) {
+function jsonResponse(
+  body: unknown,
+  status = 200,
+  extraHeaders: Record<string, string> = {},
+) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...extraHeaders },
   });
 }
 
@@ -99,360 +111,404 @@ export default {
   // "user"를 먼저 시도해 로그인 요청은 사용자 스코프로, 실패하면(=JWT 없음)
   // "publishable"로 넘어가 비로그인 요청도 그대로 받는다. (verify_jwt = false는
   // publishable을 쓰는 한 그대로 유지해야 한다. config.toml 참고)
-  fetch: withSupabase({ auth: ["user", "publishable"] }, async function handleGenerateRequest(req, ctx) {
-    // 1. CORS 사전 요청 처리
-    // withSupabase가 OPTIONS 요청과 CORS 헤더를 자동으로 처리
+  fetch: withSupabase(
+    { auth: ["user", "publishable"] },
+    async function handleGenerateRequest(req, ctx) {
+      // 1. CORS 사전 요청 처리
+      // withSupabase가 OPTIONS 요청과 CORS 헤더를 자동으로 처리
 
-    // 2. POST 요청인지 확인
-    if (req.method !== "POST") {
-      return jsonResponse({ error: "method_not_allowed" }, 405);
-    }
+      // 2. POST 요청인지 확인
+      if (req.method !== "POST") {
+        return jsonResponse({ error: "method_not_allowed" }, 405);
+      }
 
-    // 3. 필수 환경변수 확인
-    if (!ALAN_CLIENT_ID) {
-      return jsonResponse({ error: "missing_environment_variable" }, 500);
-    }
+      // 3. 필수 환경변수 확인
+      if (!ALAN_CLIENT_ID) {
+        return jsonResponse({ error: "missing_environment_variable" }, 500);
+      }
 
-    // 4. 요청 본문에서 생성 조건 가져오기
-    const body = await req.json().catch(() => ({}));
-    const preset_code = body?.preset_code?.trim();
-    const format_code = body?.format_code?.trim();
-    const level = [1, 2, 3].includes(Number(body?.level))
-      ? Number(body.level)
-      : 1;
-    const inputConditions: Conditions = body?.conditions ?? {};
-    const overrides: Conditions = body?.overrides ?? {};
+      // 4. 요청 본문에서 생성 조건 가져오기
+      const body = await req.json().catch(() => ({}));
+      const preset_code = body?.preset_code?.trim();
+      const format_code = body?.format_code?.trim();
+      const level = [1, 2, 3].includes(Number(body?.level))
+        ? Number(body.level)
+        : 1;
+      const inputConditions: Conditions = body?.conditions ?? {};
+      const overrides: Conditions = body?.overrides ?? {};
 
-    // 5. 입력값 검증
-    if (!format_code) {
-      return jsonResponse(
-        { error: "invalid_request", detail: "format_code는 필수입니다" },
-        400,
-      );
-    }
-    if (!FORMAT_RULE[format_code]) {
-      return jsonResponse(
-        {
-          error: "invalid_format",
-          detail: `지원하지 않는 형식입니다: ${format_code}`,
-        },
-        400,
-      );
-    }
-    if (!preset_code && !inputConditions.situation) {
-      return jsonResponse(
-        {
-          error: "invalid_request",
-          detail: "preset_code 또는 conditions.situation 중 하나는 필수입니다",
-        },
-        400,
-      );
-    }
+      // 5. 입력값 검증
+      if (!format_code) {
+        return jsonResponse(
+          { error: "invalid_request", detail: "format_code는 필수입니다" },
+          400,
+        );
+      }
+      if (!FORMAT_RULE[format_code]) {
+        return jsonResponse(
+          {
+            error: "invalid_format",
+            detail: `지원하지 않는 형식입니다: ${format_code}`,
+          },
+          400,
+        );
+      }
+      if (!preset_code && !inputConditions.situation) {
+        return jsonResponse(
+          {
+            error: "invalid_request",
+            detail:
+              "preset_code 또는 conditions.situation 중 하나는 필수입니다",
+          },
+          400,
+        );
+      }
 
-    // 6. Supabase 클라이언트 가져오기.
-    //    auth: ["user", "publishable"] 이라 로그인 요청은 ctx.supabase가 이미
-    //    해당 사용자로 RLS 스코프되어 있고(auth: "user" 매칭), 비로그인 요청은
-    //    익명 클라이언트(auth: "publishable" 매칭)가 된다. 따로 Authorization
-    //    헤더를 파싱해 별도 클라이언트를 만들 필요가 없다.
-    //    (예전엔 SUPABASE_ANON_KEY를 직접 읽어 별도 클라이언트를 만들었는데, 새 API 키
-    //    체계에서는 이 값이 더 이상 자동 주입되지 않아 항상 로그인 판정에 실패했다.)
-    const db = ctx.supabase;
+      // 6. Supabase 클라이언트 가져오기.
+      //    auth: ["user", "publishable"] 이라 로그인 요청은 ctx.supabase가 이미
+      //    해당 사용자로 RLS 스코프되어 있고(auth: "user" 매칭), 비로그인 요청은
+      //    익명 클라이언트(auth: "publishable" 매칭)가 된다. 따로 Authorization
+      //    헤더를 파싱해 별도 클라이언트를 만들 필요가 없다.
+      //    (예전엔 SUPABASE_ANON_KEY를 직접 읽어 별도 클라이언트를 만들었는데, 새 API 키
+      //    체계에서는 이 값이 더 이상 자동 주입되지 않아 항상 로그인 판정에 실패했다.)
+      const db = ctx.supabase;
 
-    // 6-2. 응답 시간 측정 시작
-    const startedAt = Date.now();
+      // 6-2. 응답 시간 측정 시작
+      const startedAt = Date.now();
 
-    // 7. 폴백 조회 함수 (AI 실패 시 사용)
-    //    조건 조합은 252가지라 형식·레벨 기준으로만 조회한다.
-    //    폴백은 화면 유지가 목적이므로 조건까지 맞추지 않는다.
-    async function getFallback(): Promise<ResultItem[]> {
-      const { data } = (await db
-        .from("default_contents")
-        .select("title, scripts, tips, extras, level")
-        .eq("is_active", true)
-        .eq("format_code", format_code)
-        .limit(120)) as { data: ContentRow[] | null };
+      // 6-3. 앨런 호출 레이트리밋 (기본 분당 5건 / 하루 50건)
+      //      RPC가 auth.uid()로 판단하므로 비로그인 요청은 항상 통과한다.
+      //      브라우저가 아니라 여기서 확인해야 우회할 수 없다.
+      //      앨런을 부르기 전에 막아야 의미가 있어 조건 조회보다 앞에 둔다.
+      //      제한 확인 자체가 실패한 경우에는 생성을 막지 않는다.
 
-      if (!data?.length) return [];
+      const { data: rateLimit, error: rateLimitError } = (await db.rpc(
+        "check_generation_rate_limit",
+      )) as { data: RateLimitResult | null; error: unknown };
 
-      // 요청 레벨에 가까운 순 → 같은 거리끼리는 무작위 → 3개
-      return data
-        .map((row) => ({
-          row,
-          gap: Math.abs((row.level ?? 1) - level),
-          rnd: Math.random(),
-        }))
-        .sort((a, b) => a.gap - b.gap || a.rnd - b.rnd)
-        .slice(0, 3)
-        .map(({ row }) => {
-          const { note: _note, ...extras } = row.extras ?? {};
+      if (rateLimitError) {
+        console.log("레이트리밋 확인 실패:", rateLimitError);
+      } else if (rateLimit && rateLimit.allowed === false) {
+        // 하루 한도는 재시도 시간이 없어 헤더를 붙이지 않는다.
+        const retryAfter = rateLimit.retryAfterSeconds ?? null;
+
+        return jsonResponse(
+          {
+            error: "rate_limited",
+            message: rateLimit.message ??
+              "요청이 너무 잦습니다. 잠시 후 다시 시도해 주세요.",
+            reason: rateLimit.reason ?? null,
+            retryAfterSeconds: retryAfter,
+          },
+          429,
+          retryAfter ? { "Retry-After": String(retryAfter) } : {},
+        );
+      }
+
+      // 7. 폴백 조회 함수 (AI 실패 시 사용)
+      //    조건 조합은 252가지라 형식·레벨 기준으로만 조회한다.
+      //    폴백은 화면 유지가 목적이므로 조건까지 맞추지 않는다.
+      async function getFallback(): Promise<ResultItem[]> {
+        const { data } = (await db
+          .from("default_contents")
+          .select("title, scripts, tips, extras, level")
+          .eq("is_active", true)
+          .eq("format_code", format_code)
+          .limit(120)) as { data: ContentRow[] | null };
+
+        if (!data?.length) return [];
+
+        // 요청 레벨에 가까운 순 → 같은 거리끼리는 무작위 → 3개
+        return data
+          .map((row) => ({
+            row,
+            gap: Math.abs((row.level ?? 1) - level),
+            rnd: Math.random(),
+          }))
+          .sort((a, b) => a.gap - b.gap || a.rnd - b.rnd)
+          .slice(0, 3)
+          .map(({ row }) => {
+            const { note: _note, ...extras } = row.extras ?? {};
+            return {
+              title: row.title,
+              scripts: row.scripts,
+              tips: row.tips ?? [],
+              extras,
+            };
+          });
+      }
+
+      // 7-1. 생성 이력 저장 (로그인/비로그인 모두, 실패해도 화면은 유지)
+      //      비로그인 사용자는 user_id: null 로 저장한다. 이렇게 해야 결과 페이지가
+      //      항상 ?id= 로 새로고침에 안전하게 열리고, 나중에 로그인하면 이 행의
+      //      user_id를 그 사용자로 바꿔치기(claim)만 하면 되어 재생성이 필요 없다.
+      //      generationId / 결과별 item id를 함께 돌려줘야 프론트의
+      //      "가이드 저장하기"(saveGenerationItem)가 쓸 id를 가질 수 있다.
+      //      [주의] 폴백으로 나간 경우에도 여기서 행이 남으므로 레이트리밋 횟수에 포함된다.
+      type SaveResult = {
+        saved: boolean;
+        generationId: number | null;
+        itemIds: (number | null)[];
+      };
+
+      async function saveGeneration(params: {
+        presetId: number | null;
+        conditions: Record<string, unknown>;
+        source: string;
+        errorCode: string | null;
+        results: ResultItem[];
+      }): Promise<SaveResult> {
+        const empty: SaveResult = {
+          saved: false,
+          generationId: null,
+          itemIds: [],
+        };
+
+        try {
+          const { data: { user } } = await db.auth.getUser();
+
+          const { data: gen, error: genError } = await db
+            .from("generations")
+            .insert({
+              user_id: user?.id ?? null,
+              preset_id: params.presetId,
+              format_code,
+              conditions: params.conditions,
+              status: params.results.length > 0 ? "succeeded" : "failed",
+              source: params.source,
+              model: params.source === "ai" ? "alan" : null,
+              error_code: params.errorCode,
+              latency_ms: Date.now() - startedAt,
+            })
+            .select("id")
+            .single();
+
+          if (genError || !gen) {
+            console.log("generations insert 실패:", genError);
+            return empty;
+          }
+
+          if (params.results.length === 0) {
+            return { saved: true, generationId: gen.id, itemIds: [] };
+          }
+
+          const items = params.results.slice(0, 3).map((r, i) => ({
+            generation_id: gen.id,
+            position: i + 1,
+            title: r.title ?? "",
+            scripts: r.scripts ?? [],
+            tips: r.tips ?? [],
+            extras: r.extras ?? {},
+          }));
+
+          const { data: savedItems, error: itemError } = await db
+            .from("generation_items")
+            .insert(items)
+            .select("id, position")
+            .order("position");
+
+          if (itemError) {
+            console.log("generation_items insert 실패:", itemError);
+            return { saved: false, generationId: gen.id, itemIds: [] };
+          }
+
           return {
-            title: row.title,
-            scripts: row.scripts,
-            tips: row.tips ?? [],
-            extras,
+            saved: true,
+            generationId: gen.id,
+            itemIds: (savedItems ?? []).map((row) => row.id),
           };
-        });
-    }
-
-    // 7-1. 생성 이력 저장 (로그인/비로그인 모두, 실패해도 화면은 유지)
-    //      비로그인 사용자는 user_id: null 로 저장한다. 이렇게 해야 결과 페이지가
-    //      항상 ?id= 로 새로고침에 안전하게 열리고, 나중에 로그인하면 이 행의
-    //      user_id를 그 사용자로 바꿔치기(claim)만 하면 되어 재생성이 필요 없다.
-    //      generationId / 결과별 item id를 함께 돌려줘야 프론트의
-    //      "가이드 저장하기"(saveGenerationItem)가 쓸 id를 가질 수 있다.
-    type SaveResult = {
-      saved: boolean;
-      generationId: number | null;
-      itemIds: (number | null)[];
-    };
-
-    async function saveGeneration(params: {
-      presetId: number | null;
-      conditions: Record<string, unknown>;
-      source: string;
-      errorCode: string | null;
-      results: ResultItem[];
-    }): Promise<SaveResult> {
-      const empty: SaveResult = { saved: false, generationId: null, itemIds: [] };
-
-      try {
-        const { data: { user } } = await db.auth.getUser();
-
-        const { data: gen, error: genError } = await db
-          .from("generations")
-          .insert({
-            user_id: user?.id ?? null,
-            preset_id: params.presetId,
-            format_code,
-            conditions: params.conditions,
-            status: params.results.length > 0 ? "succeeded" : "failed",
-            source: params.source,
-            model: params.source === "ai" ? "alan" : null,
-            error_code: params.errorCode,
-            latency_ms: Date.now() - startedAt,
-          })
-          .select("id")
-          .single();
-
-        if (genError || !gen) {
-          console.log("generations insert 실패:", genError);
+        } catch (e) {
+          console.log("saveGeneration 예외:", e);
           return empty;
         }
+      }
 
-        if (params.results.length === 0) {
-          return { saved: true, generationId: gen.id, itemIds: [] };
+      try {
+        // 8. 조건 확정
+        //    프리셋을 보냈으면 프리셋 조건을 기본값으로 쓰고 overrides로 덮는다.
+        //    프리셋 없이 conditions만 보냈으면 그대로 쓴다.
+        let presetId: number | null = null;
+        let presetTitle = "";
+        let cond: Conditions;
+
+        if (preset_code) {
+          const { data: preset } = (await db
+            .from("presets")
+            .select("id, title, conditions")
+            .eq("code", preset_code)
+            .eq("is_active", true)
+            .single()) as { data: PresetRow | null };
+
+          if (!preset) {
+            return jsonResponse(
+              {
+                error: "preset_not_found",
+                detail: `없는 프리셋입니다: ${preset_code}`,
+              },
+              400,
+            );
+          }
+
+          presetId = preset.id;
+          presetTitle = preset.title;
+          cond = { ...(preset.conditions ?? {}), ...overrides };
+        } else {
+          cond = { ...inputConditions };
         }
 
-        const items = params.results.slice(0, 3).map((r, i) => ({
-          generation_id: gen.id,
-          position: i + 1,
-          title: r.title ?? "",
-          scripts: r.scripts ?? [],
-          tips: r.tips ?? [],
-          extras: r.extras ?? {},
-        }));
+        // 9. 조건 코드를 한글 라벨로 변환
+        const { data: options } = (await db
+          .from("options")
+          .select("category, code, label")) as { data: OptionRow[] | null };
 
-        const { data: savedItems, error: itemError } = await db
-          .from("generation_items")
-          .insert(items)
-          .select("id, position")
-          .order("position");
+        const labelOf = (category: string, code?: string) =>
+          options?.find((o) => o.category === category && o.code === code)
+            ?.label ?? null;
 
-        if (itemError) {
-          console.log("generation_items insert 실패:", itemError);
-          return { saved: false, generationId: gen.id, itemIds: [] };
-        }
+        const situation = labelOf("situation", cond.situation) ?? presetTitle ??
+          "커스텀";
+        const relation = labelOf("relation", cond.relation);
+        const target = labelOf("target", cond.target);
+        const mood = labelOf("mood", cond.mood);
+        const formatLabel = labelOf("format", format_code) ?? format_code;
 
-        return {
-          saved: true,
-          generationId: gen.id,
-          itemIds: (savedItems ?? []).map((row) => row.id),
+        // 저장에 함께 남길 조건 스냅샷
+        const snapshot = { ...cond, level };
+
+        // 폴백 응답 + 저장을 한 번에 처리
+        const fallbackResponse = async (reason: string, extra = {}) => {
+          const results = await getFallback();
+          const { saved, generationId, itemIds } = await saveGeneration({
+            presetId,
+            conditions: snapshot,
+            source: "fallback",
+            errorCode: reason,
+            results,
+          });
+          const resultsWithId = results.map((r, i) => ({
+            ...r,
+            id: itemIds[i] ?? null,
+          }));
+          return jsonResponse({
+            source: "fallback",
+            reason,
+            saved,
+            generationId,
+            meta: { situation, format: formatLabel, level, mood },
+            results: resultsWithId,
+            ...extra,
+          });
         };
-      } catch (e) {
-        console.log("saveGeneration 예외:", e);
-        return empty;
-      }
-    }
 
-    try {
-      // 8. 조건 확정
-      //    프리셋을 보냈으면 프리셋 조건을 기본값으로 쓰고 overrides로 덮는다.
-      //    프리셋 없이 conditions만 보냈으면 그대로 쓴다.
-      let presetId: number | null = null;
-      let presetTitle = "";
-      let cond: Conditions;
+        // 10. 앨런 이전 대화 상태 초기화
+        await fetch(`${ALAN_BASE}/reset-state`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ client_id: ALAN_CLIENT_ID }),
+        });
 
-      if (preset_code) {
-        const { data: preset } = (await db
-          .from("presets")
-          .select("id, title, conditions")
-          .eq("code", preset_code)
-          .eq("is_active", true)
-          .single()) as { data: PresetRow | null };
+        // 11. 조건으로 프롬프트 조립
+        const who = [relation, target].filter(Boolean).join(" · ");
+        const banned = BANNED_BY_SITUATION[cond.situation ?? ""] ??
+          BANNED_DEFAULT;
 
-        if (!preset) {
-          return jsonResponse(
-            {
-              error: "preset_not_found",
-              detail: `없는 프리셋입니다: ${preset_code}`,
-            },
-            400,
-          );
+        const prompt = [
+          `${situation} 상황에서 ${
+            who ? who + "와 " : ""
+          }함께할 ${formatLabel} 3개를 만들어줘.`,
+          mood ? `분위기는 ${mood}.` : "",
+          `깊이는 ${LEVEL_RULE[level]}.`,
+          FORMAT_RULE[format_code],
+          "검색하지 말고 직접 창작해. 출처나 링크 붙이지 마.",
+          "별표나 마크다운 문법 쓰지 말고 순수 텍스트로만 써.",
+          "위 지시 내용을 결과 문장에 그대로 옮겨 적지 마.",
+          "아래 JSON 형식만 출력. 설명이나 인사말 금지.",
+          `{"results":[{"title":"주제","scripts":["내용"],"tips":["팁1","팁2"],"extras":{}}]}`,
+          format_code === "penalty"
+            ? "results는 3개."
+            : "results는 3개, 각 tips는 2개.",
+          `금지 소재: ${banned}`,
+        ].filter(Boolean).join("\n");
+
+        // 12. 앨런 AI로 대화 소재 생성
+        const alanResponse = await fetch(
+          `${ALAN_BASE}/question?content=${encodeURIComponent(prompt)}` +
+            `&client_id=${ALAN_CLIENT_ID}`,
+        );
+
+        // 13. 앨런 호출 오류 확인
+        if (!alanResponse.ok) {
+          return await fallbackResponse("alan_request_failed", {
+            status: alanResponse.status,
+          });
         }
 
-        presetId = preset.id;
-        presetTitle = preset.title;
-        cond = { ...(preset.conditions ?? {}), ...overrides };
-      } else {
-        cond = { ...inputConditions };
-      }
+        const alanJson = await alanResponse.json();
+        const answer: string = alanJson?.answer ?? "";
 
-      // 9. 조건 코드를 한글 라벨로 변환
-      const { data: options } = (await db
-        .from("options")
-        .select("category, code, label")) as { data: OptionRow[] | null };
+        // 14. 응답에서 JSON 부분만 추출
+        const match = answer.match(/\{[\s\S]*\}/);
+        if (!match) {
+          return await fallbackResponse("alan_json_not_found");
+        }
 
-      const labelOf = (category: string, code?: string) =>
-        options?.find((o) => o.category === category && o.code === code)
-          ?.label ?? null;
+        // 15. JSON 파싱 오류 확인
+        let parsed;
+        try {
+          parsed = JSON.parse(match[0]);
+        } catch {
+          return await fallbackResponse("alan_json_parse_failed");
+        }
 
-      const situation = labelOf("situation", cond.situation) ?? presetTitle ??
-        "모임";
-      const relation = labelOf("relation", cond.relation);
-      const target = labelOf("target", cond.target);
-      const mood = labelOf("mood", cond.mood);
-      const formatLabel = labelOf("format", format_code) ?? format_code;
+        // 16. 결과 개수 검증
+        const results: ResultItem[] = Array.isArray(parsed?.results)
+          ? parsed.results
+          : [];
+        if (results.length === 0) {
+          return await fallbackResponse("alan_empty_results");
+        }
+        // 16-1. 마크다운 강조 제거 (AI가 종종 별표를 붙임)
+        const strip = (s: string) =>
+          typeof s === "string"
+            ? s.replace(/\*\*(.+?)\*\*/g, "$1").replace(/\*/g, "")
+            : s;
 
-      // 저장에 함께 남길 조건 스냅샷
-      const snapshot = { ...cond, level };
+        results.forEach((r) => {
+          r.title = strip(r.title);
+          r.scripts = (r.scripts ?? []).map(strip);
+          r.tips = (r.tips ?? []).map(strip);
+        });
 
-      // 폴백 응답 + 저장을 한 번에 처리
-      const fallbackResponse = async (reason: string, extra = {}) => {
-        const results = await getFallback();
+        // 17. 생성 이력 저장 후 결과 반환
         const { saved, generationId, itemIds } = await saveGeneration({
           presetId,
           conditions: snapshot,
-          source: "fallback",
-          errorCode: reason,
+          source: "ai",
+          errorCode: null,
           results,
         });
-        const resultsWithId = results.map((r, i) => ({ ...r, id: itemIds[i] ?? null }));
+        const resultsWithId = results.map((r, i) => ({
+          ...r,
+          id: itemIds[i] ?? null,
+        }));
+
         return jsonResponse({
-          source: "fallback",
-          reason,
+          source: "ai",
           saved,
           generationId,
           meta: { situation, format: formatLabel, level, mood },
           results: resultsWithId,
-          ...extra,
         });
-      };
-
-      // 10. 앨런 이전 대화 상태 초기화
-      await fetch(`${ALAN_BASE}/reset-state`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ client_id: ALAN_CLIENT_ID }),
-      });
-
-      // 11. 조건으로 프롬프트 조립
-      const who = [relation, target].filter(Boolean).join(" · ");
-      const banned = BANNED_BY_SITUATION[cond.situation ?? ""] ??
-        BANNED_DEFAULT;
-
-      const prompt = [
-        `${situation} 상황에서 ${
-          who ? who + "와 " : ""
-        }함께할 ${formatLabel} 3개를 만들어줘.`,
-        mood ? `분위기는 ${mood}.` : "",
-        `깊이는 ${LEVEL_RULE[level]}.`,
-        FORMAT_RULE[format_code],
-        "검색하지 말고 직접 창작해. 출처나 링크 붙이지 마.",
-        "별표나 마크다운 문법 쓰지 말고 순수 텍스트로만 써.",
-        "위 지시 내용을 결과 문장에 그대로 옮겨 적지 마.",
-        "아래 JSON 형식만 출력. 설명이나 인사말 금지.",
-        `{"results":[{"title":"주제","scripts":["내용"],"tips":["팁1","팁2"],"extras":{}}]}`,
-        format_code === "penalty"
-          ? "results는 3개."
-          : "results는 3개, 각 tips는 2개.",
-        `금지 소재: ${banned}`,
-      ].filter(Boolean).join("\n");
-
-      // 12. 앨런 AI로 대화 소재 생성
-      const alanResponse = await fetch(
-        `${ALAN_BASE}/question?content=${encodeURIComponent(prompt)}` +
-          `&client_id=${ALAN_CLIENT_ID}`,
-      );
-
-      // 13. 앨런 호출 오류 확인
-      if (!alanResponse.ok) {
-        return await fallbackResponse("alan_request_failed", {
-          status: alanResponse.status,
+      } catch (error) {
+        // 18. 예상치 못한 오류 — 폴백으로 화면은 유지
+        console.log(error);
+        return jsonResponse({
+          source: "fallback",
+          reason: "server_error",
+          detail: error instanceof Error ? error.message : String(error),
+          results: await getFallback(),
         });
       }
-
-      const alanJson = await alanResponse.json();
-      const answer: string = alanJson?.answer ?? "";
-
-      // 14. 응답에서 JSON 부분만 추출
-      const match = answer.match(/\{[\s\S]*\}/);
-      if (!match) {
-        return await fallbackResponse("alan_json_not_found");
-      }
-
-      // 15. JSON 파싱 오류 확인
-      let parsed;
-      try {
-        parsed = JSON.parse(match[0]);
-      } catch {
-        return await fallbackResponse("alan_json_parse_failed");
-      }
-
-      // 16. 결과 개수 검증
-      const results: ResultItem[] = Array.isArray(parsed?.results)
-        ? parsed.results
-        : [];
-      if (results.length === 0) {
-        return await fallbackResponse("alan_empty_results");
-      }
-      // 16-1. 마크다운 강조 제거 (AI가 종종 별표를 붙임)
-      const strip = (s: string) =>
-        typeof s === "string"
-          ? s.replace(/\*\*(.+?)\*\*/g, "$1").replace(/\*/g, "")
-          : s;
-
-      results.forEach((r) => {
-        r.title = strip(r.title);
-        r.scripts = (r.scripts ?? []).map(strip);
-        r.tips = (r.tips ?? []).map(strip);
-      });
-
-      // 17. 생성 이력 저장 후 결과 반환
-      const { saved, generationId, itemIds } = await saveGeneration({
-        presetId,
-        conditions: snapshot,
-        source: "ai",
-        errorCode: null,
-        results,
-      });
-      const resultsWithId = results.map((r, i) => ({ ...r, id: itemIds[i] ?? null }));
-
-      return jsonResponse({
-        source: "ai",
-        saved,
-        generationId,
-        meta: { situation, format: formatLabel, level, mood },
-        results: resultsWithId,
-      });
-    } catch (error) {
-      // 18. 예상치 못한 오류 — 폴백으로 화면은 유지
-      console.log(error);
-      return jsonResponse({
-        source: "fallback",
-        reason: "server_error",
-        detail: error instanceof Error ? error.message : String(error),
-        results: await getFallback(),
-      });
-    }
-  }),
+    },
+  ),
 };

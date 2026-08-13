@@ -6,14 +6,25 @@ import MuiLink from "@mui/material/Link";
 import Link from "next/link";
 import { layout } from "@/lib/layout";
 
-const links = ["About", "Privacy Policy", "Terms of Service", "Help Center"];
+// 좁은 화면에서는 시안대로 라벨을 줄여 한 줄에 넣습니다.
+const links = [
+  { full: "About", short: "About" },
+  { full: "Privacy Policy", short: "Privacy" },
+  { full: "Terms of Service", short: "Terms" },
+  { full: "Help Center", short: "Help" },
+];
 
 const linkSx = {
   display: "flex",
   alignItems: "center",
   height: 40,
+  whiteSpace: "nowrap",
   textDecorationColor: "inherit",
 };
+
+const labelSx = breakpoint => ({
+  display: breakpoint === "short" ? { xs: "inline", md: "none" } : { xs: "none", md: "inline" },
+});
 
 export default function Footer() {
   return (
@@ -24,16 +35,19 @@ export default function Footer() {
         bgcolor: "momentalk.footer",
         borderTop: 1,
         borderColor: "divider",
-        px: `${layout.gutter}px`,
-        pt: "65px",
-        pb: 6,
+        px: layout.pagePx,
+        pt: { xs: 5, lg: "65px" },
+        pb: { xs: 4, lg: 6 },
       }}
     >
       <Box
         sx={{
           display: "flex",
-          alignItems: "center",
+          // 좁은 화면에서는 로고 블록과 링크를 세로로 쌓습니다.
+          flexDirection: { xs: "column", md: "row" },
+          alignItems: { xs: "flex-start", md: "center" },
           justifyContent: "space-between",
+          gap: { xs: 2, md: 0 },
           width: "100%",
           maxWidth: `${layout.maxWidth}px`,
           mx: "auto",
@@ -60,17 +74,30 @@ export default function Footer() {
           </Typography>
         </Box>
 
-        <Box component="nav" sx={{ display: "flex", gap: 4 }}>
-          {links.map(label => (
+        <Box
+          component="nav"
+          sx={{
+            display: "flex",
+            justifyContent: { xs: "space-between", md: "flex-end" },
+            gap: { xs: 0, md: 4 },
+            width: { xs: "100%", md: "auto" },
+          }}
+        >
+          {links.map(item => (
             <MuiLink
-              key={label}
+              key={item.full}
               href="#"
               underline="always"
               variant="body2"
               color="text.secondary"
               sx={linkSx}
             >
-              {label}
+              <Box component="span" sx={labelSx("short")}>
+                {item.short}
+              </Box>
+              <Box component="span" sx={labelSx("full")}>
+                {item.full}
+              </Box>
             </MuiLink>
           ))}
         </Box>
