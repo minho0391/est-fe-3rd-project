@@ -129,8 +129,6 @@ function ResultContent() {
       setSaveState("saved");
       setIsSaveModalOpen(true);
     } catch (e) {
-      // TODO(디버깅용): 원인 파악되면 console.error는 제거해도 됩니다.
-      console.error("[가이드 저장 실패] claimAndSave:", e);
       setSaveState("error");
       alert(`저장에 실패했습니다: ${e.message ?? "알 수 없는 오류"}`);
     }
