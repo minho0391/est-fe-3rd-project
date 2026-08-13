@@ -216,13 +216,29 @@ export default function CommunityReportsAdminPage() {
 
     try {
       setSavingId(report.id);
-      await deleteReportedCommunityContent({
+      const result = await deleteReportedCommunityContent({
         reportId: report.id,
         note: draft.note,
       });
-      window.alert(
-        `${targetName}이 삭제되었고 신고가 처리 완료 상태로 변경되었습니다.`,
-      );
+
+      if (result.imageCleanup?.complete === false) {
+        const remainingText =
+          typeof result.imageCleanup.remainingCount === "number"
+            ? ` 이미지 ${result.imageCleanup.remainingCount}개가 남아 있습니다.`
+            : " 이미지 삭제 여부를 완전히 확인하지 못했습니다.";
+
+        window.alert(
+          `${targetName}은 삭제되었고 신고도 처리 완료되었습니다.${remainingText}\n` +
+            (result.imageCleanup.warning ||
+              "Storage 이미지 정리가 필요합니다."),
+        );
+      } else {
+        window.alert(
+          `${targetName}이 삭제되었고 신고가 처리 완료 상태로 변경되었습니다.`,
+        );
+      }
+
+      // DB 삭제는 이미 성공했으므로 Storage 경고 여부와 상관없이 최신 신고 목록을 다시 조회합니다.
       await loadReports();
     } catch (error) {
       console.error("신고 대상 삭제 실패", error);
