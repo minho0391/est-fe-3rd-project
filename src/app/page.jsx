@@ -112,7 +112,12 @@ export default function MainPage() {
             <SectionHeading title="프리셋 " subtitle="(상황별)" />
             <Box sx={cardRowSx}>
               {presets.map(preset => (
-                <PresetCard key={preset.id} label={preset.label} image={preset.image} />
+                <PresetCard
+                  key={preset.id}
+                  href={`/generate?preset=${preset.code}`}
+                  label={preset.label}
+                  image={preset.image}
+                />
               ))}
             </Box>
           </Box>

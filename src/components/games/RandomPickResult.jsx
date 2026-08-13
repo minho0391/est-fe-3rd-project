@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Dialog from "@mui/material/Dialog";
 import Button from "@/components/ui/Button";
-import { FORMAT_LABELS } from "@/lib/randomPickData";
+import { FORMAT_LABELS, needsContentTitle, toContentLines } from "@/lib/contentFormats";
+import { dialogActionRowSx, dialogBackdropSx, keepAllSx, transparentPaperSx } from "./styles";
 
 const badgeSx = {
   px: 2,
@@ -15,10 +17,55 @@ const badgeSx = {
   letterSpacing: "0.6px",
 };
 
-const keepAllSx = { wordBreak: "keep-all" };
+const ballWrapSx = { position: "relative", width: 160, height: 160, flexShrink: 0 };
+
+const ballImageSx = {
+  position: "absolute",
+  top: "-12.5%",
+  left: "-25%",
+  width: "150%",
+  height: "150%",
+  maxWidth: "none",
+};
+
+const panelSx = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: 4,
+  width: "100%",
+  p: "49px",
+  bgcolor: "background.paper",
+  border: 1,
+  borderColor: "momentalk.modalBorder",
+  borderRadius: "20px",
+  boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+};
+
+const scriptGroupSx = { display: "flex", flexDirection: "column", gap: 1.5, width: "100%" };
+
+const tipListSx = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 0.75,
+  width: "100%",
+  p: 2,
+  bgcolor: "momentalk.typeCard",
+  borderRadius: "12px",
+  listStyle: "none",
+};
 
 export default function RandomPickResult({ content, onClose, onRepick }) {
+  // 퀴즈 형식은 정답이 extras 에 들어 있어 눌렀을 때만 보여줍니다.
+  const [showAnswer, setShowAnswer] = useState(false);
   const label = FORMAT_LABELS[content.format_code] ?? "뽑힌 콘텐츠";
+  const answer = content.extras?.answer;
+  const lines = toContentLines(content);
+
+  const handleRepick = () => {
+    setShowAnswer(false);
+    onRepick();
+  };
 
   return (
     <Dialog
@@ -26,77 +73,47 @@ export default function RandomPickResult({ content, onClose, onRepick }) {
       onClose={onClose}
       aria-label="뽑기 결과"
       slotProps={{
-        backdrop: { sx: { bgcolor: "rgba(0, 0, 0, 0.7)" } },
-        paper: {
-          sx: {
-            width: 448,
-            maxWidth: "100%",
-            m: 3,
-            bgcolor: "transparent",
-            boxShadow: "none",
-            overflow: "visible",
-          },
-        },
+        backdrop: { sx: dialogBackdropSx },
+        paper: { sx: transparentPaperSx },
       }}
     >
       <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-        <Box sx={{ position: "relative", width: 160, height: 160, flexShrink: 0 }}>
-          <Box
-            component="img"
-            src="/randompick-ball.svg"
-            alt=""
-            sx={{
-              position: "absolute",
-              top: "-12.5%",
-              left: "-25%",
-              width: "150%",
-              height: "150%",
-              maxWidth: "none",
-            }}
-          />
+        <Box sx={ballWrapSx}>
+          <Box component="img" src="/randompick-ball.svg" alt="" sx={ballImageSx} />
         </Box>
 
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 4,
-            width: "100%",
-            p: "49px",
-            bgcolor: "background.paper",
-            border: 1,
-            borderColor: "momentalk.modalBorder",
-            borderRadius: "20px",
-            boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-          }}
-        >
+        <Box sx={panelSx}>
           <Typography component="span" variant="body2" color="primary.main" sx={badgeSx}>
             {label}
           </Typography>
 
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, width: "100%" }}>
-            {content.scripts?.map((script, index) => (
+          {needsContentTitle(content) && (
+            <Typography variant="body2" color="text.disabled" align="center" sx={keepAllSx}>
+              {content.title}
+            </Typography>
+          )}
+
+          <Box sx={scriptGroupSx}>
+            {lines.map((line, index) => (
               <Typography key={index} variant="h3" align="center" sx={keepAllSx}>
-                {script}
+                {line}
               </Typography>
             ))}
           </Box>
 
+          {answer &&
+            (showAnswer ? (
+              <Typography variant="h5" color="primary.main" align="center" sx={keepAllSx}>
+                정답: {answer}
+              </Typography>
+            ) : (
+              <Button variant="secondary" onClick={() => setShowAnswer(true)}>
+                정답 보기
+              </Button>
+            ))}
+
           {content.tips?.length > 0 && (
-            <Box
-              component="ul"
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 0.75,
-                width: "100%",
-                p: 2,
-                bgcolor: "momentalk.typeCard",
-                borderRadius: "12px",
-                listStyle: "none",
-              }}
-            >
+            <Box component="ul" sx={tipListSx}>
               {content.tips.map((tip, index) => (
                 <Typography
                   key={index}
@@ -112,27 +129,15 @@ export default function RandomPickResult({ content, onClose, onRepick }) {
             </Box>
           )}
 
-          <Box
-            sx={{
-              display: "flex",
-              gap: 2,
-              justifyContent: "center",
-              width: "100%",
-              "& > *": { flex: "1 0 0", minWidth: 0 },
-            }}
-          >
+          <Box sx={dialogActionRowSx}>
             <Button variant="secondary" onClick={onClose}>
               닫기
             </Button>
-            <Button variant="primary" onClick={onRepick}>
+            <Button variant="primary" onClick={handleRepick}>
               다시 뽑기
             </Button>
           </Box>
         </Box>
-
-        <Typography variant="body2" color="text.disabled" align="center">
-          새로운 주제를 원하시면 다시 뽑기 버튼을 눌러주세요.
-        </Typography>
       </Box>
     </Dialog>
   );
