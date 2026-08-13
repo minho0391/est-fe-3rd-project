@@ -54,6 +54,22 @@ const openRandomPick = async page => {
   await page.mouse.move(0, 0);
 };
 
+// 팀원 화면(커뮤니티·인증·대화 생성)은 CSS 미디어쿼리나 MUI 로 반응형이 이미 잡혀 있어
+// 열 수를 세는 대신 가로 스크롤만 훑습니다. 깨지는 화면이 있으면 여기서 걸립니다.
+const PUBLIC_PAGES = [
+  { path: "/post", label: "커뮤니티 홈" },
+  { path: "/post/list", label: "게시글 목록" },
+  { path: "/sign-in", label: "로그인" },
+  { path: "/sign-up", label: "회원가입" },
+  { path: "/generate", label: "대화 생성" },
+];
+
+// 데이터가 늦게 도착하면서 폭이 늘어날 수 있어 본문이 다 그려질 때까지 기다립니다.
+const gotoAndSettle = async (page, path) => {
+  await page.goto(path);
+  await page.waitForLoadState("networkidle");
+};
+
 test.describe("모바일 375", () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
@@ -264,4 +280,28 @@ test.describe("랜덤 픽 - 모바일 375", () => {
 
     expect(await hasHorizontalOverflow(page)).toBe(false);
   });
+});
+
+test.describe("팀원 화면 - 모바일 375", () => {
+  test.use({ viewport: { width: 375, height: 812 } });
+
+  for (const { path, label } of PUBLIC_PAGES) {
+    test(`${label}에 가로 스크롤이 없다`, async ({ page }) => {
+      await gotoAndSettle(page, path);
+
+      expect(await hasHorizontalOverflow(page)).toBe(false);
+    });
+  }
+});
+
+test.describe("팀원 화면 - 태블릿 768", () => {
+  test.use({ viewport: { width: 768, height: 1024 } });
+
+  for (const { path, label } of PUBLIC_PAGES) {
+    test(`${label}에 가로 스크롤이 없다`, async ({ page }) => {
+      await gotoAndSettle(page, path);
+
+      expect(await hasHorizontalOverflow(page)).toBe(false);
+    });
+  }
 });
