@@ -2,39 +2,6 @@
 Community 공통 반응형 스타일
  - 공용 컴포넌트와 에디터의 모바일 대응을 관리합니다. 
 */
-@media (max-width: 767px) {
-  .cabinet-fetcherWrapper {
-    width: 100%;
-  }
-
-  .cabinet-triggerButton {
-    flex: 1 1 100%;
-  }
-
-  .cabinet-filterBtn {
-    flex: 1 1 auto;
-    padding-inline: 16px;
-  }
-
-  .cabinet-modalOverlay {
-    padding: 16px;
-  }
-
-  .cabinet-drawerCard {
-    padding: 24px;
-    max-height: calc(100vh - 32px);
-  }
-
-  .cabinet-drawerHeader {
-    align-items: flex-start;
-  }
-}
-
-.cabinet-aiBadge {
-  background: var(--primary-soft);
-  color: var(--primary);
-}
-
 .community-scope .write-quillEditor .ql-container {
   position: relative;
   box-sizing: border-box;
@@ -142,39 +109,4 @@ Community 공통 반응형 스타일
 
 .community-page {
   width: 100%;
-}
-
-.cabinet-embedded {
-  width: 100%;
-}
-
-.cabinet-embeddedFilterBar {
-  padding: 0 20px 16px;
-}
-
-.cabinet-embedded .cabinet-filterTabs {
-  margin-top: 0;
-}
-
-.cabinet-embedded .cabinet-contentList {
-  margin-top: 0;
-  padding: 0 20px 20px;
-  gap: 12px;
-}
-
-.cabinet-embedded .cabinet-contentCard {
-  width: 100%;
-  background: var(--surface);
-  border-radius: 20px;
-  box-shadow: 0 8px 24px rgba(35, 29, 75, 0.045);
-}
-
-.cabinet-emptyText {
-  margin: 0;
-  padding: 32px 24px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--surface);
-  color: var(--ink-muted);
-  text-align: center;
 }
