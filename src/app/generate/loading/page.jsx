@@ -22,10 +22,12 @@ function LoadingContent() {
 
   const [status, setStatus] = useState("loading"); // 'loading' | 'error'
   const [progress, setProgress] = useState(0);
+  const [errorMessage, setErrorMessage] = useState(""); //에러메시지 erroview 전달용
 
   const runGeneration = useCallback(() => {
     setStatus("loading");
     setProgress(0);
+    setErrorMessage("");
 
     const progressTimer = setInterval(() => {
       setProgress(prev => {
@@ -72,6 +74,7 @@ function LoadingContent() {
       .catch(err => {
         console.error("generate 실패:", err);
         clearInterval(progressTimer);
+        setErrorMessage(err.message || "");
         setStatus("error");
       });
 
@@ -93,7 +96,12 @@ function LoadingContent() {
             {status === "loading" ? (
               <LoadingView progress={progress} theme={theme} />
             ) : (
-              <ErrorView theme={theme} onRetry={runGeneration} onBack={() => router.push("/generate")} />
+              <ErrorView
+                theme={theme}
+                onRetry={runGeneration}
+                onBack={() => router.push("/generate")}
+                message={errorMessage}
+              />
             )}
           </Box>
         </Box>
