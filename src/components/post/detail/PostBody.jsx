@@ -13,6 +13,9 @@ import {
 import { sanitizeCommunityHtml } from "@/lib/sanitizeCommunityHtml";
 import { submitCommunityReport } from "@/lib/communityMutations";
 
+const buildLoginUrl = returnUrl =>
+  `/sign-in?returnUrl=${encodeURIComponent(returnUrl || "/post")}`;
+
 export default function PostDetailContent({
   post,
   isLiked = false,
@@ -21,6 +24,8 @@ export default function PostDetailContent({
   isOwner = false,
   isDeletePending = false,
   onDelete,
+  currentUser = null,
+  returnUrl = "/post",
 }) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -98,7 +103,7 @@ export default function PostDetailContent({
                 <button type="button" role="menuitem" onClick={sharePost}>
                   공유하기
                 </button>
-                {isOwner ? (
+                {isOwner && (
                   <button
                     type="button"
                     role="menuitem"
@@ -111,12 +116,20 @@ export default function PostDetailContent({
                   >
                     {isDeletePending ? "삭제 중..." : "삭제하기"}
                   </button>
-                ) : (
+                )}
+                {!isOwner && (
                   <button
                     type="button"
                     role="menuitem"
                     onClick={async () => {
                       setMenuOpen(false);
+
+                      // 댓글 신고와 동일하게 비로그인 사용자는 먼저 로그인 화면으로 보냅니다.
+                      if (!currentUser) {
+                        router.push(buildLoginUrl(returnUrl));
+                        return;
+                      }
+
                       const reason = window.prompt(
                         "신고 사유를 입력해 주세요. (2~300자)",
                       );
