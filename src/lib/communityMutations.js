@@ -60,7 +60,13 @@ const getPostImageStoragePaths = html => {
 const removePostImages = async (db, paths, { verify = false } = {}) => {
   const requestedPaths = [...new Set((paths ?? []).filter(Boolean))];
   if (requestedPaths.length === 0) {
-    return { requestedCount: 0, removedCount: 0, complete: true };
+    return {
+      requestedCount: 0,
+      removedCount: 0,
+      remainingCount: 0,
+      complete: true,
+      warning: "",
+    };
   }
 
   const { data, error } = await db.storage
@@ -68,17 +74,18 @@ const removePostImages = async (db, paths, { verify = false } = {}) => {
     .remove(requestedPaths);
 
   if (error) {
-    if (verify) {
-      throw new Error(
-        `게시글 본문 이미지 삭제에 실패했습니다: ${error.message ?? "Storage 오류"}`,
-      );
-    }
+    const warning = `게시글 본문 이미지 삭제에 실패했습니다: ${
+      error.message ?? "Storage 오류"
+    }`;
 
     console.warn("게시글 본문 이미지 정리 실패:", error);
+
     return {
       requestedCount: requestedPaths.length,
       removedCount: 0,
+      remainingCount: requestedPaths.length,
       complete: false,
+      warning,
     };
   }
 
@@ -108,11 +115,19 @@ const removePostImages = async (db, paths, { verify = false } = {}) => {
           });
 
         if (listError) {
-          throw new Error(
-            `게시글 본문 이미지 삭제 확인에 실패했습니다: ${
-              listError.message ?? "Storage 조회 오류"
-            }`,
-          );
+          const warning = `게시글 본문 이미지 삭제 확인에 실패했습니다: ${
+            listError.message ?? "Storage 조회 오류"
+          }`;
+
+          console.warn("게시글 본문 이미지 삭제 확인 실패:", listError);
+
+          return {
+            requestedCount: requestedPaths.length,
+            removedCount: Array.isArray(data) ? data.length : 0,
+            remainingCount: null,
+            complete: false,
+            warning,
+          };
         }
 
         if ((listed ?? []).some(item => item.name === fileName)) {
@@ -122,15 +137,27 @@ const removePostImages = async (db, paths, { verify = false } = {}) => {
     }
 
     if (remainingPaths.length > 0) {
-      throw new Error(
-        `게시글은 삭제되었지만 Storage 이미지 ${remainingPaths.length}개가 남아 있습니다. 관리자 Storage 정책을 확인해 주세요.`,
-      );
+      const warning = `삭제됐지만 Storage 이미지 ${remainingPaths.length}개가 남아 있습니다. 관리자 Storage 정책을 확인해 주세요.`;
+
+      console.warn("게시글 본문 이미지가 일부 남아 있습니다.", {
+        remainingPaths,
+      });
+
+      return {
+        requestedCount: requestedPaths.length,
+        removedCount: requestedPaths.length - remainingPaths.length,
+        remainingCount: remainingPaths.length,
+        complete: false,
+        warning,
+      };
     }
 
     return {
       requestedCount: requestedPaths.length,
       removedCount: requestedPaths.length,
+      remainingCount: 0,
       complete: true,
+      warning: "",
     };
   }
 
@@ -149,7 +176,9 @@ const removePostImages = async (db, paths, { verify = false } = {}) => {
   return {
     requestedCount: requestedPaths.length,
     removedCount,
+    remainingCount: Math.max(requestedPaths.length - removedCount, 0),
     complete,
+    warning: "",
   };
 };
 
@@ -569,13 +598,24 @@ export const deleteReportedCommunityContent = async ({
 
   if (error) throw error;
 
+  let imageCleanup = {
+    requestedCount: 0,
+    removedCount: 0,
+    remainingCount: 0,
+    complete: true,
+    warning: "",
+  };
+
   if (report?.target_type === "post" && imagePaths.length > 0) {
-    // 신고 삭제는 대부분 타인 게시글이므로 관리자 Storage 정책을 사용하며,
-    // remove() 반환값만 믿지 않고 실제 파일이 남았는지까지 검증합니다.
-    await removePostImages(db, imagePaths, { verify: true });
+    // 신고 대상 DB 삭제는 RPC에서 이미 완료된 상태입니다.
+    // 따라서 이미지 정리/검증 실패는 예외로 되돌리지 않고 경고 결과로 반환합니다.
+    imageCleanup = await removePostImages(db, imagePaths, { verify: true });
   }
 
-  return data;
+  return {
+    deletedKind: data,
+    imageCleanup,
+  };
 };
 
 /**
