@@ -1,9 +1,11 @@
 -- Community delete consistency helpers
 -- Supabase Dashboard > SQL Editor에서 실행하거나 migration으로 적용하세요.
---
+
 -- 정책:
 -- 1) 댓글 삭제는 선택 댓글 + 모든 하위 대댓글을 물리 삭제합니다.
+--    작성자 본인 또는 관리자만 호출할 수 있습니다.
 -- 2) 게시글 삭제는 게시글에 종속된 댓글/좋아요/태그 연결/조회 기록을 먼저 삭제합니다.
+--    작성자 본인 또는 관리자만 호출할 수 있습니다.
 -- 3) boards/profiles/tags/saved_contents 같은 공유 부모 데이터는 삭제하지 않습니다.
 -- 4) posts.comment_count는 실제로 남아 있는(legacy soft-delete 제외) 댓글만 집계합니다.
 
@@ -22,8 +24,16 @@ begin
     select 1
     from public.comments c
     where c.id::text = p_comment_id
-      and c.author_id = auth.uid()
       and c.deleted_at is null
+      and (
+        c.author_id = auth.uid()
+        or exists (
+          select 1
+          from public.profiles p
+          where p.id = auth.uid()
+            and p.role = 'admin'
+        )
+      )
   ) then
     raise exception '삭제할 수 없는 댓글입니다.';
   end if;
@@ -69,7 +79,15 @@ begin
     select 1
     from public.posts p
     where p.id::text = p_post_id
-      and p.author_id = auth.uid()
+      and (
+        p.author_id = auth.uid()
+        or exists (
+          select 1
+          from public.profiles profile
+          where profile.id = auth.uid()
+            and profile.role = 'admin'
+        )
+      )
   ) then
     raise exception '삭제할 수 없는 게시글입니다.';
   end if;

@@ -427,6 +427,109 @@ export const getSavedContents = async () => {
   }));
 };
 
+/**
+ * 운영진 신고 목록.
+ * community_reports 자체는 RLS가 관리자 여부를 최종 검증합니다.
+ * 대상 게시글/댓글과 신고자 닉네임은 화면 표시용으로 별도 조회해 결합합니다.
+ */
+export const getCommunityReportsForAdmin = async () => {
+  const db = supabase();
+  const me = await getCurrentCommunityUser();
+
+  if (!me || me.role !== "관리자") {
+    throw new Error("관리자만 신고 내역을 확인할 수 있습니다.");
+  }
+
+  const { data: reports, error: reportError } = await db
+    .from("community_reports")
+    .select(
+      "id, reporter_id, target_type, target_id, reason, status, moderation_action, reviewer_id, review_note, reviewed_at, created_at, updated_at",
+    )
+    .order("created_at", { ascending: false });
+
+  throwQueryError("신고 목록 조회 실패", reportError);
+
+  const rows = reports ?? [];
+  if (rows.length === 0) return [];
+
+  const reporterIds = [
+    ...new Set(rows.map(row => row.reporter_id).filter(Boolean)),
+  ];
+  const postIds = [
+    ...new Set(
+      rows.filter(row => row.target_type === "post").map(row => row.target_id),
+    ),
+  ];
+  const commentIds = [
+    ...new Set(
+      rows
+        .filter(row => row.target_type === "comment")
+        .map(row => row.target_id),
+    ),
+  ];
+
+  const [profileResult, postResult, commentResult] = await Promise.all([
+    reporterIds.length
+      ? db.from("profiles").select("id, nickname").in("id", reporterIds)
+      : Promise.resolve({ data: [], error: null }),
+    postIds.length
+      ? db.from("posts").select("id, title").in("id", postIds)
+      : Promise.resolve({ data: [], error: null }),
+    commentIds.length
+      ? db.from("comments").select("id, post_id, content").in("id", commentIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  throwQueryError("신고자 정보 조회 실패", profileResult.error);
+  throwQueryError("신고 게시글 조회 실패", postResult.error);
+  throwQueryError("신고 댓글 조회 실패", commentResult.error);
+
+  const profilesById = new Map(
+    (profileResult.data ?? []).map(profile => [profile.id, profile]),
+  );
+  const postsById = new Map(
+    (postResult.data ?? []).map(post => [String(post.id), post]),
+  );
+  const commentsById = new Map(
+    (commentResult.data ?? []).map(comment => [String(comment.id), comment]),
+  );
+
+  return rows.map(row => {
+    const targetId = String(row.target_id);
+    const post = row.target_type === "post" ? postsById.get(targetId) : null;
+    const comment =
+      row.target_type === "comment" ? commentsById.get(targetId) : null;
+
+    return {
+      id: row.id,
+      reporterId: row.reporter_id,
+      reporterName: profilesById.get(row.reporter_id)?.nickname ?? "사용자",
+      targetType: row.target_type,
+      targetId: row.target_id,
+      targetExists:
+        row.target_type === "post" ? Boolean(post) : Boolean(comment),
+      targetPostId:
+        row.target_type === "post"
+          ? post
+            ? row.target_id
+            : null
+          : (comment?.post_id ?? null),
+      targetLabel:
+        row.target_type === "post"
+          ? (post?.title ?? `삭제된 게시글 #${targetId}`)
+          : (comment?.content ?? `삭제된 댓글 #${targetId}`),
+      reason: row.reason,
+      status: row.status,
+      moderationAction: row.moderation_action,
+      reviewerId: row.reviewer_id,
+      reviewNote: row.review_note ?? "",
+      reviewedAt: row.reviewed_at,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
+  });
+};
+
 /** 좋아요 토글 */
 export const togglePostLike = async postId => {
   const { data, error } = await supabase().rpc("toggle_post_like", {

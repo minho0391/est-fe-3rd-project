@@ -1,0 +1,380 @@
+/* 
+운영진 신고 관리
+ - 신고 접수 목록 / 상태 필터 / 검토 메모 / 조치 기록 UI를 관리합니다.
+*/
+
+.reports-adminPage {
+  min-height: 100vh;
+}
+
+.reports-adminContainer {
+  width: min(1200px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 48px 0 80px;
+}
+
+.reports-adminTopRow,
+.reports-adminHeader,
+.reports-cardHeader,
+.reports-targetRow,
+.reports-cardFooter,
+.reports-actionButtons {
+  display: flex;
+  align-items: center;
+}
+
+.reports-adminTopRow,
+.reports-cardHeader,
+.reports-targetRow,
+.reports-cardFooter {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.reports-adminTopRow {
+  margin-bottom: 24px;
+}
+
+.reports-refreshButton,
+.reports-filterButton,
+.reports-secondaryButton,
+.reports-dismissButton,
+.reports-deleteButton,
+.reports-primaryButton {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.reports-refreshButton:disabled,
+.reports-secondaryButton:disabled,
+.reports-dismissButton:disabled,
+.reports-deleteButton:disabled,
+.reports-primaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.reports-adminHeader {
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.reports-adminEyebrow {
+  margin: 0 0 8px;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.reports-adminTitle {
+  margin: 0;
+  font-size: 36px;
+  line-height: 44px;
+  letter-spacing: -0.03em;
+}
+
+.reports-adminDescription {
+  max-width: 720px;
+  margin: 10px 0 0;
+  color: var(--ink-muted);
+  line-height: 1.7;
+}
+
+.reports-adminBadge {
+  flex: 0 0 auto;
+  padding: 8px 13px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.reports-filterTabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+
+.reports-filterButton {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reports-filterButton span {
+  min-width: 24px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.reports-filterButtonActive {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.reports-adminState {
+  padding: 48px 24px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--ink-muted);
+  text-align: center;
+}
+
+.reports-adminStateError {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--danger);
+}
+
+.reports-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reports-card {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.reports-cardHeader {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+
+.reports-cardMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.reports-status {
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.reports-status-pending {
+  background: #fff5e5;
+  color: #a65d00;
+}
+
+.reports-status-reviewing {
+  background: #eef5ff;
+  color: #2c66bd;
+}
+
+.reports-status-resolved {
+  background: #eaf8ef;
+  color: #27824b;
+}
+
+.reports-status-dismissed {
+  background: var(--surface-soft);
+  color: var(--ink-muted);
+}
+
+.reports-targetRow {
+  padding: 20px 0;
+}
+
+.reports-fieldLabel {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--ink-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.reports-targetTitle {
+  display: block;
+  max-width: 760px;
+  overflow: hidden;
+  font-size: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reports-targetLink {
+  flex: 0 0 auto;
+  color: var(--primary);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.reports-infoGrid {
+  display: grid;
+  grid-template-columns: 180px 180px minmax(0, 1fr);
+  gap: 16px;
+  margin: 0;
+  padding: 18px;
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+
+.reports-infoGrid div {
+  min-width: 0;
+}
+
+.reports-infoGrid dt {
+  margin-bottom: 6px;
+  color: var(--ink-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.reports-infoGrid dd {
+  margin: 0;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.reports-infoReason {
+  min-width: 0;
+}
+
+.reports-noteField {
+  min-width: 0;
+}
+
+.reports-reviewForm {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.reports-reviewForm label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.reports-reviewForm select,
+.reports-reviewForm textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  outline: none;
+}
+
+.reports-reviewForm select {
+  min-height: 48px;
+  padding: 0 12px;
+}
+
+.reports-reviewForm textarea {
+  min-height: 96px;
+  padding: 12px;
+  resize: vertical;
+}
+
+.reports-reviewForm select:focus,
+.reports-reviewForm textarea:focus {
+  border-color: var(--primary);
+}
+
+.reports-cardFooter {
+  align-items: flex-end;
+  margin-top: 20px;
+}
+
+.reports-currentAction {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.reports-currentAction strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.reports-actionButtons {
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.reports-primaryButton {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+.reports-dismissButton {
+  color: var(--danger);
+}
+
+.reports-deleteButton {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: #fff;
+}
+
+@media (max-width: 767px) {
+  .reports-adminContainer {
+    width: min(100% - 32px, 1200px);
+    padding: 32px 0 56px;
+  }
+
+  .reports-adminHeader,
+  .reports-cardFooter,
+  .reports-targetRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .reports-adminTitle {
+    font-size: 30px;
+    line-height: 38px;
+  }
+
+  .reports-infoGrid,
+  .reports-reviewForm {
+    grid-template-columns: 1fr;
+  }
+
+  .reports-actionButtons {
+    width: 100%;
+  }
+
+  .reports-actionButtons button {
+    flex: 1 1 120px;
+  }
+
+  .reports-targetTitle {
+    max-width: 100%;
+    white-space: normal;
+  }
+}

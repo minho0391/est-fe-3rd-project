@@ -9,3 +9,4 @@ Community 게시글 스타일 진입점
 @import "./styles/post/desktop-list-detail.css";
 @import "./styles/post/responsive-content.css";
 @import "./styles/post/actions-comments.css";
+@import "./styles/post/admin-reports.css";

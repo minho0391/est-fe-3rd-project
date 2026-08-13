@@ -30,10 +30,26 @@ export default function PostDetailContent({
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const menuOwnerId = "post-detail-more";
   const safeContent = useMemo(
     () => sanitizeCommunityHtml(post?.content),
     [post?.content],
   );
+
+  useEffect(() => {
+    const handleOtherMenuOpen = event => {
+      if (event.detail?.ownerId !== menuOwnerId) {
+        setMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("community:more-menu-open", handleOtherMenuOpen);
+    return () =>
+      window.removeEventListener(
+        "community:more-menu-open",
+        handleOtherMenuOpen,
+      );
+  }, []);
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -85,7 +101,17 @@ export default function PostDetailContent({
               className="community-moreButton"
               aria-label="게시글 더보기"
               aria-expanded={menuOpen}
-              onClick={() => setMenuOpen(v => !v)}
+              onClick={() => {
+                const nextOpen = !menuOpen;
+                setMenuOpen(nextOpen);
+                if (nextOpen) {
+                  window.dispatchEvent(
+                    new CustomEvent("community:more-menu-open", {
+                      detail: { ownerId: menuOwnerId },
+                    }),
+                  );
+                }
+              }}
             >
               ⋮
             </button>
