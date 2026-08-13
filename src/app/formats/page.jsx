@@ -40,13 +40,14 @@ const FORMAT_PRESENTATION = {
   },
 };
 
+// 메인 페이지 형식 카드와 같은 규격입니다.
 const cardSx = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
-  gap: 3,
-  p: "33px",
+  gap: { xs: 2, lg: 3 },
+  p: { xs: 2, lg: "33px" },
   height: "100%",
   bgcolor: "momentalk.typeCard",
   border: 1,
@@ -61,34 +62,41 @@ const cardSx = {
   },
 };
 
+const iconSx = {
+  width: { xs: 36, lg: 48 },
+  height: { xs: 36, lg: 48 },
+  flexShrink: 0,
+};
+
+// 아이콘이 없는 형식은 라벨 첫 글자로 대신합니다.
+const fallbackIconSx = {
+  ...iconSx,
+  display: "grid",
+  placeItems: "center",
+  borderRadius: "14px",
+  bgcolor: "primary.main",
+  color: "#fff",
+  fontSize: { xs: 16, lg: 20 },
+  fontWeight: 700,
+};
+
+// 형식 카드: PC 4열 / 태블릿·모바일 2열
+const gridSx = {
+  display: "grid",
+  gap: { xs: 2, lg: 3 },
+  width: "100%",
+  gridTemplateColumns: { xs: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" },
+};
+
 function FormatCard({ code, label }) {
   const presentation = FORMAT_PRESENTATION[label] ?? {};
 
   return (
     <Box component={Link} href={`/generate?format=${encodeURIComponent(code)}`} sx={cardSx}>
       {presentation.icon ? (
-        <Box
-          component="img"
-          src={presentation.icon}
-          alt=""
-          sx={{ width: 48, height: 48, flexShrink: 0 }}
-        />
+        <Box component="img" src={presentation.icon} alt="" sx={iconSx} />
       ) : (
-        <Box
-          aria-hidden="true"
-          sx={{
-            display: "grid",
-            placeItems: "center",
-            width: 48,
-            height: 48,
-            flexShrink: 0,
-            borderRadius: "14px",
-            bgcolor: "primary.main",
-            color: "#fff",
-            fontSize: 20,
-            fontWeight: 700,
-          }}
-        >
+        <Box aria-hidden="true" sx={fallbackIconSx}>
           {label.slice(0, 1)}
         </Box>
       )}
@@ -107,7 +115,7 @@ function FormatCard({ code, label }) {
           {label}
         </Typography>
         {presentation.description && (
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "keep-all" }}>
             {presentation.description}
           </Typography>
         )}
@@ -159,11 +167,11 @@ export default function FormatListPage() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: 6,
+          gap: { xs: 4, lg: 6 },
           width: "100%",
           minHeight: 600,
-          px: `${layout.gutter}px`,
-          py: 8,
+          px: layout.pagePx,
+          py: { xs: 5, lg: 8 },
         }}
       >
         <Box
@@ -176,10 +184,10 @@ export default function FormatListPage() {
           }}
         >
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mb: 1 }}>
-            <Typography component="h1" variant="h2">
+            <Typography component="h1" variant="h2" sx={{ fontSize: { xs: 24, lg: 32 } }}>
               형식 전체 보기
             </Typography>
-            <Typography variant="body1" color="text.secondary">
+            <Typography variant="body1" color="text.secondary" sx={{ wordBreak: "keep-all" }}>
               원하는 형식을 고르면 해당 형식이 선택된 상태로 대화 생성 화면이 열려요.
             </Typography>
           </Box>
@@ -203,18 +211,7 @@ export default function FormatListPage() {
           )}
 
           {!isLoading && !loadError && formats.length > 0 && (
-            <Box
-              sx={{
-                display: "grid",
-                gap: 3,
-                width: "100%",
-                gridTemplateColumns: {
-                  xs: "1fr",
-                  sm: "repeat(2, 1fr)",
-                  md: "repeat(4, 1fr)",
-                },
-              }}
-            >
+            <Box sx={gridSx}>
               {formats.map(format => (
                 <FormatCard key={format.code} code={format.code} label={format.label} />
               ))}

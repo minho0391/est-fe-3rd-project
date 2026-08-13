@@ -11,10 +11,13 @@ import RandomPickResult from "./RandomPickResult";
 import { createClient } from "@/utils/supabase/client";
 import { balls } from "@/lib/randomPickData";
 import { CONTENT_FORMATS, FORMAT_LABELS } from "@/lib/contentFormats";
-import { layout } from "@/lib/layout";
-import { formatChipSx, formatFilterRowSx } from "./styles";
+import { formatChipSx, formatFilterRowSx, gameContentSx, gamePageSx } from "./styles";
 
-const BALL_SIZE = 80;
+// 좁은 화면에서는 공 5개가 한 줄에 들어가도록 줄입니다.
+// 섞기 애니메이션이 한 줄 기준 x축 이동이라 줄 수는 그대로 둡니다.
+const BALL_SIZE = { xs: 40, sm: 80 };
+const BALL_SIZE_FALLBACK = 80;
+
 const SHUFFLE_STEPS = 4;
 const STEP_DURATION = 600;
 
@@ -32,6 +35,7 @@ const ballSx = {
   position: "relative",
   width: BALL_SIZE,
   height: BALL_SIZE,
+  flexShrink: 0,
   bgcolor: "primary.main",
   borderBottom: "4px solid",
   borderBottomColor: "momentalk.ballEdge",
@@ -66,15 +70,17 @@ export default function RandomPick() {
     timers.current = [];
   };
 
-  // 공이 놓이는 줄의 실제 폭을 재서 칸 간격을 계산
+  // 공이 놓이는 줄의 실제 폭을 재서 칸 간격을 계산합니다.
+  // 공 크기가 화면 폭에 따라 달라지므로 상수 대신 실제 공 폭을 측정합니다.
   useLayoutEffect(() => {
     const row = rowRef.current;
     if (!row) return;
 
     const measure = () => {
       const width = row.getBoundingClientRect().width;
+      const ballWidth = row.firstElementChild?.getBoundingClientRect().width ?? BALL_SIZE_FALLBACK;
       const slots = balls.length - 1;
-      setGap(slots > 0 ? (width - BALL_SIZE) / slots : 0);
+      setGap(slots > 0 ? (width - ballWidth) / slots : 0);
     };
 
     measure();
@@ -164,28 +170,21 @@ export default function RandomPick() {
       <Box
         component="main"
         sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
+          ...gamePageSx,
           justifyContent: "center",
-          flex: 1,
-          minHeight: 779,
-          px: `${layout.gutter}px`,
-          pt: 8,
-          pb: 10,
+          minHeight: { xs: 480, lg: 779 },
+          pt: { xs: 5, lg: 8 },
+          pb: { xs: 6, lg: 10 },
           overflow: "hidden",
         }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
-            width: "100%",
-            maxWidth: `${layout.maxWidth}px`,
-          }}
-        >
-          <Typography component="h2" variant="h2" align="center" sx={{ letterSpacing: "-0.64px" }}>
+        <Box sx={{ ...gameContentSx, display: "flex", flexDirection: "column", gap: 4 }}>
+          <Typography
+            component="h2"
+            variant="h2"
+            align="center"
+            sx={{ fontSize: { xs: 24, lg: 32 }, letterSpacing: "-0.64px" }}
+          >
             {titleText}
           </Typography>
 
@@ -216,8 +215,9 @@ export default function RandomPick() {
               ...cardSx,
               position: "relative",
               width: "100%",
-              height: 178,
-              p: "49px",
+              // 공 크기 + 위아래 여백에 맞춘 높이입니다.
+              height: { xs: 80, lg: 178 },
+              p: { xs: "20px", lg: "49px" },
               boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
               overflow: "hidden",
             }}

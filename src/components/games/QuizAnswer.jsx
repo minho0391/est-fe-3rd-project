@@ -5,21 +5,46 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@/components/ui/Button";
 
+// 정답도 글자 사이가 넓어서 화면 폭에 맞춰 같이 줄입니다.
 const answerSx = {
-  fontSize: 80,
-  lineHeight: "120px",
+  fontSize: { xs: 44, sm: 64, lg: 80 },
+  lineHeight: { xs: "66px", sm: "96px", lg: "120px" },
   fontWeight: 700,
-  letterSpacing: "16px",
+  letterSpacing: { xs: "8px", sm: "12px", lg: "16px" },
   wordBreak: "keep-all",
+};
+
+// 종료 / 다음 문제 — 좁은 화면에서는 세로로 쌓습니다.
+const actionRowSx = {
+  display: "flex",
+  flexDirection: { xs: "column", sm: "row" },
+  gap: 2,
+  justifyContent: "center",
+  width: { xs: "100%", sm: 368 },
+  maxWidth: "100%",
+  "& > *": { flex: "1 0 0", minWidth: 0 },
 };
 
 export default function QuizAnswer({ quiz, onNext }) {
   const router = useRouter();
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, p: 4 }}>
-      <Box sx={{ pb: 4 }}>
-        <Box component="img" src="/quiz-celebration.svg" alt="" sx={{ width: 180, height: 180 }} />
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 4,
+        p: { xs: 0, lg: 4 },
+      }}
+    >
+      <Box sx={{ pb: { xs: 2, lg: 4 } }}>
+        <Box
+          component="img"
+          src="/quiz-celebration.svg"
+          alt=""
+          sx={{ width: { xs: 120, lg: 180 }, height: { xs: 120, lg: 180 } }}
+        />
       </Box>
 
       <Box sx={{ pb: 2 }}>
@@ -28,22 +53,13 @@ export default function QuizAnswer({ quiz, onNext }) {
         </Typography>
       </Box>
 
-      <Box sx={{ pb: 8 }}>
+      <Box sx={{ pb: { xs: 4, lg: 8 } }}>
         <Typography color="success.main" align="center" sx={answerSx}>
           {[...quiz.answer].join(" ")}
         </Typography>
       </Box>
 
-      <Box
-        sx={{
-          display: "flex",
-          gap: 2,
-          justifyContent: "center",
-          width: 368,
-          maxWidth: "100%",
-          "& > *": { flex: "1 0 0", minWidth: 0 },
-        }}
-      >
+      <Box sx={actionRowSx}>
         <Button variant="tertiary" onClick={() => router.push("/")}>
           종료
         </Button>
