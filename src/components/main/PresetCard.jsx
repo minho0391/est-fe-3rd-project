@@ -25,7 +25,13 @@ const cardSx = {
   },
 };
 
-const thumbWrapSx = { position: "relative", width: "100%", height: 272, overflow: "hidden" };
+// 피그마 기준 카드 높이: PC 272 / 모바일 154
+const thumbWrapSx = {
+  position: "relative",
+  width: "100%",
+  height: { xs: 154, lg: 272 },
+  overflow: "hidden",
+};
 
 const thumbSx = {
   position: "absolute",
@@ -41,7 +47,7 @@ const overlaySx = {
   inset: 0,
   display: "flex",
   alignItems: "flex-end",
-  p: 3,
+  p: { xs: 2, lg: 3 },
   background: "linear-gradient(to top, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0))",
 };
 

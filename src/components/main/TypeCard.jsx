@@ -9,10 +9,10 @@ const cardSx = {
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
-  gap: 3,
+  gap: { xs: 2, lg: 3 },
   flex: "1 0 0",
   minWidth: 0,
-  p: "33px",
+  p: { xs: 2, lg: "33px" },
   bgcolor: "momentalk.typeCard",
   border: 1,
   borderColor: "divider",
@@ -29,7 +29,12 @@ const cardSx = {
 export default function TypeCard({ title, description, icon, href }) {
   return (
     <Box component={href ? Link : "article"} href={href} sx={cardSx}>
-      <Box component="img" src={icon} alt="" sx={{ width: 48, height: 48, flexShrink: 0 }} />
+      <Box
+        component="img"
+        src={icon}
+        alt=""
+        sx={{ width: { xs: 36, lg: 48 }, height: { xs: 36, lg: 48 }, flexShrink: 0 }}
+      />
 
       <Box
         sx={{
@@ -44,7 +49,7 @@ export default function TypeCard({ title, description, icon, href }) {
         <Typography component="h3" variant="h5">
           {title}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "keep-all" }}>
           {description}
         </Typography>
       </Box>

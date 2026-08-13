@@ -28,7 +28,7 @@ export default function GameHeader({ title, onBack }) {
         bgcolor: "background.paper",
         borderBottom: 1,
         borderColor: "divider",
-        px: `${layout.gutter}px`,
+        px: layout.pagePx,
         py: 2,
       }}
     >
@@ -37,17 +37,18 @@ export default function GameHeader({ title, onBack }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          gap: 2,
           width: "100%",
           maxWidth: `${layout.maxWidth}px`,
           mx: "auto",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, minWidth: 0 }}>
           <IconButton onClick={handleBack} aria-label="뒤로 가기" sx={iconButtonSx}>
             <Box component="img" src="/header-back.svg" alt="" sx={{ width: 16, height: 16 }} />
           </IconButton>
 
-          <Typography component="h1" variant="h4" color="primary.main">
+          <Typography component="h1" variant="h4" color="primary.main" noWrap>
             {title}
           </Typography>
         </Box>
