@@ -10,6 +10,7 @@ import TopThree from "@/components/post/list/TopThree";
 import PostItem from "@/components/post/list/PostItem";
 import {
   compareCommunityPostCreatedAtDesc,
+  compareCommunityPostMetricDesc,
   getRankablePosts,
 } from "@/lib/communityQueries";
 
@@ -55,10 +56,10 @@ export default function CommunityMainPage() {
 
   const { viewPosts, likedPosts, latestPosts } = useMemo(() => {
     const views = [...rankablePosts].sort(
-      (a, b) => Number(b.views ?? 0) - Number(a.views ?? 0),
+      compareCommunityPostMetricDesc("views"),
     );
     const likes = [...rankablePosts].sort(
-      (a, b) => Number(b.likes ?? 0) - Number(a.likes ?? 0),
+      compareCommunityPostMetricDesc("likes"),
     );
     const latest = [...rankablePosts]
       .sort(compareCommunityPostCreatedAtDesc)

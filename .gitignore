@@ -36,6 +36,10 @@ supabase/temp
 body.json
 result.json
 
+# playwright
+test-results/
+playwright-report/
+playwright/.auth/
 # Playwright
 node_modules/
 /test-results/
@@ -44,4 +48,4 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 
-src.Zip
+
