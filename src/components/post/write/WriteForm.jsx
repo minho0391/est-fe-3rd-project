@@ -24,14 +24,28 @@ import { normalizeCommunityVideoEmbeds } from "@/lib/sanitizeCommunityHtml";
 // React Quill SSR 이슈 방지를 위한 Dynamic Import
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
+// 일반 링크는 상세 페이지 sanitizer와 동일하게 http/https URL만 허용합니다.
+// 단순 문자열(예: abc)이나 잘못된 호스트가 링크로 저장되지 않도록 URL 형식도 검증합니다.
 const normalizeExternalUrl = rawUrl => {
   const value = String(rawUrl ?? "").trim();
-  if (!value) return "";
+  if (!value || /\s/.test(value)) return "";
 
-  if (/^(https?:|mailto:|tel:)/i.test(value)) return value;
-  return `https://${value}`;
+  const candidate = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+
+  try {
+    const url = new URL(candidate);
+    if (!["http:", "https:"].includes(url.protocol)) return "";
+    if (!url.hostname || !url.hostname.includes(".")) return "";
+    return url.href;
+  } catch {
+    return "";
+  }
 };
 
+// 영상 iframe은 출력 sanitizer allowlist와 동일하게 YouTube/Vimeo만 허용합니다.
+// "안녕하세요", "test", "abc"처럼 유효한 URL 호스트가 아니거나 지원하지 않는 도메인은
+// iframe을 만들지 않고 빈 문자열을 반환해 사용자 안내만 표시합니다.
+// 일반 URL은 에디터의 링크 버튼으로 입력합니다.
 const normalizeVideoUrl = rawUrl => {
   const normalized = normalizeExternalUrl(rawUrl);
   if (!normalized) return "";
@@ -42,29 +56,32 @@ const normalizeVideoUrl = rawUrl => {
 
     if (host === "youtu.be") {
       const videoId = url.pathname.split("/").filter(Boolean)[0];
-      return videoId ? `https://www.youtube.com/embed/${videoId}` : normalized;
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : "";
     }
 
     if (host === "youtube.com" || host === "m.youtube.com") {
       if (url.pathname === "/watch") {
         const videoId = url.searchParams.get("v");
-        return videoId
-          ? `https://www.youtube.com/embed/${videoId}`
-          : normalized;
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : "";
       }
 
       const match = url.pathname.match(/^\/(?:shorts|embed)\/([^/?#]+)/);
-      if (match?.[1]) return `https://www.youtube.com/embed/${match[1]}`;
+      return match?.[1] ? `https://www.youtube.com/embed/${match[1]}` : "";
     }
 
     if (host === "vimeo.com") {
       const videoId = url.pathname.split("/").filter(Boolean)[0];
-      if (/^\d+$/.test(videoId ?? "")) {
-        return `https://player.vimeo.com/video/${videoId}`;
-      }
+      return /^\d+$/.test(videoId ?? "")
+        ? `https://player.vimeo.com/video/${videoId}`
+        : "";
     }
 
-    return normalized;
+    if (host === "player.vimeo.com") {
+      const match = url.pathname.match(/^\/video\/(\d+)/);
+      return match?.[1] ? `https://player.vimeo.com/video/${match[1]}` : "";
+    }
+
+    return "";
   } catch {
     return "";
   }
@@ -161,13 +178,13 @@ export default function WriteForm({ initialValues = null, postId = null }) {
           video: function handleVideo() {
             const quill = this.quill;
             const rawUrl = window.prompt(
-              "YouTube, Vimeo 또는 영상 URL을 입력해 주세요.",
+              "YouTube 또는 Vimeo URL을 입력해 주세요.",
             );
             if (!rawUrl) return;
 
             const videoUrl = normalizeVideoUrl(rawUrl);
             if (!videoUrl) {
-              window.alert("올바른 영상 URL을 입력해 주세요.");
+              window.alert("YouTube 또는 Vimeo URL만 입력해 주세요.");
               return;
             }
 
