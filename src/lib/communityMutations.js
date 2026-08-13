@@ -383,6 +383,22 @@ export const deletePost = async postId => {
   await removePostImages(db, imagePaths);
 };
 
+const isMissingCommunityReportsTable = error => {
+  const code = String(error?.code ?? "");
+  const message = String(error?.message ?? "");
+  const details = String(error?.details ?? "");
+  const hint = String(error?.hint ?? "");
+  const combined = `${message} ${details} ${hint}`;
+
+  // PostgreSQL 직접 오류(42P01)와 PostgREST schema cache 오류(PGRST205)를 모두 처리합니다.
+  return (
+    code === "42P01" ||
+    code === "PGRST205" ||
+    (/community_reports/i.test(combined) &&
+      /(does not exist|could not find|schema cache|not found)/i.test(combined))
+  );
+};
+
 /**
  * 커뮤니티 신고 접수.
  *
@@ -421,9 +437,7 @@ export const submitCommunityReport = async ({
     if (error.code === "23505") {
       throw new Error("이미 신고한 콘텐츠입니다.");
     }
-    if (
-      /relation .*community_reports.* does not exist/i.test(error.message ?? "")
-    ) {
+    if (isMissingCommunityReportsTable(error)) {
       throw new Error("신고 기능 DB가 아직 준비되지 않았습니다.");
     }
     throw error;
