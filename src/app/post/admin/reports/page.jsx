@@ -94,7 +94,11 @@ export default function CommunityReportsAdminPage() {
 
       if (me.role !== "관리자") {
         setReports([]);
-        setLoadError("관리자만 신고 관리 페이지에 접근할 수 있습니다.");
+        setLoadError("관리자만 접근할 수 있습니다.");
+
+        // URL 직접 접근을 포함해 권한이 없는 사용자는 안내 후 마이페이지로 돌려보냅니다.
+        window.alert("관리자만 접근할 수 있습니다.");
+        router.replace("/post/mypage");
         return;
       }
 
