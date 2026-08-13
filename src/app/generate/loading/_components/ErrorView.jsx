@@ -6,7 +6,7 @@ import Button from "@/components/ui/Button";
 import { styles } from "./styles";
 import InfoCard from "./InfoCard";
 
-export default function ErrorView({ theme, onRetry, onBack }) {
+export default function ErrorView({ theme, onRetry, onBack, message }) {
   return (
     <>
       <Box
@@ -24,7 +24,7 @@ export default function ErrorView({ theme, onRetry, onBack }) {
       </Typography>
 
       <Typography variant="body1" color="text.secondary" sx={{ ...styles.bodyText, mb: 5 }}>
-        일시적인 오류가 발생했거나 입력하신 내용이 불충분할 수 있습니다. 다시 시도해 주세요.
+        {message || "일시적인 오류가 발생했거나 입력하신 내용이 불충분할 수 있습니다. 다시 시도해 주세요."}
       </Typography>
 
       <Box sx={{ ...styles.cardRow, mb: 5 }}>
