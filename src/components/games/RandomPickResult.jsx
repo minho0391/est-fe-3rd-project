@@ -17,7 +17,12 @@ const badgeSx = {
   letterSpacing: "0.6px",
 };
 
-const ballWrapSx = { position: "relative", width: 160, height: 160, flexShrink: 0 };
+const ballWrapSx = {
+  position: "relative",
+  width: { xs: 120, sm: 160 },
+  height: { xs: 120, sm: 160 },
+  flexShrink: 0,
+};
 
 const ballImageSx = {
   position: "absolute",
@@ -32,9 +37,9 @@ const panelSx = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  gap: 4,
+  gap: { xs: 3, sm: 4 },
   width: "100%",
-  p: "49px",
+  p: { xs: "24px", sm: "49px" },
   bgcolor: "background.paper",
   border: 1,
   borderColor: "momentalk.modalBorder",
@@ -43,6 +48,13 @@ const panelSx = {
 };
 
 const scriptGroupSx = { display: "flex", flexDirection: "column", gap: 1.5, width: "100%" };
+
+// 좁은 화면에서는 본문 글자도 같이 줄입니다.
+const scriptSx = {
+  ...keepAllSx,
+  fontSize: { xs: 20, sm: 28 },
+  lineHeight: { xs: "28px", sm: "34px" },
+};
 
 const tipListSx = {
   display: "flex",
@@ -77,7 +89,14 @@ export default function RandomPickResult({ content, onClose, onRepick }) {
         paper: { sx: transparentPaperSx },
       }}
     >
-      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: { xs: 3, sm: 4 },
+        }}
+      >
         <Box sx={ballWrapSx}>
           <Box component="img" src="/randompick-ball.svg" alt="" sx={ballImageSx} />
         </Box>
@@ -95,7 +114,7 @@ export default function RandomPickResult({ content, onClose, onRepick }) {
 
           <Box sx={scriptGroupSx}>
             {lines.map((line, index) => (
-              <Typography key={index} variant="h3" align="center" sx={keepAllSx}>
+              <Typography key={index} variant="h3" align="center" sx={scriptSx}>
                 {line}
               </Typography>
             ))}

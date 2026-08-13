@@ -20,13 +20,14 @@ const modes = [
   },
 ];
 
+// 피그마: PC·태블릿 300x400 2열 / 모바일은 폭을 채우는 세로 1열
 const modeCardSx = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
-  width: 300,
-  height: 400,
+  width: { xs: "100%", sm: 300 },
+  height: { xs: 278, sm: 400 },
   p: "24px",
   bgcolor: "background.paper",
   borderRadius: "20px",
@@ -34,13 +35,21 @@ const modeCardSx = {
   transition: "border-color 0.15s ease",
 };
 
-const badgeSx = { mt: 3, px: 2, py: 1, borderRadius: "9999px" };
+const modeRowSx = {
+  display: "flex",
+  flexDirection: { xs: "column", sm: "row" },
+  gap: 3,
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+const badgeSx = { mt: { xs: 2, sm: 3 }, px: 2, py: 1, borderRadius: "9999px" };
 
 export default function CardModeSelect({ onSelect }) {
   const [focused, setFocused] = useState("content");
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 6, width: "100%" }}>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: { xs: 4, lg: 6 }, width: "100%" }}>
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1, textAlign: "center" }}>
         <Typography component="h2" variant="h4">
           어떤 방식으로 즐길까요?
@@ -50,7 +59,7 @@ export default function CardModeSelect({ onSelect }) {
         </Typography>
       </Box>
 
-      <Box sx={{ display: "flex", gap: 3, alignItems: "center", justifyContent: "center" }}>
+      <Box sx={modeRowSx}>
         {modes.map(mode => {
           const isFocused = focused === mode.id;
 
@@ -66,7 +75,12 @@ export default function CardModeSelect({ onSelect }) {
                 borderColor: isFocused ? "primary.main" : "divider",
               }}
             >
-              <Box component="img" src={mode.icon} alt="" sx={{ width: 80, height: 80, mb: 3 }} />
+              <Box
+                component="img"
+                src={mode.icon}
+                alt=""
+                sx={{ width: 80, height: 80, mb: { xs: 2, sm: 3 } }}
+              />
 
               <Typography variant="h5">{mode.title}</Typography>
 
@@ -96,7 +110,12 @@ export default function CardModeSelect({ onSelect }) {
                 component="img"
                 src="/card-check.svg"
                 alt=""
-                sx={{ width: 20, height: 20, mt: 2.5, opacity: isFocused ? 1 : 0 }}
+                sx={{
+                  width: 20,
+                  height: 20,
+                  mt: { xs: 1.5, sm: 2.5 },
+                  opacity: isFocused ? 1 : 0,
+                }}
               />
             </ButtonBase>
           );

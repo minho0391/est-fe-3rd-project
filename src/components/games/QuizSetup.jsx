@@ -11,7 +11,7 @@ const MAX_LENGTH = 3;
 
 const fieldSx = {
   width: "100%",
-  px: "25px",
+  px: { xs: "16px", lg: "25px" },
   py: "17px",
   bgcolor: "background.default",
   border: 1,
@@ -23,6 +23,35 @@ const fieldSx = {
 
 const fieldGroupSx = { display: "flex", flexDirection: "column", gap: 1, width: "100%" };
 const hintFieldSx = { ...fieldGroupSx, flex: "1 0 0", minWidth: 0 };
+
+// 힌트 두 칸은 좁은 화면에서 세로로 쌓습니다.
+const hintRowSx = {
+  display: "flex",
+  flexDirection: { xs: "column", sm: "row" },
+  gap: 3,
+  width: "100%",
+};
+
+const cardSx = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 4,
+  width: "100%",
+  p: { xs: "20px", lg: "49px" },
+  bgcolor: "background.paper",
+  border: 1,
+  borderColor: "divider",
+  borderRadius: "20px",
+  boxShadow: "0 1px 1px rgba(0, 0, 0, 0.05)",
+};
+
+const submitButtonSx = {
+  width: { xs: "100%", sm: 510 },
+  maxWidth: "100%",
+  fontSize: { xs: 16, sm: 20 },
+  lineHeight: "27px",
+  fontWeight: 600,
+};
 
 function FieldLabel({ icon, iconWidth = 20, children }) {
   return (
@@ -55,7 +84,7 @@ export default function QuizSetup({ onSubmit }) {
   };
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 4, p: 4 }}>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 4, p: { xs: 0, lg: 4 } }}>
       <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
         <Box component="img" src="/quiz-title.svg" alt="" sx={{ width: 64, height: 53 }} />
 
@@ -63,7 +92,7 @@ export default function QuizSetup({ onSubmit }) {
           component="h2"
           variant="h2"
           align="center"
-          sx={{ pt: 2, letterSpacing: "-0.8px" }}
+          sx={{ pt: 2, fontSize: { xs: 24, lg: 32 }, letterSpacing: "-0.8px" }}
         >
           초성 퀴즈 - 출제
         </Typography>
@@ -78,20 +107,7 @@ export default function QuizSetup({ onSubmit }) {
         </Typography>
       </Box>
 
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 4,
-          width: "100%",
-          p: "49px",
-          bgcolor: "background.paper",
-          border: 1,
-          borderColor: "divider",
-          borderRadius: "20px",
-          boxShadow: "0 1px 1px rgba(0, 0, 0, 0.05)",
-        }}
-      >
+      <Box sx={cardSx}>
         <Box sx={fieldGroupSx}>
           <FieldLabel icon="/quiz-answer.svg">정답 단어</FieldLabel>
           <InputBase
@@ -103,7 +119,7 @@ export default function QuizSetup({ onSubmit }) {
           />
         </Box>
 
-        <Box sx={{ display: "flex", gap: 3, width: "100%" }}>
+        <Box sx={hintRowSx}>
           <Box sx={hintFieldSx}>
             <FieldLabel icon="/quiz-hint.svg" iconWidth={15}>
               힌트 1
@@ -138,7 +154,7 @@ export default function QuizSetup({ onSubmit }) {
             trailingIcon={
               <Box component="img" src="/arrow.svg" alt="" sx={{ width: 16, height: 16 }} />
             }
-            sx={{ width: 510, fontSize: 20, lineHeight: "27px", fontWeight: 600 }}
+            sx={submitButtonSx}
           >
             문제 내기
           </Button>

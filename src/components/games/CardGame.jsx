@@ -8,7 +8,7 @@ import Footer from "@/components/layout/Footer";
 import CardModeSelect from "./CardModeSelect";
 import CardContentPlay from "./CardContentPlay";
 import CardJokerPlay from "./CardJokerPlay";
-import { layout } from "@/lib/layout";
+import { gameContentSx, gamePageSx } from "./styles";
 
 export default function CardGame() {
   const router = useRouter();
@@ -23,20 +23,8 @@ export default function CardGame() {
     <Box sx={{ display: "flex", flexDirection: "column", width: "100%", flex: 1 }}>
       <GameHeader title="카드 뒤집기" onBack={handleBack} />
 
-      <Box
-        component="main"
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          flex: 1,
-          width: "100%",
-          px: `${layout.gutter}px`,
-          py: 8,
-        }}
-      >
-        <Box sx={{ width: "100%", maxWidth: `${layout.maxWidth}px` }}>
+      <Box component="main" sx={{ ...gamePageSx, justifyContent: "center", py: { xs: 5, lg: 8 } }}>
+        <Box sx={gameContentSx}>
           {mode === null && <CardModeSelect onSelect={setMode} />}
           {mode === "content" && <CardContentPlay />}
           {mode === "joker" && <CardJokerPlay />}

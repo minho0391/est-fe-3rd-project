@@ -14,7 +14,13 @@ const cardBackSx = {
   "&:not(:disabled):hover": { transform: "translateY(-6px)" },
 };
 
-const logoSx = { color: "#fff", fontSize: 120, fontWeight: 700, lineHeight: 1 };
+// 카드가 작아지면 로고도 같이 줄입니다.
+const logoSx = {
+  color: "#fff",
+  fontSize: { xs: 72, lg: 120 },
+  fontWeight: 700,
+  lineHeight: 1,
+};
 
 export default function GameCardBack({ onClick, disabled }) {
   return (
