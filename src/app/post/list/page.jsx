@@ -11,6 +11,7 @@ import PostFilter from "@/components/post/list/PostFilter";
 import PostItem from "@/components/post/list/PostItem";
 import {
   compareCommunityPostCreatedAtDesc,
+  compareCommunityPostMetricDesc,
   getCommunityPosts,
 } from "@/lib/communityQueries";
 
@@ -117,7 +118,7 @@ export default function PostListPage() {
             subtitle="전체 기간"
             posts={[...posts]
               .filter(post => !post.isNotice)
-              .sort((a, b) => b.views - a.views)}
+              .sort(compareCommunityPostMetricDesc("views"))}
             metric="views"
             compact
           />
@@ -127,7 +128,7 @@ export default function PostListPage() {
             subtitle="전체 기간"
             posts={[...posts]
               .filter(post => !post.isNotice)
-              .sort((a, b) => b.likes - a.likes)}
+              .sort(compareCommunityPostMetricDesc("likes"))}
             metric="likes"
             compact
           />
