@@ -172,21 +172,40 @@ export const saveGenerationItem = async (generationItemId, memo = null) => {
   if (itemError) throw itemError;
   if (!item) throw new Error("저장할 항목을 찾을 수 없습니다.");
 
+  // upsert + onConflict: (user_id, generation_item_id) 유니크 제약을 전제로,
+  // 이미 저장된 항목이면 새로 삽입하지 않고 조용히 무시합니다.
+  // (새로고침 후 재저장, 더블클릭 등으로 인한 중복 저장 방지)
   const { data, error } = await db
     .from("saved_contents")
-    .insert({
-      user_id: user.id,
-      generation_item_id: item.id,
-      format_code: item.generations?.format_code,
-      conditions: item.generations?.conditions ?? {},
-      title: item.title,
-      scripts: item.scripts ?? [],
-      tips: item.tips ?? [],
-      memo,
-    })
-    .select("id")
-    .single();
+    .upsert(
+      {
+        user_id: user.id,
+        generation_item_id: item.id,
+        format_code: item.generations?.format_code,
+        conditions: item.generations?.conditions ?? {},
+        title: item.title,
+        scripts: item.scripts ?? [],
+        tips: item.tips ?? [],
+        memo,
+      },
+      { onConflict: "user_id,generation_item_id", ignoreDuplicates: true },
+    )
+    .select("id");
 
   if (error) throw error;
-  return data.id;
+
+  // ignoreDuplicates: true 인 경우 충돌(이미 저장됨) 시 data가 빈 배열로 반환
+  if (!data || data.length === 0) {
+    const { data: existing, error: existingError } = await db
+      .from("saved_contents")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("generation_item_id", item.id)
+      .single();
+
+    if (existingError) throw existingError;
+    return existing.id;
+  }
+
+  return data[0].id;
 };
