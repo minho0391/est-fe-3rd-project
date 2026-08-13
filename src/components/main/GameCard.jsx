@@ -8,10 +8,10 @@ const cardSx = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  gap: 3,
+  gap: { xs: 2, lg: 3 },
   flex: "1 0 0",
   minWidth: 0,
-  p: "33px",
+  p: { xs: 3, lg: "33px" },
   bgcolor: "background.paper",
   border: 1,
   borderColor: "divider",
@@ -26,7 +26,12 @@ const cardSx = {
 export default function GameCard({ title, description, icon, href }) {
   return (
     <Box component={NextLink} href={href} sx={cardSx}>
-      <Box component="img" src={icon} alt="" sx={{ width: 64, height: 64, flexShrink: 0 }} />
+      <Box
+        component="img"
+        src={icon}
+        alt=""
+        sx={{ width: { xs: 48, lg: 64 }, height: { xs: 48, lg: 64 }, flexShrink: 0 }}
+      />
 
       <Box
         sx={{
@@ -41,7 +46,7 @@ export default function GameCard({ title, description, icon, href }) {
         <Typography component="h3" variant="h4">
           {title}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "keep-all" }}>
           {description}
         </Typography>
       </Box>

@@ -43,7 +43,22 @@ function SectionHeading({ title, subtitle, moreLabel, moreHref }) {
   );
 }
 
-const cardRowSx = { display: "flex", alignItems: "stretch", gap: 3, width: "100%" };
+// 프리셋·형식 카드 4개: PC 4열 / 태블릿·모바일 2열
+const cardGridSx = {
+  display: "grid",
+  gridTemplateColumns: { xs: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" },
+  gap: { xs: 2, lg: 3 },
+  width: "100%",
+};
+
+// 게임 카드 3개: PC·태블릿 3열 / 모바일 1열
+const gameGridSx = {
+  display: "grid",
+  gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
+  gap: { xs: 2, lg: 3 },
+  width: "100%",
+};
+
 const sectionSx = { display: "flex", flexDirection: "column", gap: 4, width: "100%" };
 
 export default function MainPage() {
@@ -57,10 +72,10 @@ export default function MainPage() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: 10,
+          gap: { xs: 6, lg: 10 },
           width: "100%",
           minHeight: 800,
-          px: `${layout.gutter}px`,
+          px: layout.pagePx,
           py: 4,
         }}
       >
@@ -70,7 +85,7 @@ export default function MainPage() {
             width: "100%",
             maxWidth: `${layout.maxWidth}px`,
             bgcolor: "background.paper",
-            py: 15,
+            py: { xs: 8, lg: 15 },
             overflow: "hidden",
           }}
         >
@@ -110,7 +125,7 @@ export default function MainPage() {
         >
           <Box component="section" sx={sectionSx}>
             <SectionHeading title="프리셋 " subtitle="(상황별)" />
-            <Box sx={cardRowSx}>
+            <Box sx={cardGridSx}>
               {presets.map(preset => (
                 <PresetCard
                   key={preset.id}
@@ -129,7 +144,7 @@ export default function MainPage() {
               moreLabel="더보기"
               moreHref="/formats"
             />
-            <Box sx={cardRowSx}>
+            <Box sx={cardGridSx}>
               {types.map(type => (
                 <TypeCard
                   key={type.id}
@@ -144,7 +159,7 @@ export default function MainPage() {
 
           <Box component="section" sx={sectionSx}>
             <SectionHeading title="게임" />
-            <Box sx={cardRowSx}>
+            <Box sx={gameGridSx}>
               {games.map(game => (
                 <GameCard
                   key={game.id}
