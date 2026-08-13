@@ -93,11 +93,7 @@ const toVideoEmbedUrl = value => {
  * Quill에서 일반 링크로 남은 YouTube/Vimeo URL을 영상 iframe으로 정규화합니다.
  * 기존 게시글 데이터도 상세 렌더링 시 정상적으로 영상으로 복구할 수 있습니다.
  */
-export const normalizeCommunityVideoEmbeds = html => {
-  if (typeof window === "undefined" || !html) return String(html ?? "");
-
-  const doc = new DOMParser().parseFromString(String(html), "text/html");
-
+const normalizeVideoEmbedsInDocument = doc => {
   [...doc.body.querySelectorAll("a[href]")].forEach(anchor => {
     const embedUrl = toVideoEmbedUrl(anchor.getAttribute("href"));
     if (!embedUrl) return;
@@ -123,6 +119,13 @@ export const normalizeCommunityVideoEmbeds = html => {
       anchor.replaceWith(iframe);
     }
   });
+};
+
+export const normalizeCommunityVideoEmbeds = html => {
+  if (typeof window === "undefined" || !html) return String(html ?? "");
+
+  const doc = new DOMParser().parseFromString(String(html), "text/html");
+  normalizeVideoEmbedsInDocument(doc);
 
   return doc.body.innerHTML;
 };
@@ -140,8 +143,9 @@ const safeUrl = (value, { iframe = false } = {}) => {
 
 export const sanitizeCommunityHtml = html => {
   if (typeof window === "undefined" || !html) return "";
-  const normalizedHtml = normalizeCommunityVideoEmbeds(html);
-  const doc = new DOMParser().parseFromString(normalizedHtml, "text/html");
+
+  const doc = new DOMParser().parseFromString(String(html), "text/html");
+  normalizeVideoEmbedsInDocument(doc);
 
   [...doc.body.querySelectorAll("*")].forEach(node => {
     if (!ALLOWED_TAGS.has(node.tagName)) {
