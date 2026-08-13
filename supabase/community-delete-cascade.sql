@@ -1,6 +1,6 @@
 -- Community delete consistency helpers
 -- Supabase Dashboard > SQL Editor에서 실행하거나 migration으로 적용하세요.
---
+
 -- 정책:
 -- 1) 댓글 삭제는 선택 댓글 + 모든 하위 대댓글을 물리 삭제합니다.
 -- 2) 게시글 삭제는 게시글에 종속된 댓글/좋아요/태그 연결/조회 기록을 먼저 삭제합니다.
