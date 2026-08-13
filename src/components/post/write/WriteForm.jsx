@@ -29,6 +29,7 @@ const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 const normalizeExternalUrl = rawUrl => {
   const value = String(rawUrl ?? "").trim();
   if (!value || /\s/.test(value)) return "";
+  if (/^(mailto:|tel:)/i.test(value)) return "";
 
   const candidate = /^https?:\/\//i.test(value) ? value : `https://${value}`;
 
@@ -65,7 +66,7 @@ const normalizeVideoUrl = rawUrl => {
         return videoId ? `https://www.youtube.com/embed/${videoId}` : "";
       }
 
-      const match = url.pathname.match(/^\/(?:shorts|embed)\/([^/?#]+)/);
+      const match = url.pathname.match(/^\/(?:shorts|embed|live)\/([^/?#]+)/);
       return match?.[1] ? `https://www.youtube.com/embed/${match[1]}` : "";
     }
 
