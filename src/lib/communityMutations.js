@@ -445,6 +445,80 @@ export const submitCommunityReport = async ({
 };
 
 /**
+ * 운영진 신고 검토/조치 기록.
+ * 실제 콘텐츠 삭제나 자동 제재는 수행하지 않고 검토 상태와 조치 이력만 기록합니다.
+ */
+export const reviewCommunityReport = async ({
+  reportId,
+  status,
+  action = "none",
+  note = "",
+}) => {
+  const db = supabase();
+  await requireUser(db);
+
+  const { error } = await db.rpc("review_community_report", {
+    p_report_id: Number(reportId),
+    p_status: status,
+    p_action: action,
+    p_note: String(note ?? "").trim() || null,
+  });
+
+  if (error) throw error;
+};
+
+/**
+ * 운영진 신고 대상 실제 삭제.
+ *
+ * community_reports의 report id를 기준으로 DB RPC가 관리자 권한과 실제 대상을 다시 검증합니다.
+ * 게시글은 댓글/좋아요/태그 연결/조회 기록까지 함께 삭제하고,
+ * 댓글은 선택 댓글과 그 아래 답글 트리를 함께 삭제합니다.
+ * 처리된 같은 대상의 신고들은 모두 resolved/content_deleted로 기록됩니다.
+ */
+export const deleteReportedCommunityContent = async ({
+  reportId,
+  note = "",
+}) => {
+  const db = supabase();
+  await requireUser(db);
+
+  // 게시글인 경우 DB 삭제 전에 Storage 이미지 경로를 확보합니다.
+  // 이미지 정리에 실패해도 신고 대상 DB 삭제 자체는 완료되도록 별도로 처리합니다.
+  const { data: report, error: reportError } = await db
+    .from("community_reports")
+    .select("target_type, target_id")
+    .eq("id", Number(reportId))
+    .single();
+
+  if (reportError) throw reportError;
+
+  let imagePaths = [];
+  if (report?.target_type === "post") {
+    const { data: post, error: postError } = await db
+      .from("posts")
+      .select("content_html")
+      .eq("id", report.target_id)
+      .maybeSingle();
+
+    if (postError) throw postError;
+    imagePaths = getPostImageStoragePaths(post?.content_html);
+  }
+
+  const { data, error } = await db.rpc("delete_reported_community_content", {
+    p_report_id: Number(reportId),
+    p_note: String(note ?? "").trim() || null,
+  });
+
+  if (error) throw error;
+
+  if (report?.target_type === "post" && imagePaths.length > 0) {
+    await removePostImages(db, imagePaths);
+  }
+
+  return data;
+};
+
+/**
  * 댓글 작성
  *
  * @returns 화면에서 바로 쓸 수 있는 모양으로 반환합니다.
