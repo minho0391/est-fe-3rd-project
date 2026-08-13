@@ -138,9 +138,7 @@ export const compareCommunityPostCreatedAtDesc = (a, b) => {
 
   const dateDifference = bTimestamp - aTimestamp;
 
-  return (
-    dateDifference || String(b?.id ?? "").localeCompare(String(a?.id ?? ""))
-  );
+  return dateDifference || Number(b?.id ?? 0) - Number(a?.id ?? 0);
 };
 
 /**
