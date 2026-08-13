@@ -1,5 +1,4 @@
 import { withSupabase } from "@supabase/server";
-import { createClient } from "@supabase/supabase-js";
 
 // 환경변수 가져오기
 const ALAN_CLIENT_ID = Deno.env.get("ALAN_CLIENT_ID");
@@ -97,7 +96,10 @@ function jsonResponse(body: unknown, status = 200) {
 }
 
 export default {
-  fetch: withSupabase({ auth: "publishable" }, async (req, ctx) => {
+  // "user"를 먼저 시도해 로그인 요청은 사용자 스코프로, 실패하면(=JWT 없음)
+  // "publishable"로 넘어가 비로그인 요청도 그대로 받는다. (verify_jwt = false는
+  // publishable을 쓰는 한 그대로 유지해야 한다. config.toml 참고)
+  fetch: withSupabase({ auth: ["user", "publishable"] }, async function handleGenerateRequest(req, ctx) {
     // 1. CORS 사전 요청 처리
     // withSupabase가 OPTIONS 요청과 CORS 헤더를 자동으로 처리
 
@@ -147,16 +149,14 @@ export default {
       );
     }
 
-    // 6. Supabase 클라이언트 가져오기 (호출자 권한 — RLS 적용됨)
+    // 6. Supabase 클라이언트 가져오기.
+    //    auth: ["user", "publishable"] 이라 로그인 요청은 ctx.supabase가 이미
+    //    해당 사용자로 RLS 스코프되어 있고(auth: "user" 매칭), 비로그인 요청은
+    //    익명 클라이언트(auth: "publishable" 매칭)가 된다. 따로 Authorization
+    //    헤더를 파싱해 별도 클라이언트를 만들 필요가 없다.
+    //    (예전엔 SUPABASE_ANON_KEY를 직접 읽어 별도 클라이언트를 만들었는데, 새 API 키
+    //    체계에서는 이 값이 더 이상 자동 주입되지 않아 항상 로그인 판정에 실패했다.)
     const db = ctx.supabase;
-
-    // 6-1. 호출자 세션이 실린 클라이언트 (저장용)
-    const authHeader = req.headers.get("Authorization") ?? "";
-    const userClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } },
-    );
 
     // 6-2. 응답 시간 측정 시작
     const startedAt = Date.now();
@@ -194,22 +194,34 @@ export default {
         });
     }
 
-    // 7-1. 생성 이력 저장 (로그인 사용자만, 실패해도 화면은 유지)
+    // 7-1. 생성 이력 저장 (로그인/비로그인 모두, 실패해도 화면은 유지)
+    //      비로그인 사용자는 user_id: null 로 저장한다. 이렇게 해야 결과 페이지가
+    //      항상 ?id= 로 새로고침에 안전하게 열리고, 나중에 로그인하면 이 행의
+    //      user_id를 그 사용자로 바꿔치기(claim)만 하면 되어 재생성이 필요 없다.
+    //      generationId / 결과별 item id를 함께 돌려줘야 프론트의
+    //      "가이드 저장하기"(saveGenerationItem)가 쓸 id를 가질 수 있다.
+    type SaveResult = {
+      saved: boolean;
+      generationId: number | null;
+      itemIds: (number | null)[];
+    };
+
     async function saveGeneration(params: {
       presetId: number | null;
       conditions: Record<string, unknown>;
       source: string;
       errorCode: string | null;
       results: ResultItem[];
-    }): Promise<boolean> {
-      try {
-        const { data: { user } } = await userClient.auth.getUser();
-        if (!user) return false;
+    }): Promise<SaveResult> {
+      const empty: SaveResult = { saved: false, generationId: null, itemIds: [] };
 
-        const { data: gen, error: genError } = await userClient
+      try {
+        const { data: { user } } = await db.auth.getUser();
+
+        const { data: gen, error: genError } = await db
           .from("generations")
           .insert({
-            user_id: user.id,
+            user_id: user?.id ?? null,
             preset_id: params.presetId,
             format_code,
             conditions: params.conditions,
@@ -224,10 +236,12 @@ export default {
 
         if (genError || !gen) {
           console.log("generations insert 실패:", genError);
-          return false;
+          return empty;
         }
 
-        if (params.results.length === 0) return true;
+        if (params.results.length === 0) {
+          return { saved: true, generationId: gen.id, itemIds: [] };
+        }
 
         const items = params.results.slice(0, 3).map((r, i) => ({
           generation_id: gen.id,
@@ -238,19 +252,25 @@ export default {
           extras: r.extras ?? {},
         }));
 
-        const { error: itemError } = await userClient
+        const { data: savedItems, error: itemError } = await db
           .from("generation_items")
-          .insert(items);
+          .insert(items)
+          .select("id, position")
+          .order("position");
 
         if (itemError) {
           console.log("generation_items insert 실패:", itemError);
-          return false;
+          return { saved: false, generationId: gen.id, itemIds: [] };
         }
 
-        return true;
+        return {
+          saved: true,
+          generationId: gen.id,
+          itemIds: (savedItems ?? []).map((row) => row.id),
+        };
       } catch (e) {
         console.log("saveGeneration 예외:", e);
-        return false;
+        return empty;
       }
     }
 
@@ -297,7 +317,7 @@ export default {
           ?.label ?? null;
 
       const situation = labelOf("situation", cond.situation) ?? presetTitle ??
-        "모임";
+        "커스텀";
       const relation = labelOf("relation", cond.relation);
       const target = labelOf("target", cond.target);
       const mood = labelOf("mood", cond.mood);
@@ -309,19 +329,21 @@ export default {
       // 폴백 응답 + 저장을 한 번에 처리
       const fallbackResponse = async (reason: string, extra = {}) => {
         const results = await getFallback();
-        const saved = await saveGeneration({
+        const { saved, generationId, itemIds } = await saveGeneration({
           presetId,
           conditions: snapshot,
           source: "fallback",
           errorCode: reason,
           results,
         });
+        const resultsWithId = results.map((r, i) => ({ ...r, id: itemIds[i] ?? null }));
         return jsonResponse({
           source: "fallback",
           reason,
           saved,
+          generationId,
           meta: { situation, format: formatLabel, level, mood },
-          results,
+          results: resultsWithId,
           ...extra,
         });
       };
@@ -406,19 +428,21 @@ export default {
       });
 
       // 17. 생성 이력 저장 후 결과 반환
-      const saved = await saveGeneration({
+      const { saved, generationId, itemIds } = await saveGeneration({
         presetId,
         conditions: snapshot,
         source: "ai",
         errorCode: null,
         results,
       });
+      const resultsWithId = results.map((r, i) => ({ ...r, id: itemIds[i] ?? null }));
 
       return jsonResponse({
         source: "ai",
         saved,
+        generationId,
         meta: { situation, format: formatLabel, level, mood },
-        results,
+        results: resultsWithId,
       });
     } catch (error) {
       // 18. 예상치 못한 오류 — 폴백으로 화면은 유지

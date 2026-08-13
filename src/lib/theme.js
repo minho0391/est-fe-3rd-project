@@ -54,6 +54,19 @@ const theme = createTheme({
   },
   shape: { borderRadius: 8 },
   components: {
+    // 모달/드롭다운이 열릴 때 MUI가 body에 overflow:hidden 과
+    // 스크롤바 폭만큼의 padding-right 를 넣습니다.
+    // 그 padding 때문에 화면 전체가 우측으로 밀려 보여서 스크롤 락을 끕니다.
+    // (Menu/Popover 는 내부적으로 Modal 을 쓰지만, 자기 prop 을 따로 넘겨서 각각 지정합니다)
+    MuiModal: {
+      defaultProps: { disableScrollLock: true },
+    },
+    MuiPopover: {
+      defaultProps: { disableScrollLock: true },
+    },
+    MuiMenu: {
+      defaultProps: { disableScrollLock: true },
+    },
     MuiButton: {
       defaultProps: { disableElevation: true },
       styleOverrides: {

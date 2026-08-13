@@ -1,5 +1,6 @@
 .signin-page,
-.signup-page {
+.signup-page,
+.reset-page {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -7,7 +8,8 @@
 }
 
 .signin-main,
-.signup-main {
+.signup-main,
+.reset-main {
   flex: 1;
   display: flex;
   justify-content: center;
@@ -24,7 +26,8 @@
 }
 
 .signin-section,
-.signup-card {
+.signup-card,
+.reset-card {
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 16px;
@@ -38,35 +41,40 @@
   flex: 1;
 }
 
-.signup-card {
+.signup-card,
+.reset-card {
   width: 100%;
   max-width: 460px;
   margin-inline: auto;
 }
 
 .signin-form,
-.signup-form {
+.signup-form,
+.reset-form {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
 .signin-field,
-.signup-field {
+.signup-field,
+.reset-field {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
 .signin-label,
-.signup-label {
+.signup-label,
+.reset-label {
   font-size: 14px;
   font-weight: 700;
   color: #1f2937;
 }
 
 .signin-input,
-.signup-input {
+.signup-input,
+.reset-input {
   width: 100%;
   min-height: 56px;
   padding: 0 16px;
@@ -79,12 +87,14 @@
 }
 
 .signin-input::placeholder,
-.signup-input::placeholder {
+.signup-input::placeholder,
+.reset-input::placeholder {
   color: #6b7280;
 }
 
 .signin-input:focus,
-.signup-input:focus {
+.signup-input:focus,
+.reset-input:focus {
   border-color: #5b52e8;
   box-shadow: 0 0 0 4px #eef0ff;
 }
@@ -132,8 +142,28 @@
   text-decoration: underline;
 }
 
+.reset-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reset-title {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.reset-desc {
+  color: #4b5563;
+  font-size: 14px;
+  line-height: 21px;
+}
+
 .signin-alert,
-.signup-alert {
+.signup-alert,
+.reset-alert {
   padding: 16px;
   border-radius: 16px;
   font-size: 14px;
@@ -141,13 +171,15 @@
 }
 
 .signin-alert-error,
-.signup-alert-error {
+.signup-alert-error,
+.reset-alert-error {
   background: #fff1f1;
   color: #d92d3a;
 }
 
 .signin-alert-success,
-.signup-alert-success {
+.signup-alert-success,
+.reset-alert-success {
   background: #eaf6f0;
   color: #238059;
 }
@@ -197,7 +229,8 @@
 
 @media (max-width: 767px) {
   .signin-main,
-  .signup-main {
+  .signup-main,
+  .reset-main {
     padding: 40px 16px;
   }
 
@@ -207,6 +240,7 @@
 
   .signin-section,
   .signup-card,
+  .reset-card,
   .signin-promo {
     padding: 24px;
   }

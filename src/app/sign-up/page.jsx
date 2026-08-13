@@ -48,9 +48,9 @@ export default function SignUpPage() {
       } else {
         setSuccess(true);
       }
-    } catch (err) {
+    } catch (error) {
       setError(
-        err.message === "User already registered"
+        error.message === "User already registered"
           ? "이메일이 중복됩니다."
           : "회원가입에 실패했습니다. 잠시 후 다시 시도해 주세요.",
       );
@@ -63,7 +63,7 @@ export default function SignUpPage() {
     setError("");
     try {
       await signInWithGoogle("/");
-    } catch {
+    } catch (error) {
       setError("구글 회원가입에 실패했습니다. 잠시 후 다시 시도해 주세요.");
     }
   };
