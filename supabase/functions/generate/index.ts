@@ -317,7 +317,7 @@ export default {
           ?.label ?? null;
 
       const situation = labelOf("situation", cond.situation) ?? presetTitle ??
-        "모임";
+        "커스텀";
       const relation = labelOf("relation", cond.relation);
       const target = labelOf("target", cond.target);
       const mood = labelOf("mood", cond.mood);

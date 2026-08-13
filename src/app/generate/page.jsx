@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
@@ -79,9 +79,10 @@ const TABS = [
 
 const EMPTY_OPTIONS = { situation: [], relation: [], target: [], mood: [], format: [] };
 
-export default function GeneratePage() {
+function GeneratePageInner() {
   const router = useRouter();
   const theme = useTheme();
+  const searchParams = useSearchParams();
 
   // DB에서 불러온 선택지 (situation / relation / target / mood / format)
   const [options, setOptions] = useState(EMPTY_OPTIONS);
@@ -142,6 +143,14 @@ export default function GeneratePage() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    const preset = searchParams.get("preset");
+    const format = searchParams.get("format");
+
+    if (preset) setSelectedSituation(preset);
+    if (format) setSelectedFormat(format);
+  }, [searchParams]);
 
   const goToLoading = payload => {
     sessionStorage.setItem("generate-payload", JSON.stringify(payload));
@@ -289,12 +298,12 @@ export default function GeneratePage() {
               />
               <Box sx={styles.chipRow}>
                 {options.situation.map(item => {
-                  const isSelected = selectedSituation === item.code || selectedSituation === item.label;
+                  const isSelected = selectedSituation === item.code;
                   return (
                     <Chip
                       key={item.code}
                       label={item.label}
-                      onClick={() => setSelectedSituation(prev => (prev === item.label ? "" : item.label))}
+                      onClick={() => setSelectedSituation(prev => (prev === item.code ? "" : item.code))}
                       variant={isSelected ? "filled" : "outlined"}
                       color={isSelected ? "primary" : "default"}
                       sx={styles.chip}
@@ -508,5 +517,12 @@ export default function GeneratePage() {
       </Box>
       <Footer />
     </>
+  );
+}
+export default function GeneratePage() {
+  return (
+    <Suspense fallback={null}>
+      <GeneratePageInner />
+    </Suspense>
   );
 }
