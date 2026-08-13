@@ -383,6 +383,67 @@ export const deletePost = async postId => {
   await removePostImages(db, imagePaths);
 };
 
+const isMissingCommunityReportsTable = error => {
+  const code = String(error?.code ?? "");
+  const message = String(error?.message ?? "");
+  const details = String(error?.details ?? "");
+  const hint = String(error?.hint ?? "");
+  const combined = `${message} ${details} ${hint}`;
+
+  // PostgreSQL 직접 오류(42P01)와 PostgREST schema cache 오류(PGRST205)를 모두 처리합니다.
+  return (
+    code === "42P01" ||
+    code === "PGRST205" ||
+    (/community_reports/i.test(combined) &&
+      /(does not exist|could not find|schema cache|not found)/i.test(combined))
+  );
+};
+
+/**
+ * 커뮤니티 신고 접수.
+ *
+ * 신고 데이터는 게시글/댓글 트리와 분리된 단일 reports 테이블에 저장합니다.
+ * 부모-자식 신고 관계는 만들지 않으며, 검토/제재 상태만 reports 한 행에서 관리합니다.
+ */
+export const submitCommunityReport = async ({
+  targetType,
+  targetId,
+  reason,
+}) => {
+  const db = supabase();
+  const user = await requireUser(db);
+  const normalizedType = String(targetType ?? "").trim();
+  const normalizedReason = String(reason ?? "").trim();
+
+  if (!["post", "comment"].includes(normalizedType)) {
+    throw new Error("신고 대상을 확인할 수 없습니다.");
+  }
+  if (!targetId) throw new Error("신고 대상을 확인할 수 없습니다.");
+  if (normalizedReason.length < 2) {
+    throw new Error("신고 사유를 2자 이상 입력해 주세요.");
+  }
+  if (normalizedReason.length > 300) {
+    throw new Error("신고 사유는 300자 이하로 입력해 주세요.");
+  }
+
+  const { error } = await db.from("community_reports").insert({
+    reporter_id: user.id,
+    target_type: normalizedType,
+    target_id: targetId,
+    reason: normalizedReason,
+  });
+
+  if (error) {
+    if (error.code === "23505") {
+      throw new Error("이미 신고한 콘텐츠입니다.");
+    }
+    if (isMissingCommunityReportsTable(error)) {
+      throw new Error("신고 기능 DB가 아직 준비되지 않았습니다.");
+    }
+    throw error;
+  }
+};
+
 /**
  * 댓글 작성
  *
