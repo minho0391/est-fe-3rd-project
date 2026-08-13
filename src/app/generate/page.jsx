@@ -199,16 +199,6 @@ function GeneratePageInner() {
   const handleGenerate = () => {
     const trimmedCustom = customInput.trim();
 
-    // 둘 다 비어있을 때만 경고
-    if (!selectedSituation && !trimmedCustom) {
-      alert("상황을 선택하거나 직접 입력해주세요.");
-      return;
-    }
-    if (!selectedFormat) {
-      alert("형식을 선택해주세요.");
-      return;
-    }
-
     // 1. 둘 다 있을 경우: "[선택상황] (상세 내용)" 형태로 통합
     // 2. 하나만 있을 경우: 해당 값 채택
     let finalSituation = "";
@@ -428,6 +418,7 @@ function GeneratePageInner() {
               size="md"
               fullWidth
               onClick={handleGenerate}
+              disabled={(!selectedSituation && !customInput.trim()) || !selectedFormat}
               trailingIcon={<Box component="img" src="/assets/icons/bolt_icon.svg" alt="" sx={styles.icon24} />}
               sx={{ fontSize: "1rem" }}
             >
