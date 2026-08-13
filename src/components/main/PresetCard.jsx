@@ -51,7 +51,15 @@ export default function PresetCard({ label, image, href }) {
   return (
     <Box component={href ? Link : "article"} href={href} sx={cardSx}>
       <Box sx={thumbWrapSx}>
-        <Box component="img" src={image} alt="" sx={thumbSx} />
+        {/* 장식이 아니라 상황을 나타내는 콘텐츠 이미지라 alt 를 채웁니다. */}
+        <Box
+          component="img"
+          src={image}
+          alt={`${label} 분위기의 모임 사진`}
+          loading="lazy"
+          decoding="async"
+          sx={thumbSx}
+        />
       </Box>
 
       <Box sx={overlaySx}>
