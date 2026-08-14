@@ -483,6 +483,7 @@ export default function MyPage() {
     return (
       <main className="community-scope community-page mypage-page">
         <div className="mypage-container">
+          <h1 className="community-visuallyHidden">나의 마이페이지</h1>
           <p className="mypage-emptyText">마이페이지를 불러오는 중입니다.</p>
         </div>
       </main>
@@ -493,6 +494,7 @@ export default function MyPage() {
     return (
       <main className="community-scope community-page mypage-page">
         <div className="mypage-container">
+          <h1 className="community-visuallyHidden">나의 마이페이지</h1>
           <p className="mypage-emptyText">
             {loadError || "로그인이 필요합니다."}
           </p>
@@ -505,7 +507,7 @@ export default function MyPage() {
     <main className="community-scope community-page mypage-page">
       <div className="mypage-container">
         <aside className="mypage-leftColumn" aria-label="마이페이지 메뉴">
-          <section className="mypage-profileCard">
+          <div className="mypage-profileCard">
             <div className="mypage-profileInfo">
               <div className="mypage-profileIdentity">
                 <div className="mypage-avatar">
@@ -554,7 +556,7 @@ export default function MyPage() {
                 <span>받은 좋아요</span>
               </div>
             </div>
-          </section>
+          </div>
 
           <nav className="mypage-menuCard">
             <button
@@ -673,7 +675,7 @@ export default function MyPage() {
             </article>
           </div>
 
-          <section className="mypage-contentSection">
+          <div className="mypage-contentSection">
             {activeTab === "myPosts" && (
               <>
                 <div className="mypage-listHeader">
@@ -779,7 +781,7 @@ export default function MyPage() {
                 <ContentCabinet contents={savedContents} />
               </>
             )}
-          </section>
+          </div>
         </section>
       </div>
 
