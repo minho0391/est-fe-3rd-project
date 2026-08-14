@@ -48,7 +48,7 @@ export default function PopularPreview({ posts = [] }) {
             aria-hidden="true"
           />
 
-          <h3 className="popular-title">지금 인기 있는 게시글</h3>
+          <h2 className="popular-title">지금 인기 있는 게시글</h2>
         </div>
 
         <button type="button" className="popular-moreBtn">
@@ -69,7 +69,7 @@ export default function PopularPreview({ posts = [] }) {
               <span className="popular-time">{post.createdAt}</span>
             </div>
 
-            <h4 className="popular-postTitle">{post.title}</h4>
+            <h3 className="popular-postTitle">{post.title}</h3>
 
             <div className="popular-cardFooter">
               <div className="popular-statGroup">
