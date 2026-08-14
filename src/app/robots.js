@@ -9,7 +9,6 @@ export default function robots() {
       disallow: [
         "/api/",
         "/auth/",
-        "/auth-check",
         "/sign-in",
         "/reset-password",
         "/post/write",
