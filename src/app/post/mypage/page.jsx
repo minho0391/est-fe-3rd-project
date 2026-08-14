@@ -288,11 +288,6 @@ export default function MyPage() {
             "새 비밀번호는 현재 비밀번호와 다르게 입력해 주세요.",
           );
         }
-
-        await changePasswordWithReauth({
-          currentPassword,
-          newPassword,
-        });
       }
 
       let avatarUrl = userProfile?.avatarUrl ?? "";
@@ -305,6 +300,15 @@ export default function MyPage() {
       }
 
       await updateCurrentUserProfile({ nickname: editNickname });
+
+      // 프로필 저장이 모두 성공한 뒤 비밀번호를 마지막에 변경합니다.
+      // 프로필 저장 실패 후 비밀번호만 바뀌는 부분 성공 상태를 방지합니다.
+      if (wantsPasswordChange) {
+        await changePasswordWithReauth({
+          currentPassword,
+          newPassword,
+        });
+      }
 
       const refreshed = await getCurrentUserProfile();
       if (refreshed) {
@@ -908,6 +912,7 @@ export default function MyPage() {
                           setCurrentPasswordMessage("");
                         }}
                         autoComplete="current-password"
+                        aria-label="현재 비밀번호"
                         aria-describedby="mypage-current-password-message"
                       />
                       <button
