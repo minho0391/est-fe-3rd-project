@@ -174,14 +174,14 @@
 .signup-alert-error,
 .reset-alert-error {
   background: #fff1f1;
-  color: #d92d3a;
+  color: #c81e2a;
 }
 
 .signin-alert-success,
 .signup-alert-success,
 .reset-alert-success {
   background: #eaf6f0;
-  color: #1B6B4A;
+  color: #1b6b4a;
 }
 
 .signin-promo {
