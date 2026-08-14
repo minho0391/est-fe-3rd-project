@@ -9,11 +9,11 @@ export default function robots() {
       disallow: [
         "/api/",
         "/auth/",
-        "/auth-check",
         "/sign-in",
         "/reset-password",
         "/post/write",
         "/post/mypage",
+        "/post/admin",
         "/generate/loading",
         "/generate/result",
       ],

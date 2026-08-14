@@ -1,12 +1,16 @@
 import { SITE_URL } from "@/lib/site";
 
-// 이번 범위(메인 + 게임)만 등록했습니다.
-// 커뮤니티·generate 는 해당 페이지 SEO 작업할 때 여기에 줄만 추가하면 됩니다.
+// 로그인·개인 화면과 생성 결과 페이지는 robots.js 에서 색인 제외했으므로 여기서도 뺍니다.
 const routes = [
   { path: "/", priority: 1.0, changeFrequency: "weekly" },
+  { path: "/generate", priority: 0.9, changeFrequency: "weekly" },
+  { path: "/post", priority: 0.8, changeFrequency: "daily" },
+  { path: "/post/list", priority: 0.8, changeFrequency: "daily" },
+  { path: "/formats", priority: 0.7, changeFrequency: "monthly" },
   { path: "/game/card-game", priority: 0.7, changeFrequency: "monthly" },
   { path: "/game/random-pick", priority: 0.7, changeFrequency: "monthly" },
   { path: "/game/chosung-quiz", priority: 0.7, changeFrequency: "monthly" },
+  { path: "/sign-up", priority: 0.5, changeFrequency: "yearly" },
 ];
 
 export default function sitemap() {
