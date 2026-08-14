@@ -340,9 +340,9 @@ export default function CommentSection({
   return (
     <section className="comments-container">
       <div className="comments-header">
-        <h3 className="comments-title">
+        <h2 className="comments-title">
           댓글 <span className="comments-count">{totalCommentCount}</span>
-        </h3>
+        </h2>
       </div>
       <form onSubmit={e => submit(e)} className="comments-inputForm">
         <textarea
