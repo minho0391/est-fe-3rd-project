@@ -444,6 +444,7 @@ function GeneratePageInner() {
           {/* 템플릿 클릭 시 형식/레벨 선택 모달 */}
           <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
             <Box sx={{ ...styles.modalBox, borderColor: theme.palette.momentalk.modalBorder }}>
+              {/* 헤더: 항상 고정 노출 */}
               <Box sx={styles.modalHeader}>
                 <Typography variant="h5">[{activeTemplate?.title}] 형식 선택</Typography>
                 <IconButton size="small" onClick={() => setIsModalOpen(false)}>
@@ -451,64 +452,67 @@ function GeneratePageInner() {
                 </IconButton>
               </Box>
 
-              <Typography variant="body2" color="text.secondary" display="block" mb={2.5}>
-                원하시는 대화 형식을 선택해 주세요.
-              </Typography>
+              {/* 본문: 내용이 길어지면 이 영역만 스크롤 */}
+              <Box sx={styles.modalBody}>
+                <Typography variant="body2" color="text.secondary" display="block" mb={2.5}>
+                  원하시는 대화 형식을 선택해 주세요.
+                </Typography>
 
-              <List disablePadding sx={{ mb: 2.5 }}>
-                {options.format.map(item => {
-                  const isSelected = modalFormat === item.code;
-                  return (
-                    <ListItem key={item.code} disablePadding sx={{ mb: 1 }}>
-                      <ListItemButton
-                        onClick={() => setModalFormat(item.code)}
-                        sx={{
-                          ...styles.modalListItem,
-                          borderColor: isSelected ? "primary.main" : "divider",
-                          bgcolor: isSelected ? theme.palette.momentalk.presetCard : "transparent",
-                          "&:hover": {
-                            borderColor: "primary.main",
-                            bgcolor: isSelected ? theme.palette.momentalk.presetCard : "grey.50",
-                          },
-                        }}
-                      >
-                        <ListItemText
-                          primary={item.label}
-                          slotProps={{
-                            primary: {
-                              fontSize: "0.95rem",
-                              fontWeight: isSelected ? 700 : 500,
-                              color: isSelected ? "primary.main" : "text.primary",
+                <List disablePadding sx={{ mb: 2.5 }}>
+                  {options.format.map(item => {
+                    const isSelected = modalFormat === item.code;
+                    return (
+                      <ListItem key={item.code} disablePadding sx={{ mb: 1 }}>
+                        <ListItemButton
+                          onClick={() => setModalFormat(item.code)}
+                          sx={{
+                            ...styles.modalListItem,
+                            borderColor: isSelected ? "primary.main" : "divider",
+                            bgcolor: isSelected ? theme.palette.momentalk.presetCard : "transparent",
+                            "&:hover": {
+                              borderColor: "primary.main",
+                              bgcolor: isSelected ? theme.palette.momentalk.presetCard : "grey.50",
                             },
                           }}
-                        />
-                        {isSelected && (
-                          <Box component="img" src="/assets/icons/check_icon.svg" alt="" sx={styles.icon24} />
-                        )}
-                      </ListItemButton>
-                    </ListItem>
-                  );
-                })}
-              </List>
+                        >
+                          <ListItemText
+                            primary={item.label}
+                            slotProps={{
+                              primary: {
+                                fontSize: "0.95rem",
+                                fontWeight: isSelected ? 700 : 500,
+                                color: isSelected ? "primary.main" : "text.primary",
+                              },
+                            }}
+                          />
+                          {isSelected && (
+                            <Box component="img" src="/assets/icons/check_icon.svg" alt="" sx={styles.icon24} />
+                          )}
+                        </ListItemButton>
+                      </ListItem>
+                    );
+                  })}
+                </List>
 
-              {/* 레벨 선택 */}
-              <Typography variant="body2" fontWeight={600} color="text.primary" mb={1}>
-                대화 깊이
-              </Typography>
-              <Box sx={{ ...styles.chipRow, mb: 3 }}>
-                {LEVEL_OPTIONS.map(lv => (
-                  <Chip
-                    key={lv.value}
-                    label={lv.label}
-                    onClick={() => setModalLevel(lv.value)}
-                    variant={modalLevel === lv.value ? "filled" : "outlined"}
-                    color={modalLevel === lv.value ? "primary" : "default"}
-                    sx={styles.chip}
-                  />
-                ))}
+                {/* 레벨 선택 */}
+                <Typography variant="body2" fontWeight={600} color="text.primary" mb={1}>
+                  대화 깊이
+                </Typography>
+                <Box sx={{ ...styles.chipRow, mb: 1 }}>
+                  {LEVEL_OPTIONS.map(lv => (
+                    <Chip
+                      key={lv.value}
+                      label={lv.label}
+                      onClick={() => setModalLevel(lv.value)}
+                      variant={modalLevel === lv.value ? "filled" : "outlined"}
+                      color={modalLevel === lv.value ? "primary" : "default"}
+                      sx={styles.chip}
+                    />
+                  ))}
+                </Box>
               </Box>
 
-              {/* 하단 버튼 (이전 / 전송) */}
+              {/* 하단 버튼 (이전 / 전송): 항상 고정 노출 */}
               <Box sx={styles.modalActions}>
                 <Button variant="tertiary" size="modal" fullWidth onClick={() => setIsModalOpen(false)}>
                   이전
