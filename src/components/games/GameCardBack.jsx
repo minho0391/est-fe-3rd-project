@@ -25,7 +25,10 @@ const logoSx = {
 export default function GameCardBack({ onClick, disabled }) {
   return (
     <ButtonBase onClick={onClick} disabled={disabled} sx={cardBackSx}>
-      <Typography sx={logoSx}>M</Typography>
+      {/* button 안이라 p 대신 span 으로 둡니다. */}
+      <Typography component="span" sx={logoSx}>
+        M
+      </Typography>
     </ButtonBase>
   );
 }
