@@ -1,11 +1,11 @@
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "@/lib/theme";
-import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, OG_IMAGE } from "@/lib/site";
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, OG_IMAGE, OG_IMAGE_TYPE } from "@/lib/site";
 import "./globals.css";
 
 export const metadata = {
-  // 상대 경로 이미지(/og-image.png)를 절대 URL 로 바꿔주는 기준입니다.
+  // 상대 경로 이미지(/og-image.webp)를 절대 URL 로 바꿔주는 기준입니다.
   metadataBase: new URL(SITE_URL),
 
   // default: 메인처럼 자체 title 이 없는 페이지에 쓰입니다.
@@ -24,7 +24,15 @@ export const metadata = {
     url: SITE_URL,
     title: `${SITE_NAME} — AI 대화 소재 추천`,
     description: SITE_DESCRIPTION,
-    images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: `${SITE_NAME} 대표 이미지` }],
+    images: [
+      {
+        url: OG_IMAGE,
+        type: OG_IMAGE_TYPE,
+        width: 1200,
+        height: 630,
+        alt: `${SITE_NAME} 대표 이미지`,
+      },
+    ],
   },
 
   twitter: {

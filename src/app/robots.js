@@ -13,6 +13,7 @@ export default function robots() {
         "/reset-password",
         "/post/write",
         "/post/mypage",
+        "/post/admin",
         "/generate/loading",
         "/generate/result",
       ],
