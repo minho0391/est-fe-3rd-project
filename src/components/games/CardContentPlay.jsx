@@ -209,8 +209,9 @@ export default function CardContentPlay() {
                 {cardLabel}
               </Typography>
               <Box sx={cardScriptGroupSx}>
+                {/* subtitle1 은 MUI 기본 매핑이 h6 이라 카드 본문은 p 로 둡니다. */}
                 {lines.map((line, lineIndex) => (
-                  <Typography key={lineIndex} variant="subtitle1" sx={cardScriptSx}>
+                  <Typography key={lineIndex} component="p" variant="subtitle1" sx={cardScriptSx}>
                     {line}
                   </Typography>
                 ))}
