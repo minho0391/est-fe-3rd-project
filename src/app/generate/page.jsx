@@ -447,7 +447,7 @@ function GeneratePageInner() {
               {/* 헤더: 항상 고정 노출 */}
               <Box sx={styles.modalHeader}>
                 <Typography variant="h5">[{activeTemplate?.title}] 형식 선택</Typography>
-                <IconButton size="small" onClick={() => setIsModalOpen(false)}>
+                <IconButton size="small" aria-label="닫기" onClick={() => setIsModalOpen(false)}>
                   <Box component="img" src="/assets/icons/close_icon.svg" alt="" sx={styles.icon24} />
                 </IconButton>
               </Box>
