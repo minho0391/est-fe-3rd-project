@@ -81,7 +81,7 @@ export default function CardJokerResult({ penalty = null, onConfirm }) {
         {lines.length > 0 && (
           <Box sx={penaltyBoxSx}>
             {lines.map((line, index) => (
-              <Typography key={index} variant="h5" align="center" sx={keepAllSx}>
+              <Typography key={index} component="p" variant="h5" align="center" sx={keepAllSx}>
                 {line}
               </Typography>
             ))}

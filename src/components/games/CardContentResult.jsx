@@ -97,7 +97,7 @@ export default function CardContentResult({ content, onClose, onNext, hasNext = 
 
             <Box sx={scriptGroupSx}>
               {lines.map((line, index) => (
-                <Typography key={index} variant="h3" align="center" sx={scriptSx}>
+                <Typography key={index} component="p" variant="h3" align="center" sx={scriptSx}>
                   {line}
                 </Typography>
               ))}
@@ -106,6 +106,7 @@ export default function CardContentResult({ content, onClose, onNext, hasNext = 
             {answer &&
               (showAnswer ? (
                 <Typography
+                  component="p"
                   variant="h5"
                   color="primary.main"
                   align="center"
