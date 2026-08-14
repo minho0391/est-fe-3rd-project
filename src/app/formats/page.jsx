@@ -111,7 +111,9 @@ function FormatCard({ code, label }) {
           textAlign: "center",
         }}
       >
-        <Typography component="h3" variant="h5">
+        {/* 이 페이지는 h1 아래 카드 목록만 있어 카드 제목이 h2 입니다.
+            (메인은 위에 섹션 h2 가 있어 같은 카드가 h3) */}
+        <Typography component="h2" variant="h5">
           {label}
         </Typography>
         {presentation.description && (
