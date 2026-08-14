@@ -281,10 +281,10 @@ export default function CommunityReportsAdminPage() {
         </header>
 
         {loadError ? (
-          <section className="reports-adminState reports-adminStateError">
+          <div className="reports-adminState reports-adminStateError">
             <strong>신고 관리 페이지를 열 수 없습니다.</strong>
             <span>{loadError}</span>
-          </section>
+          </div>
         ) : (
           <>
             <nav className="reports-filterTabs" aria-label="신고 상태 필터">
@@ -304,13 +304,13 @@ export default function CommunityReportsAdminPage() {
             </nav>
 
             {isLoading ? (
-              <section className="reports-adminState">
+              <div className="reports-adminState">
                 신고 목록을 불러오는 중입니다.
-              </section>
+              </div>
             ) : filteredReports.length === 0 ? (
-              <section className="reports-adminState">
+              <div className="reports-adminState">
                 해당 상태의 신고가 없습니다.
-              </section>
+              </div>
             ) : (
               <div className="reports-list">
                 {filteredReports.map(report => {
