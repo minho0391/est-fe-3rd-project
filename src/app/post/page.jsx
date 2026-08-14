@@ -75,6 +75,8 @@ export default function CommunityMainPage() {
   return (
     <main className="community-scope community-page community-main-page">
       <div className="community-main-container">
+        <h1 className="community-visuallyHidden">커뮤니티</h1>
+
         {isLoading && (
           <p className="community-listState">게시글을 불러오는 중입니다.</p>
         )}
@@ -109,7 +111,7 @@ export default function CommunityMainPage() {
             <section className="community-latest-section">
               <div className="community-section-heading">
                 <div>
-                  <h1 className="community-section-title">전체 최신글</h1>
+                  <h2 className="community-section-title">전체 최신글</h2>
 
                   <p className="community-section-description">
                     최근 등록된 커뮤니티 게시글을 확인해 보세요.
