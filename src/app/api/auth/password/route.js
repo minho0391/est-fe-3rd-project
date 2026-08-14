@@ -1,5 +1,6 @@
 // 비밀번호 변경 API - 이메일 가입 계정의 현재 비밀번호 확인 및 비밀번호 변경 처리
 import { NextResponse } from "next/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/server";
 
 const hasEmailProvider = user => {
@@ -48,7 +49,22 @@ export async function POST(request) {
       return errorResponse("현재 비밀번호를 입력해 주세요.", 400);
     }
 
-    const { error: reauthError } = await supabase.auth.signInWithPassword({
+    // 비밀번호 검증은 현재 요청의 쿠키 기반 서버 클라이언트와 분리합니다.
+    // signInWithPassword는 새 세션을 발급하므로 같은 클라이언트에서 실행하면
+    // 확인/저장 요청 사이에 인증 쿠키가 교체되어 연속 요청이 실패할 수 있습니다.
+    const verifier = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false,
+        },
+      },
+    );
+
+    const { error: reauthError } = await verifier.auth.signInWithPassword({
       email: user.email,
       password: currentPassword,
     });
