@@ -149,6 +149,7 @@ export default function PostDetailPage() {
   if (isLoading) {
     return (
       <main className="community-scope community-page detail-page-container">
+        <h1 className="community-visuallyHidden">게시글 상세</h1>
         <p className="community-listState">게시글을 불러오는 중입니다.</p>
       </main>
     );
