@@ -155,7 +155,8 @@ export default function CardJokerPlay() {
                 />
               </Box>
 
-              <Typography variant="h5" color={stateColor} sx={cardStateLabelSx}>
+              {/* 카드 상태 라벨이라 제목이 아닙니다. */}
+              <Typography component="p" variant="h5" color={stateColor} sx={cardStateLabelSx}>
                 {isJoker ? "조커! 벌칙" : "세이프"}
               </Typography>
             </Box>

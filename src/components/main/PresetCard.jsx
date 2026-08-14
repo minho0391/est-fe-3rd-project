@@ -69,7 +69,8 @@ export default function PresetCard({ label, image, href }) {
       </Box>
 
       <Box sx={overlaySx}>
-        <Typography variant="h5" sx={labelSx}>
+        {/* 섹션(h2) 아래 카드 제목이라 h3. variant 는 그대로라 크기는 안 바뀝니다. */}
+        <Typography component="h3" variant="h5" sx={labelSx}>
           {label}
         </Typography>
       </Box>

@@ -82,7 +82,10 @@ export default function CardModeSelect({ onSelect }) {
                 sx={{ width: 80, height: 80, mb: { xs: 2, sm: 3 } }}
               />
 
-              <Typography variant="h5">{mode.title}</Typography>
+              {/* 섹션(h2) 아래 카드 제목이라 h3 입니다. */}
+              <Typography component="h3" variant="h5">
+                {mode.title}
+              </Typography>
 
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                 {mode.description}

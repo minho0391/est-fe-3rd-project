@@ -61,7 +61,9 @@ export default function Footer() {
             aria-label="홈으로 이동"
             sx={{ width: "fit-content" }}
           >
+            {/* 로고는 문서 제목이 아니라 홈 링크라 heading 태그를 쓰지 않습니다. */}
             <Typography
+              component="span"
               variant="h5"
               color="primary.main"
               sx={{ display: "flex", alignItems: "center", height: 40, fontWeight: 700 }}

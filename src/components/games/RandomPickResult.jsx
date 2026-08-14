@@ -114,7 +114,7 @@ export default function RandomPickResult({ content, onClose, onRepick }) {
 
           <Box sx={scriptGroupSx}>
             {lines.map((line, index) => (
-              <Typography key={index} variant="h3" align="center" sx={scriptSx}>
+              <Typography key={index} component="p" variant="h3" align="center" sx={scriptSx}>
                 {line}
               </Typography>
             ))}
@@ -122,7 +122,13 @@ export default function RandomPickResult({ content, onClose, onRepick }) {
 
           {answer &&
             (showAnswer ? (
-              <Typography variant="h5" color="primary.main" align="center" sx={keepAllSx}>
+              <Typography
+                component="p"
+                variant="h5"
+                color="primary.main"
+                align="center"
+                sx={keepAllSx}
+              >
                 정답: {answer}
               </Typography>
             ) : (
