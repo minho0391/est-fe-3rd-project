@@ -122,7 +122,9 @@ export default function AuthMenu() {
         aria-label="내 계정 메뉴"
         sx={styles.profileButton}
       >
+        {/* button 안이라 Avatar 기본 태그(div) 대신 span 으로 둡니다. */}
         <Avatar
+          component="span"
           src={profile.avatar_url || undefined}
           sx={{ ...styles.avatar, bgcolor: avatarColorOf(profile.nickname) }}
         >
