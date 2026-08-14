@@ -84,6 +84,7 @@ export const styles = {
   modalBody: {
     overflowY: "auto",
     px: 3.5,
+    minHeight: 0, // flex item이 콘텐츠 크기만큼 커지지 않고 스크롤되도록 (result/styles.js와 통일)
   },
   modalListItem: { borderRadius: 2, border: "1px solid", py: 1.5 },
   modalActions: {
