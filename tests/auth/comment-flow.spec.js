@@ -16,6 +16,14 @@ const selectBoard = async (page, name) => {
   await select.selectOption({ label: name });
 };
 
+// 등록이 막히면 화면에 사유가 뜹니다. 그걸 먼저 확인해야 원인을 알 수 있습니다.
+const expectNoSubmitError = async page => {
+  const error = page.locator(".write-submitError");
+  if (await error.count()) {
+    expect(await error.textContent()).toBeNull();
+  }
+};
+
 // 테스트용 글을 하나 만들고 그 주소를 돌려줍니다.
 const createPost = async (page, title) => {
   await page.goto("/post/write");
@@ -26,7 +34,10 @@ const createPost = async (page, title) => {
   await fillEditor(page, "댓글 테스트용 본문입니다.");
   await page.getByRole("button", { name: "등록" }).click();
 
-  await expect(page).toHaveURL(/\/post\/\d+$/);
+  await expectNoSubmitError(page);
+
+  // dev 서버 컴파일과 Supabase 왕복이 겹치면 기본 5초를 넘기는 경우가 있어 넉넉히 둡니다.
+  await expect(page).toHaveURL(/\/post\/\d+$/, { timeout: 15_000 });
   return page.url();
 };
 

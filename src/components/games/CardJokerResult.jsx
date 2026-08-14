@@ -54,14 +54,15 @@ export default function CardJokerResult({ penalty = null, onConfirm }) {
   const lines = toContentLines(penalty);
 
   return (
+    // aria-label 을 Dialog 에 직접 주면 role="presentation" 인 루트 div 에 붙어 웹 표준 위반입니다.
+    // role="dialog" 가 붙는 paper 에 넘깁니다.
     <Dialog
       open
       onClose={onConfirm}
-      aria-label="조커 당첨"
       transitionDuration={80}
       slotProps={{
         backdrop: { sx: dialogBackdropSx },
-        paper: { sx: paperSx },
+        paper: { sx: paperSx, "aria-label": "조커 당첨" },
       }}
     >
       <Box sx={bodySx}>

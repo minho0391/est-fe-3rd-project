@@ -33,11 +33,14 @@ export default defineConfig({
     },
 
     // 로그인 상태로 도는 화면
+    // 같은 파일 안의 테스트끼리는 순서대로 돌립니다.
+    // (전부 e2e테스터 계정 하나를 공유해서 글 작성이 겹치면 등록이 밀립니다)
     {
       name: "chromium-logged-in",
       use: { ...devices["Desktop Chrome"], storageState: STORAGE_STATE },
       testMatch: /auth\/.*\.spec\.js/,
       dependencies: ["setup"],
+      fullyParallel: false,
     },
   ],
 

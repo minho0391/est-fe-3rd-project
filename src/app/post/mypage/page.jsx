@@ -35,7 +35,11 @@ import {
   updateCurrentUserProfile,
   uploadAvatar,
 } from "@/lib/communityMutations";
-import { signOut } from "@/utils/supabase/auth";
+import {
+  changePasswordWithReauth,
+  signOut,
+  verifyCurrentPassword,
+} from "@/utils/supabase/auth";
 import ContentCabinet from "@/components/post/mypage/ContentCabinet";
 
 const formatCount = value => {
@@ -63,6 +67,11 @@ export default function MyPage() {
   const [loadError, setLoadError] = useState("");
   const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
   const [editNickname, setEditNickname] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [currentPasswordStatus, setCurrentPasswordStatus] = useState("idle");
+  const [currentPasswordMessage, setCurrentPasswordMessage] = useState("");
   const [editAvatarFile, setEditAvatarFile] = useState(null);
   const [editAvatarPreviewUrl, setEditAvatarPreviewUrl] = useState("");
   const [removeCurrentAvatar, setRemoveCurrentAvatar] = useState(false);
@@ -162,6 +171,11 @@ export default function MyPage() {
     setEditNickname(userProfile?.name ?? "");
     setEditAvatarFile(null);
     setRemoveCurrentAvatar(false);
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setCurrentPasswordStatus("idle");
+    setCurrentPasswordMessage("");
     setProfileActionError("");
     setIsProfileEditorOpen(true);
   };
@@ -171,9 +185,66 @@ export default function MyPage() {
     setIsProfileEditorOpen(false);
     setEditAvatarFile(null);
     setRemoveCurrentAvatar(false);
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setCurrentPasswordStatus("idle");
+    setCurrentPasswordMessage("");
     setProfileActionError("");
     if (avatarInputRef.current) avatarInputRef.current.value = "";
   };
+
+  const handleCurrentPasswordCheck = async () => {
+    if (!currentPassword || currentPasswordStatus === "checking") return;
+
+    try {
+      setCurrentPasswordStatus("checking");
+      setCurrentPasswordMessage("현재 비밀번호를 확인하고 있습니다.");
+      setProfileActionError("");
+
+      await verifyCurrentPassword({ currentPassword });
+
+      setCurrentPasswordStatus("valid");
+      setCurrentPasswordMessage("현재 비밀번호가 확인되었습니다.");
+    } catch (error) {
+      setCurrentPasswordStatus("invalid");
+      setCurrentPasswordMessage(
+        error?.message || "현재 비밀번호가 일치하지 않습니다.",
+      );
+    }
+  };
+
+  const newPasswordValidation = useMemo(() => {
+    if (!newPassword)
+      return { status: "idle", message: "6자 이상 입력해 주세요." };
+    if (newPassword.length < 6) {
+      return {
+        status: "invalid",
+        message: "새 비밀번호는 6자 이상 입력해 주세요.",
+      };
+    }
+    if (currentPassword && newPassword === currentPassword) {
+      return {
+        status: "invalid",
+        message: "새 비밀번호는 현재 비밀번호와 다르게 입력해 주세요.",
+      };
+    }
+    return { status: "valid", message: "사용 가능한 비밀번호입니다." };
+  }, [currentPassword, newPassword]);
+
+  const confirmPasswordValidation = useMemo(() => {
+    if (!confirmNewPassword) return { status: "idle", message: "" };
+    if (newPassword !== confirmNewPassword) {
+      return {
+        status: "invalid",
+        message: "새 비밀번호와 일치하지 않습니다.",
+      };
+    }
+    if (newPasswordValidation.status !== "valid") {
+      return { status: "idle", message: "" };
+    }
+    return { status: "valid", message: "비밀번호가 일치합니다." };
+  }, [confirmNewPassword, newPassword, newPasswordValidation.status]);
 
   const handleProfileSave = async event => {
     event.preventDefault();
@@ -182,6 +253,42 @@ export default function MyPage() {
     try {
       setIsProfileSaving(true);
       setProfileActionError("");
+
+      const wantsPasswordChange = Boolean(
+        currentPassword || newPassword || confirmNewPassword,
+      );
+
+      if (wantsPasswordChange) {
+        if (!userProfile?.isEmailProvider) {
+          throw new Error(
+            "이메일 가입 계정에서만 비밀번호를 변경할 수 있습니다.",
+          );
+        }
+
+        if (!currentPassword || !newPassword || !confirmNewPassword) {
+          throw new Error(
+            "비밀번호를 변경하려면 현재 비밀번호와 새 비밀번호를 모두 입력해 주세요.",
+          );
+        }
+
+        if (currentPasswordStatus !== "valid") {
+          throw new Error("현재 비밀번호 확인을 먼저 완료해 주세요.");
+        }
+
+        if (newPassword.length < 6) {
+          throw new Error("새 비밀번호는 6자 이상 입력해 주세요.");
+        }
+
+        if (newPassword !== confirmNewPassword) {
+          throw new Error("새 비밀번호 확인이 일치하지 않습니다.");
+        }
+
+        if (currentPassword === newPassword) {
+          throw new Error(
+            "새 비밀번호는 현재 비밀번호와 다르게 입력해 주세요.",
+          );
+        }
+      }
 
       let avatarUrl = userProfile?.avatarUrl ?? "";
 
@@ -193,6 +300,15 @@ export default function MyPage() {
       }
 
       await updateCurrentUserProfile({ nickname: editNickname });
+
+      // 프로필 저장이 모두 성공한 뒤 비밀번호를 마지막에 변경합니다.
+      // 프로필 저장 실패 후 비밀번호만 바뀌는 부분 성공 상태를 방지합니다.
+      if (wantsPasswordChange) {
+        await changePasswordWithReauth({
+          currentPassword,
+          newPassword,
+        });
+      }
 
       const refreshed = await getCurrentUserProfile();
       if (refreshed) {
@@ -210,6 +326,8 @@ export default function MyPage() {
       setIsProfileSaving(false);
     }
   };
+
+  const canChangePassword = Boolean(userProfile?.isEmailProvider);
 
   const totalViews = myPosts.reduce(
     (sum, post) => sum + Number(post.views ?? 0),
@@ -365,6 +483,7 @@ export default function MyPage() {
     return (
       <main className="community-scope community-page mypage-page">
         <div className="mypage-container">
+          <h1 className="community-visuallyHidden">나의 마이페이지</h1>
           <p className="mypage-emptyText">마이페이지를 불러오는 중입니다.</p>
         </div>
       </main>
@@ -375,6 +494,7 @@ export default function MyPage() {
     return (
       <main className="community-scope community-page mypage-page">
         <div className="mypage-container">
+          <h1 className="community-visuallyHidden">나의 마이페이지</h1>
           <p className="mypage-emptyText">
             {loadError || "로그인이 필요합니다."}
           </p>
@@ -387,7 +507,7 @@ export default function MyPage() {
     <main className="community-scope community-page mypage-page">
       <div className="mypage-container">
         <aside className="mypage-leftColumn" aria-label="마이페이지 메뉴">
-          <section className="mypage-profileCard">
+          <div className="mypage-profileCard">
             <div className="mypage-profileInfo">
               <div className="mypage-profileIdentity">
                 <div className="mypage-avatar">
@@ -436,7 +556,7 @@ export default function MyPage() {
                 <span>받은 좋아요</span>
               </div>
             </div>
-          </section>
+          </div>
 
           <nav className="mypage-menuCard">
             <button
@@ -555,7 +675,7 @@ export default function MyPage() {
             </article>
           </div>
 
-          <section className="mypage-contentSection">
+          <div className="mypage-contentSection">
             {activeTab === "myPosts" && (
               <>
                 <div className="mypage-listHeader">
@@ -661,7 +781,7 @@ export default function MyPage() {
                 <ContentCabinet contents={savedContents} />
               </>
             )}
-          </section>
+          </div>
         </section>
       </div>
 
@@ -774,6 +894,125 @@ export default function MyPage() {
                 <input type="email" value={userProfile.email ?? ""} disabled />
                 <small>이메일은 현재 화면에서 변경할 수 없습니다.</small>
               </label>
+
+              {canChangePassword && (
+                <fieldset className="mypage-passwordSection">
+                  <legend>비밀번호 변경</legend>
+                  <p className="mypage-passwordHelp">
+                    비밀번호를 변경하지 않으려면 아래 항목은 비워두세요.
+                  </p>
+
+                  <div className="mypage-profileField">
+                    <span>현재 비밀번호</span>
+                    <div className="mypage-passwordInputRow">
+                      <input
+                        type="password"
+                        value={currentPassword}
+                        onChange={event => {
+                          setCurrentPassword(event.target.value);
+                          setCurrentPasswordStatus("idle");
+                          setCurrentPasswordMessage("");
+                        }}
+                        autoComplete="current-password"
+                        aria-label="현재 비밀번호"
+                        aria-describedby="mypage-current-password-message"
+                      />
+                      <button
+                        type="button"
+                        className="mypage-passwordCheckButton"
+                        onClick={handleCurrentPasswordCheck}
+                        disabled={
+                          !currentPassword ||
+                          currentPasswordStatus === "checking"
+                        }
+                      >
+                        {currentPasswordStatus === "checking"
+                          ? "확인 중"
+                          : "확인"}
+                      </button>
+                    </div>
+                    {currentPasswordMessage && (
+                      <small
+                        id="mypage-current-password-message"
+                        className={`mypage-fieldMessage mypage-fieldMessage--${currentPasswordStatus}`}
+                        role={
+                          currentPasswordStatus === "invalid"
+                            ? "alert"
+                            : undefined
+                        }
+                      >
+                        {currentPasswordStatus === "valid" && (
+                          <span
+                            className="mypage-fieldCheck"
+                            aria-hidden="true"
+                          >
+                            ✓
+                          </span>
+                        )}
+                        {currentPasswordMessage}
+                      </small>
+                    )}
+                  </div>
+
+                  <label className="mypage-profileField">
+                    <span>새 비밀번호</span>
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={event => setNewPassword(event.target.value)}
+                      minLength={6}
+                      autoComplete="new-password"
+                      aria-describedby="mypage-new-password-message"
+                    />
+                    <small
+                      id="mypage-new-password-message"
+                      className={`mypage-fieldMessage mypage-fieldMessage--${newPasswordValidation.status}`}
+                    >
+                      {newPasswordValidation.status === "valid" && (
+                        <span className="mypage-fieldCheck" aria-hidden="true">
+                          ✓
+                        </span>
+                      )}
+                      {newPasswordValidation.message}
+                    </small>
+                  </label>
+
+                  <label className="mypage-profileField">
+                    <span>새 비밀번호 확인</span>
+                    <input
+                      type="password"
+                      value={confirmNewPassword}
+                      onChange={event =>
+                        setConfirmNewPassword(event.target.value)
+                      }
+                      minLength={6}
+                      autoComplete="new-password"
+                      aria-describedby="mypage-confirm-password-message"
+                    />
+                    {confirmPasswordValidation.message && (
+                      <small
+                        id="mypage-confirm-password-message"
+                        className={`mypage-fieldMessage mypage-fieldMessage--${confirmPasswordValidation.status}`}
+                        role={
+                          confirmPasswordValidation.status === "invalid"
+                            ? "alert"
+                            : undefined
+                        }
+                      >
+                        {confirmPasswordValidation.status === "valid" && (
+                          <span
+                            className="mypage-fieldCheck"
+                            aria-hidden="true"
+                          >
+                            ✓
+                          </span>
+                        )}
+                        {confirmPasswordValidation.message}
+                      </small>
+                    )}
+                  </label>
+                </fieldset>
+              )}
 
               {profileActionError && (
                 <p className="mypage-profileError" role="alert">

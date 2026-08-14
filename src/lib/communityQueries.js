@@ -349,6 +349,16 @@ export const getCurrentCommunityUser = async () => {
       user.email?.split("@")[0] ??
       "사용자",
     email: user.email ?? "",
+    authProvider: user.app_metadata?.provider ?? "",
+    authProviders: Array.isArray(user.app_metadata?.providers)
+      ? user.app_metadata.providers
+      : user.app_metadata?.provider
+        ? [user.app_metadata.provider]
+        : [],
+    isEmailProvider:
+      user.app_metadata?.provider === "email" ||
+      (Array.isArray(user.app_metadata?.providers) &&
+        user.app_metadata.providers.includes("email")),
     role: profile?.role === "admin" ? "관리자" : "정회원",
     joinDate: profile?.created_at ? toDateLabel(profile.created_at) : "",
     avatarUrl: profile?.avatar_url ?? user.user_metadata?.avatar_url ?? "",
