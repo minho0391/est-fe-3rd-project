@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import "@/auth/auth.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -149,6 +150,10 @@ export default function SignUpPage() {
           <Button variant="primary" size="md" onClick={handleGoogleSignUp} disabled={loading} fullWidth>
             Google로 회원가입
           </Button>
+
+          <p className="signup-loginLink">
+            이미 계정이 있으신가요? <Link href="/sign-in">로그인</Link>
+          </p>
         </section>
       </main>
 

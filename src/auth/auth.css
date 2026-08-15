@@ -142,6 +142,21 @@
   text-decoration: underline;
 }
 
+.signup-loginLink {
+  text-align: center;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.signup-loginLink a {
+  color: #5b52e8;
+  font-weight: 700;
+}
+
+.signup-loginLink a:hover {
+  text-decoration: underline;
+}
+
 .reset-heading {
   display: flex;
   flex-direction: column;
