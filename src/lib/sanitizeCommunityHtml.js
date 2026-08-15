@@ -172,6 +172,11 @@ export const sanitizeCommunityHtml = html => {
       node.setAttribute("allowfullscreen", "");
     }
 
+    if (node.tagName === "IMG") {
+      // 본문 이미지는 별도 설명 입력 구조가 없어 장식 이미지로 처리합니다.
+      node.setAttribute("alt", "");
+    }
+
     if (["A", "IMG", "VIDEO", "SOURCE"].includes(node.tagName)) {
       const attr = node.tagName === "A" ? "href" : "src";
       const value = node.getAttribute(attr);
