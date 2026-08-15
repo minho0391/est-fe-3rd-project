@@ -123,7 +123,8 @@ function GeneratePageInner() {
 
   // 뒤로가기 또는 이전 생성 조건 복원 로직
   useEffect(() => {
-    const rawPayload = sessionStorage.getItem("generate-payload") || sessionStorage.getItem("generate-last-payload");
+    const rawPayload =
+      sessionStorage.getItem("generate-payload") || sessionStorage.getItem("generate-last-payload");
 
     if (rawPayload) {
       try {
@@ -231,14 +232,18 @@ function GeneratePageInner() {
       },
     });
   };
-
   return (
     <>
       <Header />
-      <Box sx={{ bgcolor: "background.default", minHeight: "100vh", py: 8, px: 2 }}>
-        <Box sx={{ maxWidth: layout.maxWidth, mx: "auto", px: { xs: 2, md: `${layout.gutter}px` } }}>
+      <Box
+        component="main"
+        sx={{ bgcolor: "background.default", minHeight: "100vh", py: 8, px: 2 }}
+      >
+        <Box
+          sx={{ maxWidth: layout.maxWidth, mx: "auto", px: { xs: 2, md: `${layout.gutter}px` } }}
+        >
           <Box sx={styles.page}>
-            <Typography variant="h2" color="text.primary" mb={1.5}>
+            <Typography variant="h2" component="h1" color="text.primary" mb={1.5}>
               어떤 대화가 필요하신가요?
             </Typography>
             <Typography variant="body1" color="text.secondary">
@@ -251,7 +256,10 @@ function GeneratePageInner() {
             {TEMPLATES.map(tpl => (
               <Box key={tpl.id} sx={styles.templateCardWrap}>
                 <Card elevation={0} sx={styles.templateCard}>
-                  <CardActionArea onClick={() => handleCardClick(tpl)} sx={styles.templateCardAction}>
+                  <CardActionArea
+                    onClick={() => handleCardClick(tpl)}
+                    sx={styles.templateCardAction}
+                  >
                     <Avatar
                       sx={{
                         ...styles.templateIcon,
@@ -261,10 +269,14 @@ function GeneratePageInner() {
                     >
                       <Box component="img" src={tpl.icon} alt="" sx={styles.icon24} />
                     </Avatar>
-                    <Typography variant="h5" mb={1}>
+                    <Typography variant="h5" component="h2" mb={1}>
                       {tpl.title}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "keep-all" }}>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ wordBreak: "keep-all" }}
+                    >
                       {tpl.desc}
                     </Typography>
                   </CardActionArea>
@@ -276,15 +288,26 @@ function GeneratePageInner() {
           {/* 직접 입력 Form 섹션 */}
           <Paper elevation={0} sx={styles.formPaper}>
             <Box sx={styles.formHeader}>
-              <Box component="img" src="/assets/icons/editnote_icon.svg" alt="" sx={styles.icon24} />
-              <Typography variant="h4" color="primary.main">
+              <Box
+                component="img"
+                src="/assets/icons/editnote_icon.svg"
+                alt=""
+                sx={styles.icon24}
+              />
+              <Typography variant="h4" component="h2" color="primary.main">
                 직접 입력하여 생성하기
               </Typography>
             </Box>
 
             {/* 1. 상황 선택 (필수) */}
             <Box sx={styles.fieldGroup}>
-              <Typography variant="body2" fontWeight={600} color="text.primary" mb={1} component="div">
+              <Typography
+                variant="body2"
+                fontWeight={600}
+                color="text.primary"
+                mb={1}
+                component="div"
+              >
                 어떤 상황인가요?
               </Typography>
               <TextField
@@ -303,7 +326,9 @@ function GeneratePageInner() {
                     <Chip
                       key={item.code}
                       label={item.label}
-                      onClick={() => setSelectedSituation(prev => (prev === item.code ? "" : item.code))}
+                      onClick={() =>
+                        setSelectedSituation(prev => (prev === item.code ? "" : item.code))
+                      }
                       variant={isSelected ? "filled" : "outlined"}
                       color={isSelected ? "primary" : "default"}
                       sx={styles.chip}
@@ -320,7 +345,13 @@ function GeneratePageInner() {
 
             {/* 2. 형식 선택 (필수) */}
             <Box sx={styles.fieldGroup}>
-              <Typography variant="body2" fontWeight={600} color="text.primary" mb={1} component="div">
+              <Typography
+                variant="body2"
+                fontWeight={600}
+                color="text.primary"
+                mb={1}
+                component="div"
+              >
                 어떤 형식으로 만들까요?
               </Typography>
               <Box sx={styles.chipRow}>
@@ -339,7 +370,12 @@ function GeneratePageInner() {
 
             {/* 3. 탭 선택 (선택사항: 분위기 / 관계 / 대상) */}
             <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2.5 }}>
-              <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)} textColor="primary" indicatorColor="primary">
+              <Tabs
+                value={tabValue}
+                onChange={(_, v) => setTabValue(v)}
+                textColor="primary"
+                indicatorColor="primary"
+              >
                 {TABS.map(t => (
                   <Tab key={t.key} label={t.label} sx={{ fontWeight: 600 }} />
                 ))}
@@ -392,10 +428,15 @@ function GeneratePageInner() {
                 )}
               </Box>
             )}
-
             {/* 6. 레벨(대화 깊이) 선택 */}
             <Box sx={styles.fieldGroup}>
-              <Typography variant="body2" fontWeight={600} color="text.primary" mb={1} component="div">
+              <Typography
+                variant="body2"
+                fontWeight={600}
+                color="text.primary"
+                mb={1}
+                component="div"
+              >
                 대화 깊이
               </Typography>
               <Box sx={styles.chipRow}>
@@ -413,9 +454,17 @@ function GeneratePageInner() {
             </Box>
 
             {/* 7. 안내 메시지 박스 */}
-            <Paper elevation={0} sx={{ ...styles.infoBox, bgcolor: theme.palette.momentalk.typeCard }}>
+            <Paper
+              elevation={0}
+              sx={{ ...styles.infoBox, bgcolor: theme.palette.momentalk.typeCard }}
+            >
               <Avatar sx={styles.infoAvatar}>
-                <Box component="img" src="/assets/icons/smarttoy_icon.svg" alt="" sx={styles.icon24} />
+                <Box
+                  component="img"
+                  src="/assets/icons/smarttoy_icon.svg"
+                  alt=""
+                  sx={styles.icon24}
+                />
               </Avatar>
               <Typography variant="body2" color="text.primary">
                 AI가 당신의 상황을 분석하여 최적의 대화 가이드를 구성할 준비를 마쳤습니다.
@@ -429,7 +478,9 @@ function GeneratePageInner() {
               fullWidth
               onClick={handleGenerate}
               disabled={!canGenerate}
-              trailingIcon={<Box component="img" src="/assets/icons/bolt_icon.svg" alt="" sx={styles.icon24} />}
+              trailingIcon={
+                <Box component="img" src="/assets/icons/bolt_icon.svg" alt="" sx={styles.icon24} />
+              }
               sx={{ fontSize: "1rem" }}
             >
               AI 대화 생성하기
@@ -446,9 +497,16 @@ function GeneratePageInner() {
             <Box sx={{ ...styles.modalBox, borderColor: theme.palette.momentalk.modalBorder }}>
               {/* 헤더: 항상 고정 노출 */}
               <Box sx={styles.modalHeader}>
-                <Typography variant="h5">[{activeTemplate?.title}] 형식 선택</Typography>
+                <Typography variant="h5" component="h2">
+                  [{activeTemplate?.title}] 형식 선택
+                </Typography>
                 <IconButton size="small" aria-label="닫기" onClick={() => setIsModalOpen(false)}>
-                  <Box component="img" src="/assets/icons/close_icon.svg" alt="" sx={styles.icon24} />
+                  <Box
+                    component="img"
+                    src="/assets/icons/close_icon.svg"
+                    alt=""
+                    sx={styles.icon24}
+                  />
                 </IconButton>
               </Box>
 
@@ -468,7 +526,9 @@ function GeneratePageInner() {
                           sx={{
                             ...styles.modalListItem,
                             borderColor: isSelected ? "primary.main" : "divider",
-                            bgcolor: isSelected ? theme.palette.momentalk.presetCard : "transparent",
+                            bgcolor: isSelected
+                              ? theme.palette.momentalk.presetCard
+                              : "transparent",
                             "&:hover": {
                               borderColor: "primary.main",
                               bgcolor: isSelected ? theme.palette.momentalk.presetCard : "grey.50",
@@ -486,7 +546,12 @@ function GeneratePageInner() {
                             }}
                           />
                           {isSelected && (
-                            <Box component="img" src="/assets/icons/check_icon.svg" alt="" sx={styles.icon24} />
+                            <Box
+                              component="img"
+                              src="/assets/icons/check_icon.svg"
+                              alt=""
+                              sx={styles.icon24}
+                            />
                           )}
                         </ListItemButton>
                       </ListItem>
@@ -514,10 +579,21 @@ function GeneratePageInner() {
 
               {/* 하단 버튼 (이전 / 전송): 항상 고정 노출 */}
               <Box sx={styles.modalActions}>
-                <Button variant="tertiary" size="modal" fullWidth onClick={() => setIsModalOpen(false)}>
+                <Button
+                  variant="tertiary"
+                  size="modal"
+                  fullWidth
+                  onClick={() => setIsModalOpen(false)}
+                >
                   이전
                 </Button>
-                <Button variant="primary" size="modal" fullWidth onClick={handleSendTemplate} disabled={!modalFormat}>
+                <Button
+                  variant="primary"
+                  size="modal"
+                  fullWidth
+                  onClick={handleSendTemplate}
+                  disabled={!modalFormat}
+                >
                   전송
                 </Button>
               </Box>
@@ -529,6 +605,7 @@ function GeneratePageInner() {
     </>
   );
 }
+
 export default function GeneratePage() {
   return (
     <Suspense fallback={null}>
