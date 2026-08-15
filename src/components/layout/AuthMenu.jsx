@@ -123,9 +123,11 @@ export default function AuthMenu() {
         sx={styles.profileButton}
       >
         {/* button 안이라 Avatar 기본 태그(div) 대신 span 으로 둡니다. */}
+        {/* src 가 있으면 MUI 가 내부에 img 를 만드는데, alt 를 주지 않으면 비어 있어 axe 에 걸립니다. */}
         <Avatar
           component="span"
           src={profile.avatar_url || undefined}
+          slotProps={{ img: { alt: `${profile.nickname} 프로필 사진` } }}
           sx={{ ...styles.avatar, bgcolor: avatarColorOf(profile.nickname) }}
         >
           {profile.nickname?.charAt(0)}

@@ -41,6 +41,7 @@ import {
   verifyCurrentPassword,
 } from "@/utils/supabase/auth";
 import ContentCabinet from "@/components/post/mypage/ContentCabinet";
+import useFocusTrap from "@/hooks/useFocusTrap";
 
 const formatCount = value => {
   const number = Number(value ?? 0);
@@ -193,6 +194,22 @@ export default function MyPage() {
     setProfileActionError("");
     if (avatarInputRef.current) avatarInputRef.current.value = "";
   };
+
+  const profileModalRef = useFocusTrap(isProfileEditorOpen);
+
+  useEffect(() => {
+    if (!isProfileEditorOpen) return undefined;
+
+    const handleEscape = event => {
+      if (event.key === "Escape" && !isProfileSaving) {
+        event.preventDefault();
+        closeProfileEditor();
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isProfileEditorOpen, isProfileSaving]);
 
   const handleCurrentPasswordCheck = async () => {
     if (!currentPassword || currentPasswordStatus === "checking") return;
@@ -794,10 +811,12 @@ export default function MyPage() {
           }}
         >
           <section
+            ref={profileModalRef}
             className="mypage-profileModal"
             role="dialog"
             aria-modal="true"
             aria-labelledby="mypage-profile-editor-title"
+            tabIndex={-1}
           >
             <div className="mypage-profileModalHeader">
               <div>
