@@ -464,6 +464,7 @@ export default function WriteForm({ initialValues = null, postId = null }) {
               value={board}
               onChange={e => setBoard(e.target.value)}
               className="write-select"
+              aria-label="게시판 선택"
             >
               {boards.map(boardItem => (
                 <option key={boardItem.id} value={boardItem.name}>
