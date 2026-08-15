@@ -3,6 +3,10 @@ import { test, expect } from "@playwright/test";
 // 강사님 시나리오: 게시글 작성 → 수정 → 삭제
 // 테스트가 만든 글은 마지막에 스스로 지웁니다.
 
+// dev 서버가 라우트를 온디맨드 컴파일하느라 폼 제출 후 이동이 기본 5초를 넘길 때가 있습니다.
+// 병렬 워커가 많을수록 잘 밀리므로 제출 뒤 이동에는 넉넉한 타임아웃을 둡니다.
+const NAV_TIMEOUT = 15000;
+
 // Quill 은 contenteditable 이라 fill() 이 안 먹는 경우가 있어 직접 입력합니다.
 const fillEditor = async (page, text) => {
   const editor = page.locator(".ql-editor");
@@ -42,11 +46,10 @@ test("게시글을 작성하고 수정한 뒤 삭제할 수 있다", async ({ pa
   await fillEditor(page, "본문 내용입니다.");
 
   await page.getByRole("button", { name: "등록" }).click();
-
   await expectNoSubmitError(page);
 
   // 등록에 성공하면 상세 페이지로 이동합니다.
-  await expect(page).toHaveURL(/\/post\/\d+$/);
+  await expect(page).toHaveURL(/\/post\/\d+$/, { timeout: NAV_TIMEOUT });
   await expect(page.getByRole("heading", { name: title })).toBeVisible();
 
   const postUrl = page.url();
@@ -57,18 +60,17 @@ test("게시글을 작성하고 수정한 뒤 삭제할 수 있다", async ({ pa
 
   await page.getByPlaceholder("제목을 입력해 주세요.").fill(editedTitle);
   await page.getByRole("button", { name: "수정하기" }).click();
-
   await expectNoSubmitError(page);
-  await expect(page).toHaveURL(postUrl);
+
+  await expect(page).toHaveURL(postUrl, { timeout: NAV_TIMEOUT });
   await expect(page.getByRole("heading", { name: editedTitle })).toBeVisible();
 
   // 3. 삭제 — confirm 창을 수락합니다.
   page.on("dialog", dialog => dialog.accept());
-
   await page.getByRole("button", { name: "게시글 더보기" }).click();
   await page.getByRole("menuitem", { name: "삭제하기" }).click();
 
   // 삭제하면 목록으로 이동하고, 지운 글은 더 이상 보이지 않습니다.
-  await expect(page).toHaveURL(/\/post\/list/);
+  await expect(page).toHaveURL(/\/post\/list/, { timeout: NAV_TIMEOUT });
   await expect(page.getByText(editedTitle)).toHaveCount(0);
 });
