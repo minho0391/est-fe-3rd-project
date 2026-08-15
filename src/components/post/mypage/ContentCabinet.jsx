@@ -5,7 +5,7 @@ import React from "react";
 
 export default function ContentCabinet({ contents = [] }) {
   return (
-    <section className="cabinet-embedded" aria-label="내 AI 저장 콘텐츠">
+    <div className="cabinet-embedded" aria-label="내 AI 저장 콘텐츠">
       <div className="cabinet-contentList">
         {contents.length > 0 ? (
           contents.map(item => (
@@ -32,6 +32,6 @@ export default function ContentCabinet({ contents = [] }) {
           <p className="cabinet-emptyText">저장된 콘텐츠가 없습니다.</p>
         )}
       </div>
-    </section>
+    </div>
   );
 }

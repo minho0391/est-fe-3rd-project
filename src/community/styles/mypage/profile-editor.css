@@ -201,3 +201,103 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+.mypage-passwordSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+
+.mypage-passwordSection legend {
+  padding: 0 6px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mypage-passwordHelp {
+  margin: -4px 0 0;
+  color: var(--ink-muted);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.mypage-passwordInputRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.mypage-passwordCheckButton {
+  min-width: 72px;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mypage-passwordCheckButton:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.mypage-passwordCheckButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.mypage-fieldMessage {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 18px;
+  line-height: 18px;
+}
+
+.mypage-fieldMessage--valid {
+  color: #16803c !important;
+}
+
+.mypage-fieldMessage--invalid {
+  color: var(--danger) !important;
+}
+
+.mypage-fieldMessage--checking {
+  color: var(--primary) !important;
+}
+
+.mypage-fieldCheck {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #16803c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+@media (max-width: 480px) {
+  .mypage-passwordInputRow {
+    grid-template-columns: 1fr;
+  }
+
+  .mypage-passwordCheckButton {
+    width: 100%;
+  }
+}

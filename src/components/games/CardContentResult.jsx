@@ -68,14 +68,15 @@ export default function CardContentResult({ content, onClose, onNext, hasNext = 
   };
 
   return (
+    // aria-label 을 Dialog 에 직접 주면 role="presentation" 인 루트 div 에 붙어 웹 표준 위반입니다.
+    // role="dialog" 가 붙는 paper 에 넘깁니다.
     <Dialog
       open
       onClose={onClose}
-      aria-label="뽑힌 카드"
       transitionDuration={80}
       slotProps={{
         backdrop: { sx: dialogBackdropSx },
-        paper: { sx: transparentPaperSx },
+        paper: { sx: transparentPaperSx, "aria-label": "뽑힌 카드" },
       }}
     >
       <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
@@ -97,7 +98,7 @@ export default function CardContentResult({ content, onClose, onNext, hasNext = 
 
             <Box sx={scriptGroupSx}>
               {lines.map((line, index) => (
-                <Typography key={index} variant="h3" align="center" sx={scriptSx}>
+                <Typography key={index} component="p" variant="h3" align="center" sx={scriptSx}>
                   {line}
                 </Typography>
               ))}
@@ -106,6 +107,7 @@ export default function CardContentResult({ content, onClose, onNext, hasNext = 
             {answer &&
               (showAnswer ? (
                 <Typography
+                  component="p"
                   variant="h5"
                   color="primary.main"
                   align="center"

@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import { CloseIcon, RefreshIcon } from "@/images/icons";
+import useFocusTrap from "@/hooks/useFocusTrap";
 import {
   getPostsByAuthorId,
   getCurrentCommunityUser,
@@ -14,22 +15,32 @@ export default function ContentFetcherModal({ open, onClose, onApply }) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const modalRef = useFocusTrap(open);
+
   useEffect(() => {
     if (!open) return undefined;
 
     const handleEscape = event => {
-      if (event.key === "Escape" && !isLoading) onClose();
+      if (event.key === "Escape" && !isLoading) {
+        event.preventDefault();
+        onClose();
+      }
     };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [open, isLoading, onClose]);
+
+  useEffect(() => {
+    if (!open) return undefined;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", handleEscape);
 
     return () => {
       document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", handleEscape);
     };
-  }, [open, isLoading, onClose]);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -88,10 +99,12 @@ export default function ContentFetcherModal({ open, onClose, onApply }) {
       }}
     >
       <section
+        ref={modalRef}
         className="write-existingModal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="write-existingModal-title"
+        tabIndex={-1}
       >
         <header className="write-existingModal-header">
           <div>

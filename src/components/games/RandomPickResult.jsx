@@ -80,13 +80,14 @@ export default function RandomPickResult({ content, onClose, onRepick }) {
   };
 
   return (
+    // aria-label 을 Dialog 에 직접 주면 role="presentation" 인 루트 div 에 붙어 웹 표준 위반입니다.
+    // role="dialog" 가 붙는 paper 에 넘깁니다.
     <Dialog
       open
       onClose={onClose}
-      aria-label="뽑기 결과"
       slotProps={{
         backdrop: { sx: dialogBackdropSx },
-        paper: { sx: transparentPaperSx },
+        paper: { sx: transparentPaperSx, "aria-label": "뽑기 결과" },
       }}
     >
       <Box
@@ -114,7 +115,7 @@ export default function RandomPickResult({ content, onClose, onRepick }) {
 
           <Box sx={scriptGroupSx}>
             {lines.map((line, index) => (
-              <Typography key={index} variant="h3" align="center" sx={scriptSx}>
+              <Typography key={index} component="p" variant="h3" align="center" sx={scriptSx}>
                 {line}
               </Typography>
             ))}
@@ -122,7 +123,13 @@ export default function RandomPickResult({ content, onClose, onRepick }) {
 
           {answer &&
             (showAnswer ? (
-              <Typography variant="h5" color="primary.main" align="center" sx={keepAllSx}>
+              <Typography
+                component="p"
+                variant="h5"
+                color="primary.main"
+                align="center"
+                sx={keepAllSx}
+              >
                 정답: {answer}
               </Typography>
             ) : (

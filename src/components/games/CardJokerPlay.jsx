@@ -119,9 +119,11 @@ export default function CardJokerPlay() {
             <Typography variant="body2" color="text.disabled">
               이번 판 벌칙
             </Typography>
+            {/* subtitle1 은 MUI 기본 매핑이 h6 이라 제목이 아닌 문구는 p 로 둡니다. */}
             {toContentLines(penalty).map((line, index) => (
               <Typography
                 key={index}
+                component="p"
                 variant="subtitle1"
                 color="primary.main"
                 align="center"
@@ -155,7 +157,8 @@ export default function CardJokerPlay() {
                 />
               </Box>
 
-              <Typography variant="h5" color={stateColor} sx={cardStateLabelSx}>
+              {/* 카드 상태 라벨이라 제목이 아닙니다. */}
+              <Typography component="p" variant="h5" color={stateColor} sx={cardStateLabelSx}>
                 {isJoker ? "조커! 벌칙" : "세이프"}
               </Typography>
             </Box>

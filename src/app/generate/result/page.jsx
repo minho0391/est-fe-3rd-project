@@ -426,7 +426,7 @@ function HighlightTopicCard({ item, theme }) {
         <Avatar variant="rounded" sx={styles.highlightAvatar}>
           <Box component="img" src="/assets/icons/topic3_icon.svg" alt="" sx={styles.icon16} />
         </Avatar>
-        <Typography variant="overline" fontWeight={700} sx={{ opacity: 0.85, letterSpacing: 0.5 }}>
+        <Typography variant="overline" fontWeight={700} sx={{ letterSpacing: 0.5 }}>
           TOPIC 3
         </Typography>
         <Typography variant="h4" fontWeight={700} sx={{ mb: 1.5 }}>

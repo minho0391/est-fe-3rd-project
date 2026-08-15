@@ -254,7 +254,9 @@ export default function RandomPick() {
                     transform: `translateX(${(order[index] - index) * gap}px)`,
                   }}
                 >
+                  {/* button 안이라 div 대신 span 으로 둡니다. */}
                   <Box
+                    component="span"
                     aria-hidden="true"
                     sx={{
                       position: "absolute",

@@ -48,7 +48,13 @@ export default function QuizAnswer({ quiz, onNext }) {
       </Box>
 
       <Box sx={{ pb: 2 }}>
-        <Typography variant="subtitle1" color="text.disabled" sx={{ lineHeight: "27px" }}>
+        {/* subtitle1 은 MUI 기본 매핑이 h6 이라 안내 문구는 p 로 둡니다. */}
+        <Typography
+          component="p"
+          variant="subtitle1"
+          color="text.disabled"
+          sx={{ lineHeight: "27px" }}
+        >
           정답은
         </Typography>
       </Box>

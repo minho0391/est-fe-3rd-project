@@ -64,6 +64,8 @@ export default function CardModeSelect({ onSelect }) {
           const isFocused = focused === mode.id;
 
           return (
+            // ButtonBase 는 button 으로 렌더되므로 안쪽에는 span 만 둡니다.
+            // (button 의 콘텐츠 모델은 phrasing content 라 h*·p·div 를 넣을 수 없습니다.)
             <ButtonBase
               key={mode.id}
               onClick={() => onSelect(mode.id)}
@@ -82,19 +84,23 @@ export default function CardModeSelect({ onSelect }) {
                 sx={{ width: 80, height: 80, mb: { xs: 2, sm: 3 } }}
               />
 
-              <Typography variant="h5">{mode.title}</Typography>
+              <Typography component="span" variant="h5">
+                {mode.title}
+              </Typography>
 
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              <Typography component="span" variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                 {mode.description}
               </Typography>
 
               <Box
+                component="span"
                 sx={{
                   ...badgeSx,
                   bgcolor: isFocused ? "primary.main" : "momentalk.presetCard",
                 }}
               >
                 <Typography
+                  component="span"
                   variant="body2"
                   sx={{
                     lineHeight: "20px",

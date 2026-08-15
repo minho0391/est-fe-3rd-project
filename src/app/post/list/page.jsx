@@ -112,6 +112,8 @@ export default function PostListPage() {
   return (
     <main className="community-scope community-page post-list-page">
       <div className="post-list-container">
+        <h1 className="community-visuallyHidden">커뮤니티</h1>
+
         <div className="post-list-rankingGrid">
           <TopThree
             title="조회수 TOP 3"
@@ -159,7 +161,7 @@ export default function PostListPage() {
 
           <div className="community-section-heading">
             <div>
-              <h1 className="community-section-title">전체 글보기</h1>
+              <h2 className="community-section-title">전체 글보기</h2>
 
               <p className="community-section-description">
                 {visiblePosts.length}개의 글

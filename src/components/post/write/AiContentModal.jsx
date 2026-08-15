@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import { CloseIcon } from "@/images/icons";
+import useFocusTrap from "@/hooks/useFocusTrap";
 
 const parseKeywords = value =>
   value
@@ -59,24 +60,32 @@ export default function AiContentModal({
     setErrorMessage("");
   }, [open, initialTitle, initialDescription, initialKeywords]);
 
+  const modalRef = useFocusTrap(open);
+
   useEffect(() => {
     if (!open) return undefined;
 
     const handleEscape = event => {
       if (event.key === "Escape" && !isLoading) {
+        event.preventDefault();
         onClose();
       }
     };
 
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [open, isLoading, onClose]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", handleEscape);
 
     return () => {
       document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", handleEscape);
     };
-  }, [open, isLoading, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -134,10 +143,12 @@ export default function AiContentModal({
       }}
     >
       <section
+        ref={modalRef}
         className="write-aiModal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="write-aiModal-title"
+        tabIndex={-1}
       >
         <header className="write-aiModal-header">
           <div>
