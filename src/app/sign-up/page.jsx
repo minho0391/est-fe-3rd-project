@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import "@/auth/auth.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
