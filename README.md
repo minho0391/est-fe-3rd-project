@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # Momentalk
 
 모임에서 무슨 말을 할지 막힐 때, 상황에 맞는 대화 소재를 AI가 뽑아 주는 서비스입니다.
@@ -278,3 +279,137 @@ DB 문서는 두 갈래로 관리합니다.
 - `develop` 브랜치 보호 — 직접 push 불가, PR 필수
 - 브랜치 네이밍 `feat/` `fix/` `docs/` `test/` `chore/`
 - GitHub Actions로 E2E 자동 실행, Discord 웹훅으로 머지 알림
+=======
+# Momentalk 컴포넌트
+
+Figma 실측값을 기반으로 만든 Next.js 컴포넌트 모음입니다.
+CSS Modules + CSS 변수 방식이며 Tailwind를 쓰지 않습니다.
+
+---
+
+## 설치
+
+```bash
+npm i pretendard
+```
+
+## 파일 배치
+
+```
+프로젝트/
+├─ app/
+│  ├─ layout.jsx        ← variable.css import
+│  └─ preview/
+│     └─ page.jsx       ← preview.jsx 를 여기로
+├─ components/          ← 통째로 복사
+└─ styles/
+   └─ variable.css
+```
+
+`app/layout.jsx` 상단:
+
+```jsx
+import "@/styles/variable.css";
+```
+
+`jsconfig.json` (또는 `tsconfig.json`)에 경로 별칭이 필요합니다:
+
+```json
+{ "compilerOptions": { "paths": { "@/*": ["./*"] } } }
+```
+
+---
+
+## 컴포넌트 목록
+
+| 컴포넌트 | Figma 원본 | 통합 내역 |
+|---|---|---|
+| `Button` | Button 6종 | `variant` + `icon` prop 하나로 통합 |
+| `Header` | Main-PC / Tablet / Mobile | 반응형 1개로 통합 |
+| `GameHeader` | Header/Game | |
+| `Footer` | PC / Tablet-2줄 / Mobile | 반응형 1개, 모바일 라벨 축약 |
+| `PresetCard` | 소개팅/MT/회식/OT | `tone` prop으로 색만 변경 |
+| `Chip` | 선택 목록 버튼 2종 | `selected` prop |
+| `GameCard` | 게임카드/뒷면 | 앞면 추가 (디자인 미정) |
+| `SearchInput` | input | |
+| `Tab` | tab | |
+| `Dropdown` | dropdown 2종 + Component 6·8 | 4개를 1개로 통합 |
+| `Pagination` | number + chevron 2종 | 3개를 1개로 통합 |
+| `FavoriteButton` | favorite | |
+
+**Figma 컴포넌트 26개 → 코드 컴포넌트 12개**로 정리했습니다.
+
+---
+
+## ⚠️ 디자인과 다르게 만든 부분
+
+팀 결정이 안 난 항목은 **디자인 시스템 토큰 기준**으로 맞췄습니다.
+토론 후 원복이 필요하면 아래 표를 참고하세요.
+
+### 색상
+
+| 컴포넌트 | Figma 원본 | 적용값 | 이유 |
+|---|---|---|---|
+| SearchInput 버튼 | `#6155F5` | `--primary` | iOS 기본색 |
+| SearchInput placeholder | `#8E8E93` | `--text-tertiary` | iOS 기본색 |
+| Dropdown 텍스트 | `#AEAEB2` | `--text-secondary` | iOS 기본색 |
+| Pagination 선택 | `#7E98FF` | `--primary` | 미등록 색 |
+| Pagination 비활성 | `#CDCDCD` | `--border` | 미등록 색 |
+| FavoriteButton | `#FF383C` | `--danger` | iOS 기본색 |
+| Chip 선택 | `#6C63FF` | `--primary` | 구버전 Primary |
+| Chip 기본 텍스트 | `#464555` | `--text-secondary` | 근사값 |
+| PresetCard 제목 | `#1B1B24` | `--text-primary` | 근사값 |
+| PresetCard(소개팅) 아이콘 | `#6C63FF` | `--primary` | 구버전 Primary |
+| PresetCard(OT) 아이콘 | `#32C48D` | `--success` | 미등록 색 |
+| Tab 활성 | `#FFE0E0` | `--tab-active-bg` | 연분홍은 임시색 추정 |
+| Header 햄버거 | `#121C2A` | `--text-primary` | 미등록 색 |
+
+> `#EFF4FF`(Footer)와 `#F6F2FF`(Tab)는 실제로 쓰이는 색이라
+> `--footer-bg`, `--tab-active-bg` 토큰으로 승격했습니다.
+
+### 수치
+
+| 항목 | Figma 원본 | 적용값 | 이유 |
+|---|---|---|---|
+| Button 글자 | 16px / 18px 혼재 | 18px Medium | 다수 + 터치영역 |
+| PresetCard 라운드 | 12px | 20px (`--radius-card`) | 토큰 |
+| GameCard 라운드 | 12px | 20px | 토큰 |
+| SearchInput 라운드 | 0px | 12px (`--radius-input`) | 토큰 |
+| SearchInput 높이 | 51px | 56px | 버튼과 통일 |
+| Dropdown 라운드 | 10px | 12px | 토큰 |
+| Dropdown 높이 | 51px | 56px | 버튼과 통일 |
+| Header 로그인 버튼 라운드 | 8px | 12px | 회원가입과 통일 |
+
+### 데이터
+
+| 항목 | 변경 |
+|---|---|
+| 기간 필터 순서 | `1일/1년/1주일/1개월/6개월` → 시간순 재배치 |
+
+### 아이콘
+
+Figma는 Material Icons / Material Symbols Rounded / Material Symbols Sharp / SVG
+4가지가 섞여 있었습니다. **전부 인라인 SVG로 통일**했습니다.
+아이콘이 많아지면 `lucide-react` 도입을 권합니다.
+
+---
+
+## 미정 항목
+
+코딩은 가능하지만 디자인 확정이 필요한 것들입니다.
+
+1. **버튼 hover / active 색** — `variable.css`에 `/* 임시값 */`로 표시
+2. **Shadow** — 카드 그림자 1종만 발견, 나머지는 추정값
+3. **line-height** — 발표자료 미기재, 비율(120~160%)로 처리
+4. **GameCard 앞면** — 디자인 없음, 임시 구현
+5. **Tab 활성 표현** — 배경 채움 + 하단선 둘 다 적용 (원본은 베리언트마다 달랐음)
+
+---
+
+## 컴포넌트 갤러리
+
+`preview.jsx`를 `app/preview/page.jsx`로 옮기면
+`/preview`에서 전체 컴포넌트를 한눈에 볼 수 있습니다.
+
+1차 프로젝트의 `common.html`과 같은 역할입니다.
+>>>>>>> Stashed changes
