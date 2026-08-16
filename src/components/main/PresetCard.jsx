@@ -33,13 +33,15 @@ const thumbWrapSx = {
   overflow: "hidden",
 };
 
+// 원본 비율을 유지한 채 넘치는 부분만 잘라냅니다.
+// 이전에는 left/width 를 퍼센트로 밀어 크롭했는데, 반응형으로 컨테이너
+// 비율이 달라지면서 이미지가 가로로 늘어났습니다(Lighthouse image-aspect-ratio).
 const thumbSx = {
   position: "absolute",
-  top: 0,
-  left: "-41.76%",
-  width: "183.51%",
+  inset: 0,
+  width: "100%",
   height: "100%",
-  maxWidth: "none",
+  objectFit: "cover",
 };
 
 const overlaySx = {
