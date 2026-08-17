@@ -113,21 +113,22 @@ export default function AuthMenu() {
 
   return (
     <Box sx={styles.root}>
+      {/* 버튼에 보이는 닉네임을 aria-label 앞에 넣어야 label-content-name-mismatch 를 피합니다. */}
       <Box
         component="button"
         type="button"
         onClick={openUserMenu}
         aria-haspopup="true"
         aria-expanded={Boolean(userMenuAnchor)}
-        aria-label="내 계정 메뉴"
+        aria-label={`${profile.nickname} 내 계정 메뉴`}
         sx={styles.profileButton}
       >
         {/* button 안이라 Avatar 기본 태그(div) 대신 span 으로 둡니다. */}
-        {/* src 가 있으면 MUI 가 내부에 img 를 만드는데, alt 를 주지 않으면 비어 있어 axe 에 걸립니다. */}
+        {/* 닉네임이 옆에 텍스트로 있으므로 아바타는 장식으로 보고 접근성 트리에서 뺍니다. */}
         <Avatar
           component="span"
+          aria-hidden="true"
           src={profile.avatar_url || undefined}
-          slotProps={{ img: { alt: `${profile.nickname} 프로필 사진` } }}
           sx={{ ...styles.avatar, bgcolor: avatarColorOf(profile.nickname) }}
         >
           {profile.nickname?.charAt(0)}

@@ -54,11 +54,12 @@ export default function Footer() {
         }}
       >
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+          {/* 보이는 텍스트(Momentalk)를 aria-label 앞에 넣어야 label-content-name-mismatch 를 피합니다. */}
           <MuiLink
             component={Link}
             href="/"
             underline="none"
-            aria-label="홈으로 이동"
+            aria-label="Momentalk 홈으로 이동"
             sx={{ width: "fit-content" }}
           >
             {/* 로고는 문서 제목이 아니라 홈 링크라 heading 태그를 쓰지 않습니다. */}
