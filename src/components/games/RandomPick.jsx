@@ -15,7 +15,9 @@ import { formatChipSx, formatFilterRowSx, gameContentSx, gamePageSx } from "./st
 
 // 좁은 화면에서는 공 5개가 한 줄에 들어가도록 줄입니다.
 // 섞기 애니메이션이 한 줄 기준 x축 이동이라 줄 수는 그대로 둡니다.
-const BALL_SIZE = { xs: 40, sm: 80 };
+// [주의] 아래 카드 높이·패딩이 lg 에서 커지므로 공도 lg 에서 커져야 합니다.
+// sm 으로 두면 태블릿 구간(600~1199)에서 카드 80px 안에 공 80px 이 들어가 잘립니다.
+const BALL_SIZE = { xs: 40, lg: 80 };
 const BALL_SIZE_FALLBACK = 80;
 
 const SHUFFLE_STEPS = 4;
@@ -216,6 +218,7 @@ export default function RandomPick() {
               position: "relative",
               width: "100%",
               // 공 크기 + 위아래 여백에 맞춘 높이입니다.
+              // [주의] 이 브레이크포인트와 BALL_SIZE 의 브레이크포인트가 어긋나면 공이 잘립니다.
               height: { xs: 80, lg: 178 },
               p: { xs: "20px", lg: "49px" },
               boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
