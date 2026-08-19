@@ -1,11 +1,11 @@
 // [기존 콘텐츠 불러오기 모달] 게시글을 선택해 미리본 뒤 적용할 때만 작성 폼에 반영합니다.
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import { CloseIcon, RefreshIcon } from "@/images/icons";
 import useFocusTrap from "@/hooks/useFocusTrap";
-import { sanitizeCommunityHtml } from "@/lib/sanitizeCommunityHtml";
+import WritePreviewContent from "./WritePreviewContent";
 import {
   getPostsByAuthorId,
   getCurrentCommunityUser,
@@ -18,10 +18,6 @@ export default function ContentFetcherModal({ open, onClose, onApply }) {
   const [errorMessage, setErrorMessage] = useState("");
 
   const modalRef = useFocusTrap(open);
-  const sanitizedPreviewContent = useMemo(
-    () => sanitizeCommunityHtml(previewPost?.content ?? ""),
-    [previewPost],
-  );
 
   useEffect(() => {
     if (!open) return undefined;
@@ -49,7 +45,7 @@ export default function ContentFetcherModal({ open, onClose, onApply }) {
   }, [open]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) return undefined;
 
     let isMounted = true;
     setPreviewPost(null);
@@ -139,44 +135,10 @@ export default function ContentFetcherModal({ open, onClose, onApply }) {
 
         <div className="write-existingModal-body">
           {previewPost ? (
-            <article
-              className="write-preview"
-              aria-label="기존 콘텐츠 읽기 전용 미리보기"
-            >
-              <div className="write-preview-meta">
-                <span className="write-preview-badge">읽기 전용</span>
-                <div className="write-preview-context">
-                  <span>{previewPost.board || "게시판 미지정"}</span>
-                  {previewPost.createdAt && (
-                    <time dateTime={previewPost.createdAt}>
-                      {new Date(previewPost.createdAt).toLocaleDateString(
-                        "ko-KR",
-                      )}
-                    </time>
-                  )}
-                </div>
-                <h3 className="write-preview-title">
-                  {previewPost.title || "제목 없음"}
-                </h3>
-                {previewPost.description && (
-                  <p className="write-preview-description">
-                    {previewPost.description}
-                  </p>
-                )}
-                {Array.isArray(previewPost.tags) &&
-                  previewPost.tags.length > 0 && (
-                    <div className="write-preview-tags">
-                      {previewPost.tags.map(tag => (
-                        <span key={tag}>#{tag}</span>
-                      ))}
-                    </div>
-                  )}
-              </div>
-              <div
-                className="write-preview-content ql-editor"
-                dangerouslySetInnerHTML={{ __html: sanitizedPreviewContent }}
-              />
-            </article>
+            <WritePreviewContent
+              post={previewPost}
+              ariaLabel="기존 콘텐츠 읽기 전용 미리보기"
+            />
           ) : (
             <>
               {isLoading && (
@@ -242,7 +204,7 @@ export default function ContentFetcherModal({ open, onClose, onApply }) {
             onClick={onClose}
             disabled={isLoading}
           >
-            취소
+            {previewPost ? "취소" : "닫기"}
           </Button>
 
           {previewPost && (
