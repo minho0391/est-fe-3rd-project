@@ -493,3 +493,9 @@
     gap: 4px;
   }
 }
+
+/* 키보드로 미리보기 스크롤 영역에 진입했을 때 현재 포커스를 명확히 표시합니다. */
+.community-scope .write-preview-content:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
