@@ -8,6 +8,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
     steps:
       - uses: actions/checkout@v4
 
@@ -20,7 +21,7 @@ jobs:
         run: npm ci
 
       - name: 브라우저 설치
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
 
       - name: 테스트 실행
         env:
