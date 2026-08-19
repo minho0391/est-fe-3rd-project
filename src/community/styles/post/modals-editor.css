@@ -2,7 +2,7 @@
 게시글 모달 및 에디터 스타일
  - AI 생성 모달 / 기존 글 불러오기 모달 / Quill 도구 모음을 관리합니다.
 */
-.community-scope .write-aiModalBackdrop {
+.community-scope .write-contentModalBackdrop {
   position: fixed;
   inset: 0;
   z-index: 9998;
@@ -12,18 +12,28 @@
   background: rgba(15, 23, 42, 0.48);
 }
 
-.community-scope .write-aiModal {
-  width: min(100%, 640px);
+.community-scope .write-contentModal {
   max-height: calc(100vh - 48px);
-  overflow-y: auto;
   border: 1px solid var(--line);
   border-radius: 24px;
   background: var(--surface);
   box-shadow: 0 24px 64px rgba(15, 23, 42, 0.2);
 }
 
-.community-scope .write-aiModal-header,
-.community-scope .write-aiModal-actions {
+.community-scope .write-contentModal--ai {
+  width: min(100%, 640px);
+  overflow-y: auto;
+}
+
+.community-scope .write-contentModal--existing {
+  width: min(100%, 720px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.community-scope .write-contentModal-header,
+.community-scope .write-contentModal-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -31,24 +41,24 @@
   padding: 24px;
 }
 
-.community-scope .write-aiModal-header {
+.community-scope .write-contentModal-header {
   border-bottom: 1px solid var(--line);
 }
 
-.community-scope .write-aiModal-title {
+.community-scope .write-contentModal-title {
   margin: 0;
   font-size: 24px;
   line-height: 32px;
   font-weight: 800;
 }
 
-.community-scope .write-aiModal-description {
+.community-scope .write-contentModal-description {
   margin: 8px 0 0;
   color: var(--ink-muted);
   line-height: 24px;
 }
 
-.community-scope .write-aiModal-closeButton {
+.community-scope .write-contentModal-closeButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -63,18 +73,32 @@
   cursor: pointer;
 }
 
-.community-scope .write-aiModal-closeButton:disabled {
+.community-scope .write-contentModal-closeButton:disabled {
   opacity: 0.48;
   cursor: not-allowed;
 }
 
-.community-scope .write-aiModal-body {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+.community-scope .write-contentModal-body {
   padding: 24px;
 }
 
+.community-scope .write-contentModal-body--ai {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.community-scope .write-contentModal-body--existing {
+  min-height: 240px;
+  overflow-y: auto;
+}
+
+.community-scope .write-contentModal-actions {
+  justify-content: flex-end;
+  border-top: 1px solid var(--line);
+}
+
+/* AI 콘텐츠 생성 모달 전용 */
 .community-scope .write-aiModal-field {
   display: flex;
   flex-direction: column;
@@ -118,112 +142,7 @@
   color: var(--danger);
 }
 
-.community-scope .write-aiModal-actions {
-  justify-content: flex-end;
-  border-top: 1px solid var(--line);
-}
-
-@media (max-width: 767px) {
-  .community-scope .write-aiModalBackdrop {
-    align-items: end;
-    padding: 0;
-  }
-
-  .community-scope .write-aiModal {
-    width: 100%;
-    max-height: 88vh;
-    border-radius: 24px 24px 0 0;
-  }
-
-  .community-scope .write-aiModal-header,
-  .community-scope .write-aiModal-body,
-  .community-scope .write-aiModal-actions {
-    padding: 16px;
-  }
-
-  .community-scope .write-aiModal-actions {
-    flex-direction: column-reverse;
-  }
-
-  .community-scope .write-aiModal-actions > * {
-    width: 100%;
-  }
-}
-
-/* 기존 콘텐츠 불러오기 모달 */
-.community-scope .write-existingModalBackdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 9998;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  background: rgba(15, 23, 42, 0.48);
-}
-
-.community-scope .write-existingModal {
-  width: min(100%, 720px);
-  max-height: calc(100vh - 48px);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--line);
-  border-radius: 24px;
-  background: var(--surface);
-  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.2);
-}
-
-.community-scope .write-existingModal-header,
-.community-scope .write-existingModal-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 24px;
-}
-
-.community-scope .write-existingModal-header {
-  border-bottom: 1px solid var(--line);
-}
-
-.community-scope .write-existingModal-title {
-  margin: 0;
-  font-size: 24px;
-  line-height: 32px;
-  font-weight: 800;
-}
-
-.community-scope .write-existingModal-description {
-  margin: 8px 0 0;
-  color: var(--ink-muted);
-  line-height: 24px;
-}
-
-.community-scope .write-existingModal-closeButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  flex: 0 0 40px;
-  border: 0;
-  border-radius: 16px;
-  background: transparent;
-  color: var(--ink);
-  cursor: pointer;
-}
-
-.community-scope .write-existingModal-closeButton:disabled {
-  opacity: 0.48;
-  cursor: not-allowed;
-}
-
-.community-scope .write-existingModal-body {
-  min-height: 240px;
-  overflow-y: auto;
-  padding: 24px;
-}
-
+/* 기존 콘텐츠 불러오기 모달 전용 */
 .community-scope .write-existingModal-state,
 .community-scope .write-existingModal-error {
   min-height: 160px;
@@ -312,27 +231,30 @@
   line-height: 24px;
 }
 
-.community-scope .write-existingModal-actions {
-  justify-content: flex-end;
-  border-top: 1px solid var(--line);
-}
-
 @media (max-width: 767px) {
-  .community-scope .write-existingModalBackdrop {
+  .community-scope .write-contentModalBackdrop {
     align-items: end;
     padding: 0;
   }
 
-  .community-scope .write-existingModal {
+  .community-scope .write-contentModal {
     width: 100%;
     max-height: 88vh;
     border-radius: 24px 24px 0 0;
   }
 
-  .community-scope .write-existingModal-header,
-  .community-scope .write-existingModal-body,
-  .community-scope .write-existingModal-actions {
+  .community-scope .write-contentModal-header,
+  .community-scope .write-contentModal-body,
+  .community-scope .write-contentModal-actions {
     padding: 16px;
+  }
+
+  .community-scope .write-contentModal--ai .write-contentModal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .community-scope .write-contentModal--ai .write-contentModal-actions > * {
+    width: 100%;
   }
 
   .community-scope .write-existingModal-itemMeta {
