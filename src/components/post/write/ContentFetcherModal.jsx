@@ -93,7 +93,7 @@ export default function ContentFetcherModal({ open, onClose, onApply }) {
 
   return (
     <div
-      className="write-existingModalBackdrop"
+      className="write-contentModalBackdrop"
       role="presentation"
       onMouseDown={event => {
         if (event.target === event.currentTarget && !isLoading) onClose();
@@ -101,21 +101,21 @@ export default function ContentFetcherModal({ open, onClose, onApply }) {
     >
       <section
         ref={modalRef}
-        className="write-existingModal"
+        className="write-contentModal write-contentModal--existing"
         role="dialog"
         aria-modal="true"
         aria-labelledby="write-existingModal-title"
         tabIndex={-1}
       >
-        <header className="write-existingModal-header">
+        <header className="write-contentModal-header">
           <div>
             <h2
               id="write-existingModal-title"
-              className="write-existingModal-title"
+              className="write-contentModal-title"
             >
               {previewPost ? "기존 콘텐츠 미리보기" : "기존 콘텐츠 불러오기"}
             </h2>
-            <p className="write-existingModal-description">
+            <p className="write-contentModal-description">
               {previewPost
                 ? "선택한 내용을 확인한 뒤 적용을 눌러야 작성 중인 글에 반영됩니다."
                 : "내가 작성한 게시글을 선택해 미리볼 수 있습니다."}
@@ -124,7 +124,7 @@ export default function ContentFetcherModal({ open, onClose, onApply }) {
 
           <button
             type="button"
-            className="write-existingModal-closeButton"
+            className="write-contentModal-closeButton"
             onClick={onClose}
             disabled={isLoading}
             aria-label="기존 콘텐츠 불러오기 모달 닫기"
@@ -133,7 +133,7 @@ export default function ContentFetcherModal({ open, onClose, onApply }) {
           </button>
         </header>
 
-        <div className="write-existingModal-body">
+        <div className="write-contentModal-body write-contentModal-body--existing">
           {previewPost ? (
             <WritePreviewContent
               post={previewPost}
@@ -196,7 +196,7 @@ export default function ContentFetcherModal({ open, onClose, onApply }) {
           )}
         </div>
 
-        <footer className="write-existingModal-actions">
+        <footer className="write-contentModal-actions">
           <Button
             type="button"
             variant="secondary"
