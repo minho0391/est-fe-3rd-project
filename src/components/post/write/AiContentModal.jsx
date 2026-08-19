@@ -1,10 +1,11 @@
-// [AI 콘텐츠 생성 모달] Next.js API Route(/api/generate-community-post)를 호출해 게시글 초안을 생성합니다.
+// [AI 콘텐츠 생성 모달] 생성 결과를 미리보기로 확인한 뒤 적용할 때만 작성 폼에 반영합니다.
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Button from "@/components/ui/Button";
 import { CloseIcon } from "@/images/icons";
 import useFocusTrap from "@/hooks/useFocusTrap";
+import { sanitizeCommunityHtml } from "@/lib/sanitizeCommunityHtml";
 
 const parseKeywords = value =>
   value
@@ -20,12 +21,9 @@ const escapeHtml = value =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 
-// Alan의 평문 본문을 Quill에서 문단이 유지되는 HTML로 변환합니다.
 const toQuillHtml = value => {
   const text = String(value ?? "").trim();
   if (!text) return "";
-
-  // 이미 HTML로 반환된 경우에는 중복 변환하지 않습니다.
   if (/<[a-z][\s\S]*>/i.test(text)) return text;
 
   return text
@@ -48,6 +46,7 @@ export default function AiContentModal({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [keywords, setKeywords] = useState("");
+  const [previewPost, setPreviewPost] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -57,10 +56,16 @@ export default function AiContentModal({
     setTitle(initialTitle);
     setDescription(initialDescription);
     setKeywords(initialKeywords.join(", "));
+    setPreviewPost(null);
     setErrorMessage("");
+    setIsLoading(false);
   }, [open, initialTitle, initialDescription, initialKeywords]);
 
   const modalRef = useFocusTrap(open);
+  const sanitizedPreviewContent = useMemo(
+    () => sanitizeCommunityHtml(previewPost?.content ?? ""),
+    [previewPost],
+  );
 
   useEffect(() => {
     if (!open) return undefined;
@@ -95,12 +100,9 @@ export default function AiContentModal({
 
     try {
       const parsedKeywords = parseKeywords(keywords);
-
       const response = await fetch("/api/generate-community-post", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: title.trim() || undefined,
           description: description.trim() || undefined,
@@ -109,19 +111,18 @@ export default function AiContentModal({
       });
 
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data?.error ?? "AI 생성에 실패했습니다.");
       }
 
-      onApply({
+      // 생성 직후 작성 폼을 수정하지 않고 모달 내부의 임시 미리보기 상태에만 저장합니다.
+      setPreviewPost({
         title: data?.title ?? "",
         description: data?.description ?? "",
         content: toQuillHtml(data?.content),
         tags: Array.isArray(data?.tags) ? data.tags : [],
         isAiGenerated: true,
       });
-      onClose();
     } catch (error) {
       console.error("AI 콘텐츠 생성에 실패했습니다.", error);
       setErrorMessage(
@@ -132,14 +133,18 @@ export default function AiContentModal({
     }
   };
 
+  const handleApply = () => {
+    if (!previewPost) return;
+    onApply(previewPost);
+    onClose();
+  };
+
   return (
     <div
       className="write-aiModalBackdrop"
       role="presentation"
       onMouseDown={event => {
-        if (event.target === event.currentTarget && !isLoading) {
-          onClose();
-        }
+        if (event.target === event.currentTarget && !isLoading) onClose();
       }}
     >
       <section
@@ -153,10 +158,12 @@ export default function AiContentModal({
         <header className="write-aiModal-header">
           <div>
             <h2 id="write-aiModal-title" className="write-aiModal-title">
-              AI 콘텐츠 생성
+              {previewPost ? "AI 콘텐츠 미리보기" : "AI 콘텐츠 생성"}
             </h2>
             <p className="write-aiModal-description">
-              제목, 설명, 키워드를 바탕으로 게시글 초안을 생성합니다.
+              {previewPost
+                ? "생성된 내용을 확인한 뒤 적용을 눌러야 작성 중인 글에 반영됩니다."
+                : "제목, 설명, 키워드를 바탕으로 게시글 초안을 생성합니다."}
             </p>
           </div>
 
@@ -172,34 +179,66 @@ export default function AiContentModal({
         </header>
 
         <div className="write-aiModal-body">
-          <label className="write-aiModal-field">
-            <span>제목</span>
-            <input
-              type="text"
-              value={title}
-              onChange={event => setTitle(event.target.value)}
-              placeholder="생성할 게시글의 제목"
-            />
-          </label>
+          {!previewPost ? (
+            <>
+              <label className="write-aiModal-field">
+                <span>제목</span>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={event => setTitle(event.target.value)}
+                  placeholder="생성할 게시글의 제목"
+                />
+              </label>
 
-          <label className="write-aiModal-field">
-            <span>설명</span>
-            <textarea
-              value={description}
-              onChange={event => setDescription(event.target.value)}
-              placeholder="게시글에서 다루고 싶은 내용을 입력해 주세요."
-            />
-          </label>
+              <label className="write-aiModal-field">
+                <span>설명</span>
+                <textarea
+                  value={description}
+                  onChange={event => setDescription(event.target.value)}
+                  placeholder="게시글에서 다루고 싶은 내용을 입력해 주세요."
+                />
+              </label>
 
-          <label className="write-aiModal-field">
-            <span>키워드</span>
-            <input
-              type="text"
-              value={keywords}
-              onChange={event => setKeywords(event.target.value)}
-              placeholder="여행, 제주, 추천"
-            />
-          </label>
+              <label className="write-aiModal-field">
+                <span>키워드</span>
+                <input
+                  type="text"
+                  value={keywords}
+                  onChange={event => setKeywords(event.target.value)}
+                  placeholder="여행, 제주, 추천"
+                />
+              </label>
+            </>
+          ) : (
+            <article
+              className="write-preview"
+              aria-label="AI 생성 콘텐츠 읽기 전용 미리보기"
+            >
+              <div className="write-preview-meta">
+                <span className="write-preview-badge">읽기 전용</span>
+                <h3 className="write-preview-title">
+                  {previewPost.title || "제목 없음"}
+                </h3>
+                {previewPost.description && (
+                  <p className="write-preview-description">
+                    {previewPost.description}
+                  </p>
+                )}
+                {previewPost.tags.length > 0 && (
+                  <div className="write-preview-tags">
+                    {previewPost.tags.map(tag => (
+                      <span key={tag}>#{tag}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div
+                className="write-preview-content ql-editor"
+                dangerouslySetInnerHTML={{ __html: sanitizedPreviewContent }}
+              />
+            </article>
+          )}
 
           {errorMessage && (
             <div className="write-aiModal-error" role="alert">
@@ -218,15 +257,37 @@ export default function AiContentModal({
           >
             취소
           </Button>
-          <Button
-            type="button"
-            variant="primary"
-            size="md"
-            onClick={handleGenerate}
-            disabled={isLoading}
-          >
-            {isLoading ? "생성 중..." : "AI 초안 생성"}
-          </Button>
+
+          {previewPost ? (
+            <>
+              <Button
+                type="button"
+                variant="tertiary"
+                size="md"
+                onClick={() => setPreviewPost(null)}
+              >
+                다시 생성
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                onClick={handleApply}
+              >
+                적용
+              </Button>
+            </>
+          ) : (
+            <Button
+              type="button"
+              variant="primary"
+              size="md"
+              onClick={handleGenerate}
+              disabled={isLoading}
+            >
+              {isLoading ? "생성 중..." : "미리보기 생성"}
+            </Button>
+          )}
         </footer>
       </section>
     </div>
