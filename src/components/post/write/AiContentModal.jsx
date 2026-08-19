@@ -137,7 +137,7 @@ export default function AiContentModal({
 
   return (
     <div
-      className="write-aiModalBackdrop"
+      className="write-contentModalBackdrop"
       role="presentation"
       onMouseDown={event => {
         if (event.target === event.currentTarget && !isLoading) onClose();
@@ -145,18 +145,18 @@ export default function AiContentModal({
     >
       <section
         ref={modalRef}
-        className="write-aiModal"
+        className="write-contentModal write-contentModal--ai"
         role="dialog"
         aria-modal="true"
         aria-labelledby="write-aiModal-title"
         tabIndex={-1}
       >
-        <header className="write-aiModal-header">
+        <header className="write-contentModal-header">
           <div>
-            <h2 id="write-aiModal-title" className="write-aiModal-title">
+            <h2 id="write-aiModal-title" className="write-contentModal-title">
               {previewPost ? "AI 콘텐츠 미리보기" : "AI 콘텐츠 생성"}
             </h2>
-            <p className="write-aiModal-description">
+            <p className="write-contentModal-description">
               {previewPost
                 ? "생성된 내용을 확인한 뒤 적용을 눌러야 작성 중인 글에 반영됩니다."
                 : "제목, 설명, 키워드를 바탕으로 게시글 초안을 생성합니다."}
@@ -165,7 +165,7 @@ export default function AiContentModal({
 
           <button
             type="button"
-            className="write-aiModal-closeButton"
+            className="write-contentModal-closeButton"
             onClick={onClose}
             disabled={isLoading}
             aria-label="AI 콘텐츠 생성 모달 닫기"
@@ -174,7 +174,7 @@ export default function AiContentModal({
           </button>
         </header>
 
-        <div className="write-aiModal-body">
+        <div className="write-contentModal-body write-contentModal-body--ai">
           {!previewPost ? (
             <>
               <label className="write-aiModal-field">
@@ -220,7 +220,7 @@ export default function AiContentModal({
           )}
         </div>
 
-        <footer className="write-aiModal-actions">
+        <footer className="write-contentModal-actions">
           <Button
             type="button"
             variant="secondary"
