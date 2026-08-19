@@ -1,11 +1,11 @@
 // [AI 콘텐츠 생성 모달] 생성 결과를 미리보기로 확인한 뒤 적용할 때만 작성 폼에 반영합니다.
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import { CloseIcon } from "@/images/icons";
 import useFocusTrap from "@/hooks/useFocusTrap";
-import { sanitizeCommunityHtml } from "@/lib/sanitizeCommunityHtml";
+import WritePreviewContent from "./WritePreviewContent";
 
 const parseKeywords = value =>
   value
@@ -62,10 +62,6 @@ export default function AiContentModal({
   }, [open, initialTitle, initialDescription, initialKeywords]);
 
   const modalRef = useFocusTrap(open);
-  const sanitizedPreviewContent = useMemo(
-    () => sanitizeCommunityHtml(previewPost?.content ?? ""),
-    [previewPost],
-  );
 
   useEffect(() => {
     if (!open) return undefined;
@@ -211,33 +207,10 @@ export default function AiContentModal({
               </label>
             </>
           ) : (
-            <article
-              className="write-preview"
-              aria-label="AI 생성 콘텐츠 읽기 전용 미리보기"
-            >
-              <div className="write-preview-meta">
-                <span className="write-preview-badge">읽기 전용</span>
-                <h3 className="write-preview-title">
-                  {previewPost.title || "제목 없음"}
-                </h3>
-                {previewPost.description && (
-                  <p className="write-preview-description">
-                    {previewPost.description}
-                  </p>
-                )}
-                {previewPost.tags.length > 0 && (
-                  <div className="write-preview-tags">
-                    {previewPost.tags.map(tag => (
-                      <span key={tag}>#{tag}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div
-                className="write-preview-content ql-editor"
-                dangerouslySetInnerHTML={{ __html: sanitizedPreviewContent }}
-              />
-            </article>
+            <WritePreviewContent
+              post={previewPost}
+              ariaLabel="AI 생성 콘텐츠 읽기 전용 미리보기"
+            />
           )}
 
           {errorMessage && (
@@ -255,7 +228,7 @@ export default function AiContentModal({
             onClick={onClose}
             disabled={isLoading}
           >
-            취소
+            {previewPost ? "취소" : "닫기"}
           </Button>
 
           {previewPost ? (
