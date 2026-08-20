@@ -139,6 +139,7 @@ export default function WriteForm({ initialValues = null, postId = null }) {
   const [isExistingModalOpen, setIsExistingModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitLockRef = useRef(false);
 
   const modules = useMemo(
     () => ({
@@ -382,15 +383,17 @@ export default function WriteForm({ initialValues = null, postId = null }) {
   // 실제 Supabase posts 테이블에 저장한 뒤 생성된 게시글 상세로 이동합니다.
   const handleSubmit = async e => {
     e.preventDefault();
-    if (isSubmitting) return;
+    if (submitLockRef.current) return;
 
     if (isQuillContentEmpty(content)) {
       setSubmitError("내용을 입력해 주세요.");
       return;
     }
 
+    submitLockRef.current = true;
+    setIsSubmitting(true);
+
     try {
-      setIsSubmitting(true);
       setSubmitError("");
 
       // 과거 데이터나 일반 링크 형태로 남은 YouTube/Vimeo URL도
@@ -430,7 +433,7 @@ export default function WriteForm({ initialValues = null, postId = null }) {
             ? "게시글 수정에 실패했습니다. 다시 시도해 주세요."
             : "게시글 등록에 실패했습니다. 다시 시도해 주세요."),
       );
-    } finally {
+      submitLockRef.current = false;
       setIsSubmitting(false);
     }
   };
