@@ -114,7 +114,7 @@ export default function QuizSetup({ onSubmit }) {
             value={answer}
             onChange={handleAnswerChange}
             placeholder={`맞힐 단어를 입력하세요 (최대 ${MAX_LENGTH}글자)`}
-            inputProps={{ "aria-label": "정답 단어" }}
+            inputProps={{ "aria-label": "정답 단어", id: "quiz-answer", name: "quiz-answer" }}
             sx={fieldSx}
           />
         </Box>
@@ -128,7 +128,7 @@ export default function QuizSetup({ onSubmit }) {
               value={hint1}
               onChange={e => setHint1(e.target.value)}
               placeholder="예: 동물"
-              inputProps={{ "aria-label": "힌트 1" }}
+              inputProps={{ "aria-label": "힌트 1", id: "quiz-hint1", name: "quiz-hint1" }}
               sx={fieldSx}
             />
           </Box>
@@ -141,7 +141,7 @@ export default function QuizSetup({ onSubmit }) {
               value={hint2}
               onChange={e => setHint2(e.target.value)}
               placeholder="예: 야옹"
-              inputProps={{ "aria-label": "힌트 2" }}
+              inputProps={{ "aria-label": "힌트 2", id: "quiz-hint2", name: "quiz-hint2" }}
               sx={fieldSx}
             />
           </Box>
