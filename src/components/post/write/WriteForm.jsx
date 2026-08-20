@@ -19,7 +19,10 @@ import {
   updatePost,
   uploadPostImage,
 } from "@/lib/communityMutations";
-import { normalizeCommunityVideoEmbeds } from "@/lib/sanitizeCommunityHtml";
+import {
+  normalizeCommunityVideoEmbeds,
+  sanitizeCommunityHtml,
+} from "@/lib/sanitizeCommunityHtml";
 
 // React Quill SSR 이슈 방지를 위한 Dynamic Import
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -136,6 +139,7 @@ export default function WriteForm({ initialValues = null, postId = null }) {
   const [isExistingModalOpen, setIsExistingModalOpen] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitLockRef = useRef(false);
 
   const modules = useMemo(
     () => ({
@@ -379,27 +383,31 @@ export default function WriteForm({ initialValues = null, postId = null }) {
   // 실제 Supabase posts 테이블에 저장한 뒤 생성된 게시글 상세로 이동합니다.
   const handleSubmit = async e => {
     e.preventDefault();
-    if (isSubmitting) return;
+    if (submitLockRef.current) return;
 
     if (isQuillContentEmpty(content)) {
       setSubmitError("내용을 입력해 주세요.");
       return;
     }
 
+    submitLockRef.current = true;
+    setIsSubmitting(true);
+
     try {
-      setIsSubmitting(true);
       setSubmitError("");
 
       // 과거 데이터나 일반 링크 형태로 남은 YouTube/Vimeo URL도
       // 저장 전에 Quill 영상 iframe 마크업으로 통일합니다.
       const normalizedContent = normalizeCommunityVideoEmbeds(content);
+      // 저장 경계에서 최종 1회 sanitize하여 미리보기용 sanitize와 분리합니다.
+      const sanitizedContent = sanitizeCommunityHtml(normalizedContent);
 
       if (isEditMode) {
         await updatePost(postId, {
           board,
           title,
           description,
-          content: normalizedContent,
+          content: sanitizedContent,
           tags,
         });
         router.push(`/post/${postId}`);
@@ -408,7 +416,7 @@ export default function WriteForm({ initialValues = null, postId = null }) {
           board,
           title,
           description,
-          content: normalizedContent,
+          content: sanitizedContent,
           tags,
           isAiGenerated: contentSource === "AI",
         });
@@ -425,7 +433,7 @@ export default function WriteForm({ initialValues = null, postId = null }) {
             ? "게시글 수정에 실패했습니다. 다시 시도해 주세요."
             : "게시글 등록에 실패했습니다. 다시 시도해 주세요."),
       );
-    } finally {
+      submitLockRef.current = false;
       setIsSubmitting(false);
     }
   };

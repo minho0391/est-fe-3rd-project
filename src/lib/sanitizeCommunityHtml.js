@@ -1,6 +1,6 @@
 /**
- * 커뮤니티 본문 출력용 allowlist sanitizer.
- * DB에는 에디터 원본 HTML을 보존하고, 브라우저에 렌더링하기 직전에만 사용합니다.
+ * 커뮤니티 본문용 allowlist sanitizer.
+ * 미리보기/상세 렌더링과 게시글 저장 경계에서 안전한 HTML만 허용할 때 사용합니다.
  */
 const ALLOWED_TAGS = new Set([
   "P",

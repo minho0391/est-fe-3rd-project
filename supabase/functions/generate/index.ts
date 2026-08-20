@@ -10,6 +10,8 @@ type Conditions = {
   relation?: string;
   target?: string;
   mood?: string;
+  custom_input?: string;
+
 };
 
 type PresetRow = {
@@ -394,7 +396,7 @@ export default {
             reason,
             saved,
             generationId,
-            meta: { situation, format: formatLabel, level, mood },
+            meta: { situation, format: formatLabel, level, mood, customInput: cond.custom_input ?? null },
             results: resultsWithId,
             ...extra,
           });

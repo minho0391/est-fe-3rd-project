@@ -201,6 +201,13 @@ function ResultContent() {
     ? `${situationText} - ${formatText} 가이드 ${levelText ? `(${levelText})` : ""}`.trim()
     : "대화 가이드";
 
+  const conditionChips = [
+    { label: "상황: ", value: situationText },
+    { label: "형식: ", value: formatText },
+    meta?.mood ? { label: "분위기: ", value: meta.mood } : null,
+    { label: "깊이: ", value: levelText || "Level 1" },
+  ].filter(Boolean);
+
   return (
     <Box sx={styles.page}>
       {/* 상단 배지 */}
@@ -212,9 +219,29 @@ function ResultContent() {
       <Typography variant="h2" color="text.primary" sx={{ mb: 1.5 }}>
         {title}
       </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 5 }}>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 2.5 }}>
         AI가 당신의 상황에 맞춰 만든 대화 가이드예요.
       </Typography>
+
+      {conditionChips.length > 0 && (
+        <Box sx={{ ...styles.conditionBar, bgcolor: theme.palette.momentalk.presetCard }}>
+          {conditionChips.map(chip => (
+            <Box key={chip.label} sx={styles.conditionChip}>
+              <Typography variant="caption" color="text.secondary" fontWeight={700}>
+                {chip.label}
+              </Typography>
+              <Typography variant="caption" color="text.primary" fontWeight={600}>
+                {chip.value}
+              </Typography>
+            </Box>
+          ))}
+          {meta?.customInput && (
+            <Typography variant="body2" color="text.secondary" sx={{ width: "100%" }}>
+              “{meta.customInput}”
+            </Typography>
+          )}
+        </Box>
+      )}
 
       {/* Topic 1 / Topic 2 */}
       {topics.length > 0 && (
