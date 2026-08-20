@@ -109,12 +109,9 @@ export default function MyPage() {
         if (!isMounted) return;
 
         if (!me) {
-          setUserProfile(null);
-          setMyPosts([]);
-          setMyComments([]);
-          setLikedPosts([]);
-          setSavedContents([]);
-          setLoadError("로그인이 필요합니다.");
+          router.replace(
+            `/sign-in?returnUrl=${encodeURIComponent("/post/mypage")}`,
+          );
           return;
         }
 
@@ -150,7 +147,7 @@ export default function MyPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [router]);
 
   const handleSignOut = async () => {
     if (isSigningOut) return;
